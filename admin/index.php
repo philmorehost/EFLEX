@@ -2,14 +2,14 @@
 // Initialize the session
 session_start();
 
-// Include database connection file
-require_once "../includes/db_connect.php";
-
 // If user is already logged in as admin, redirect to admin dashboard
-if(isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true && isset($_SESSION["role"]) && $_SESSION["role"] === 'admin'){
+if(isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true && isset($_SESSION["role_id"])){
     header("location: dashboard.php");
     exit;
 }
+
+// Include database connection file
+require_once "../includes/db_connect.php";
 
 // Define variables and initialize with empty values
 $username = $password = "";
@@ -31,7 +31,8 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
     }
 
     if(empty($username_err) && empty($password_err)){
-        $sql = "SELECT id, username, password, role FROM users WHERE username = ?";
+        // Validate credentials
+        $sql = "SELECT id, username, password, role_id FROM users WHERE username = ?";
 
         if($stmt = $mysqli->prepare($sql)){
             $stmt->bind_param("s", $param_username);
@@ -41,22 +42,24 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
                 $stmt->store_result();
 
                 if($stmt->num_rows == 1){
-                    $stmt->bind_result($id, $username, $hashed_password, $role);
+                    $stmt->bind_result($id, $username, $hashed_password, $role_id);
                     if($stmt->fetch()){
                         if(password_verify($password, $hashed_password)){
-                            // Password is correct, now verify the role
-                            if($role === 'admin'){
-                                // Role is admin, start a new session
-                                session_start();
+                            // Password is correct, check if the user has a role assigned
+                            if(!empty($role_id)){
+                                // Role is assigned, start a new session
+                                // session_start(); // Session already started
 
+                                // Store data in session variables
                                 $_SESSION["loggedin"] = true;
                                 $_SESSION["id"] = $id;
                                 $_SESSION["username"] = $username;
-                                $_SESSION["role"] = $role;
+                                $_SESSION["role_id"] = $role_id; // Store role_id
 
+                                // Redirect user to admin dashboard
                                 header("location: dashboard.php");
                             } else {
-                                $login_err = "Access Denied. You do not have permission to access this area.";
+                                $login_err = "Access Denied. You are not an authorized staff member.";
                             }
                         } else{
                             $login_err = "Invalid username or password.";
@@ -106,7 +109,7 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
         </div>
 
         <button class="w-100 btn btn-lg btn-primary" type="submit">Sign in</button>
-        <p class="mt-5 mb-3 text-muted">&copy; 2025 Eflex E-commerce</p>
+        <p class="mt-5 mb-3 text-muted">&copy; <?php echo date("Y"); ?> Eflex E-commerce</p>
     </form>
 </main>
 
