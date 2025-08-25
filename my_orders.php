@@ -129,7 +129,7 @@ if($stmt = $mysqli->prepare($sql)){
                     <tr>
                         <td>#<?php echo $order['id']; ?></td>
                         <td><?php echo $order['created_at']; ?></td>
-                        <td>$<?php echo number_format($order['total_amount'], 2); ?></td>
+                        <td><?php echo htmlspecialchars($_SESSION['currency_symbol']); ?><?php echo number_format($order['total_amount'], 2); ?></td>
                         <td><span class="badge bg-primary"><?php echo htmlspecialchars($order['status']); ?></span></td>
                         <td>
                             <a href="view_order.php?id=<?php echo $order['id']; ?>" class="btn btn-sm btn-info">View</a>

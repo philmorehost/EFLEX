@@ -74,7 +74,7 @@ $stmt_gallery->close();
                 </ol>
             </nav>
             <h2><?php echo htmlspecialchars($product['name']); ?></h2>
-            <h4 class="text-success">$<?php echo htmlspecialchars($product['price']); ?></h4>
+            <h4 class="text-success"><?php echo htmlspecialchars($_SESSION['currency_symbol']); ?><?php echo htmlspecialchars($product['price']); ?></h4>
             <p class="lead"><?php echo nl2br(htmlspecialchars($product['description'])); ?></p>
             <hr>
             <form id="add-to-cart-form" class="ajax-add-to-cart-form">

@@ -107,7 +107,7 @@ include 'includes/header.php';
             <tr>
                 <td style="width: 100px;"><img src="uploads/<?php echo htmlspecialchars($item['image']); ?>" class="img-fluid" alt="<?php echo htmlspecialchars($item['name']); ?>"></td>
                 <td><?php echo htmlspecialchars($item['name']); ?></td>
-                <td>$<?php echo number_format($item['price'], 2); ?></td>
+                <td><?php echo htmlspecialchars($_SESSION['currency_symbol']); ?><?php echo number_format($item['price'], 2); ?></td>
                 <td>
                     <form action="cart.php" method="post" class="d-flex">
                         <input type="hidden" name="action" value="update">
@@ -116,7 +116,7 @@ include 'includes/header.php';
                         <button type="submit" class="btn btn-sm btn-primary ms-2">Update</button>
                     </form>
                 </td>
-                <td class="text-end">$<?php echo number_format($item['subtotal'], 2); ?></td>
+                <td class="text-end"><?php echo htmlspecialchars($_SESSION['currency_symbol']); ?><?php echo number_format($item['subtotal'], 2); ?></td>
                 <td class="text-end"><a href="cart.php?action=remove&id=<?php echo $item['id']; ?>" class="btn btn-sm btn-danger">&times;</a></td>
             </tr>
             <?php endforeach; ?>
@@ -124,7 +124,7 @@ include 'includes/header.php';
         <tfoot>
             <tr>
                 <td colspan="5" class="text-end"><strong>Total</strong></td>
-                <td class="text-end"><strong>$<?php echo number_format($total_price, 2); ?></strong></td>
+                <td class="text-end"><strong><?php echo htmlspecialchars($_SESSION['currency_symbol']); ?><?php echo number_format($total_price, 2); ?></strong></td>
             </tr>
         </tfoot>
     </table>

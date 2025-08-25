@@ -7,80 +7,45 @@ $message = "";
 
 // Handle form submission
 if($_SERVER["REQUEST_METHOD"] == "POST"){
-    $settings_to_save = [
-        'site_name' => $_POST['site_name'] ?? '',
-        'paystack_public_key' => $_POST['paystack_public_key'] ?? '',
-        'paystack_secret_key' => $_POST['paystack_secret_key'] ?? '',
-        'paystack_enabled' => isset($_POST['paystack_enabled']) ? '1' : '0',
-        'bank_transfer_enabled' => isset($_POST['bank_transfer_enabled']) ? '1' : '0',
-        'bank_account_name' => $_POST['bank_account_name'] ?? '',
-        'bank_account_number' => $_POST['bank_account_number'] ?? '',
-        'bank_name' => $_POST['bank_name'] ?? '',
-        'bank_payment_instructions' => $_POST['bank_payment_instructions'] ?? '',
-        'hero_section_title' => $_POST['hero_section_title'] ?? '',
-        'hero_section_description' => $_POST['hero_section_description'] ?? '',
-        'hero_section_background_url' => $_POST['hero_section_background_url'] ?? '',
-        'how_it_works_bg_color' => $_POST['how_it_works_bg_color'] ?? '#f8f9fa',
-        'smtp_host' => $_POST['smtp_host'] ?? '',
-        'smtp_port' => $_POST['smtp_port'] ?? '',
-        'smtp_user' => $_POST['smtp_user'] ?? '',
-        'smtp_pass' => $_POST['smtp_pass'] ?? '',
-        'from_email' => $_POST['from_email'] ?? '',
-        'from_name' => $_POST['from_name'] ?? '',
-        'smtp_encryption' => $_POST['smtp_encryption'] ?? 'none',
-        'onesignal_app_id' => $_POST['onesignal_app_id'] ?? '',
-        'onesignal_rest_api_key' => $_POST['onesignal_rest_api_key'] ?? '',
-    ];
-
-    // Handle Site Logo Upload
-    if(isset($_FILES["site_logo"]) && $_FILES["site_logo"]["error"] == 0){
-        $allowed = ["jpg" => "image/jpeg", "png" => "image/png", "gif" => "image/gif"];
-        $filename = $_FILES["site_logo"]["name"];
-        $ext = pathinfo($filename, PATHINFO_EXTENSION);
-        if(in_array($_FILES["site_logo"]["type"], $allowed)){
-            $new_filename = 'logo.' . $ext;
-            if(move_uploaded_file($_FILES["site_logo"]["tmp_name"], "../uploads/" . $new_filename)){
-                $settings_to_save['site_logo'] = $new_filename;
-            } else {
-                 $message .= '<div class="alert alert-danger">Error uploading site logo.</div>';
-            }
-        } else {
-            $message .= '<div class="alert alert-danger">Invalid file type for site logo.</div>';
-        }
-    }
-
-    // Handle Hero Background Image Upload
-    if(isset($_FILES["hero_section_background_image"]) && $_FILES["hero_section_background_image"]["error"] == 0){
-        $allowed = ["jpg" => "image/jpeg", "png" => "image/png"];
-        $filename = $_FILES["hero_section_background_image"]["name"];
-        $ext = pathinfo($filename, PATHINFO_EXTENSION);
-        if(in_array($_FILES["hero_section_background_image"]["type"], $allowed)){
-            $new_filename = 'hero_bg.' . $ext;
-             if(move_uploaded_file($_FILES["hero_section_background_image"]["tmp_name"], "../uploads/" . $new_filename)){
-                // We save the path to the uploaded image, overriding any URL
-                $settings_to_save['hero_section_background_url'] = 'uploads/' . $new_filename;
-            } else {
-                 $message .= '<div class="alert alert-danger">Error uploading hero background image.</div>';
-            }
-        } else {
-             $message .= '<div class="alert alert-danger">Invalid file type for hero background.</div>';
-        }
-    }
-
-
+    // We are saving key-value pairs, so we can just loop through the POST data
     $sql = "INSERT INTO settings (setting_key, setting_value) VALUES (?, ?) ON DUPLICATE KEY UPDATE setting_value = VALUES(setting_value)";
-    if($stmt = $mysqli->prepare($sql)){
-        foreach($settings_to_save as $key => $value){
+    $stmt = $mysqli->prepare($sql);
+
+    foreach($_POST as $key => $value){
+        // Skip file inputs and the submit button
+        if(strpos($key, '_icon_') !== false || $key === 'save_settings') continue;
+
+        $value = is_array($value) ? json_encode($value) : $value;
+        $stmt->bind_param("ss", $key, $value);
+        $stmt->execute();
+    }
+
+    // Handle File Uploads for PWA icons
+    $pwa_icons = [];
+    if(isset($_FILES['pwa_icons']['name']) && !empty($_FILES['pwa_icons']['name'][0])){
+        $pwa_icon_dir = "../uploads/pwa/";
+        if(!is_dir($pwa_icon_dir)) mkdir($pwa_icon_dir, 0777, true);
+
+        foreach($_FILES['pwa_icons']['name'] as $key => $name){
+            $size = str_replace('pwa_icon_', '', $_FILES['pwa_icons']['name'][$key]); // This is not reliable, better to use the key
+            $size_key = array_keys($_FILES['pwa_icons']['name'])[$key];
+            $size = str_replace('pwa_icon_', '', $size_key);
+
+            $new_filename = "icon-{$size}.png";
+            if(move_uploaded_file($_FILES['pwa_icons']['tmp_name'][$key], $pwa_icon_dir . $new_filename)){
+                $pwa_icons[] = ['src' => '/uploads/pwa/' . $new_filename, 'sizes' => "{$size}x{$size}", 'type' => 'image/png'];
+            }
+        }
+        if(!empty($pwa_icons)){
+            $key = 'pwa_icons';
+            $value = json_encode($pwa_icons);
             $stmt->bind_param("ss", $key, $value);
             $stmt->execute();
         }
-        $stmt->close();
-        if(empty($message)) {
-            $message = '<div class="alert alert-success">Settings saved successfully.</div>';
-        }
-    } else {
-        $message = '<div class="alert alert-danger">Error preparing statement.</div>';
     }
+
+    $stmt->close();
+    $message = '<div class="alert alert-success">Settings saved successfully.</div>';
 }
 
 
@@ -106,48 +71,32 @@ while($row = $result->fetch_assoc()){
             <div class="card shadow mb-4">
                 <div class="card-header">General Settings</div>
                 <div class="card-body">
-                    <div class="mb-3">
-                        <label for="site_name" class="form-label">Site Name</label>
-                        <input type="text" name="site_name" class="form-control" id="site_name" value="<?php echo htmlspecialchars($settings['site_name'] ?? 'Eflex'); ?>">
+                    <div class="mb-3"><label for="site_name" class="form-label">Site Name</label><input type="text" name="site_name" class="form-control" id="site_name" value="<?php echo htmlspecialchars($settings['site_name'] ?? 'Eflex'); ?>"></div>
+                    <div class="row">
+                        <div class="col-md-6"><label for="currency_code" class="form-label">Currency Code</label><input type="text" name="currency_code" class="form-control" id="currency_code" value="<?php echo htmlspecialchars($settings['currency_code'] ?? 'USD'); ?>"></div>
+                        <div class="col-md-6"><label for="currency_symbol" class="form-label">Currency Symbol</label><input type="text" name="currency_symbol" class="form-control" id="currency_symbol" value="<?php echo htmlspecialchars($settings['currency_symbol'] ?? '$'); ?>"></div>
                     </div>
-                    <div class="mb-3">
-                        <label for="site_logo" class="form-label">Site Logo</label>
-                        <input type="file" name="site_logo" class="form-control" id="site_logo">
-                        <?php if(isset($settings['site_logo'])): ?>
-                        <div class="mt-2">
-                            <img src="../uploads/<?php echo htmlspecialchars($settings['site_logo']); ?>" alt="Site Logo" style="max-height: 50px;">
+                    <div class="row mt-3">
+                        <div class="col-md-6">
+                            <label for="language" class="form-label">Site Language</label>
+                            <select name="language" id="language" class="form-select">
+                                <option value="en" <?php if(($settings['language'] ?? 'en') == 'en') echo 'selected'; ?>>English</option>
+                                <option value="es" <?php if(($settings['language'] ?? '') == 'es') echo 'selected'; ?>>Español</option>
+                                <option value="fr" <?php if(($settings['language'] ?? '') == 'fr') echo 'selected'; ?>>Français</option>
+                            </select>
                         </div>
-                        <?php endif; ?>
                     </div>
+                     <div class="mt-3"><label for="copyright_text" class="form-label">Copyright Text</label><textarea name="copyright_text" class="form-control" id="copyright_text" rows="3"><?php echo htmlspecialchars($settings['copyright_text'] ?? '© ' . date('Y') . ' Eflex E-commerce. All Rights Reserved.'); ?></textarea></div>
                 </div>
             </div>
 
-            <!-- Homepage Settings -->
+            <!-- SEO Settings -->
             <div class="card shadow mb-4">
-                <div class="card-header">Homepage Settings</div>
+                <div class="card-header">SEO Settings</div>
                 <div class="card-body">
-                     <div class="mb-3">
-                        <label for="hero_section_title" class="form-label">Hero Section Title</label>
-                        <input type="text" name="hero_section_title" class="form-control" id="hero_section_title" value="<?php echo htmlspecialchars($settings['hero_section_title'] ?? 'Welcome to Eflex'); ?>">
-                    </div>
-                    <div class="mb-3">
-                        <label for="hero_section_description" class="form-label">Hero Section Description</label>
-                        <textarea name="hero_section_description" class="form-control" id="hero_section_description" rows="3"><?php echo htmlspecialchars($settings['hero_section_description'] ?? 'Your one-stop shop for everything you need.'); ?></textarea>
-                    </div>
-                    <div class="mb-3">
-                        <label for="hero_section_background_image" class="form-label">Hero Background Image</label>
-                        <input type="file" name="hero_section_background_image" class="form-control" id="hero_section_background_image">
-                         <div class="form-text">Upload an image to replace the current background.</div>
-                    </div>
-                     <div class="mb-3">
-                        <label for="hero_section_background_url" class="form-label">Hero Background Video URL (e.g., YouTube)</label>
-                        <input type="text" name="hero_section_background_url" class="form-control" id="hero_section_background_url" value="<?php echo htmlspecialchars($settings['hero_section_background_url'] ?? ''); ?>">
-                        <div class="form-text">Or, provide a URL to a video. If an image is uploaded, it will take precedence.</div>
-                    </div>
-                    <div class="mb-3">
-                        <label for="how_it_works_bg_color" class="form-label">"How It Works" Background Color</label>
-                        <input type="color" name="how_it_works_bg_color" class="form-control form-control-color" id="how_it_works_bg_color" value="<?php echo htmlspecialchars($settings['how_it_works_bg_color'] ?? '#f8f9fa'); ?>">
-                    </div>
+                    <div class="mb-3"><label for="meta_title" class="form-label">Meta Title</label><input type="text" name="meta_title" class="form-control" id="meta_title" value="<?php echo htmlspecialchars($settings['meta_title'] ?? ''); ?>"></div>
+                    <div class="mb-3"><label for="meta_description" class="form-label">Meta Description</label><textarea name="meta_description" class="form-control" id="meta_description" rows="3"><?php echo htmlspecialchars($settings['meta_description'] ?? ''); ?></textarea></div>
+                    <div class="mb-3"><label for="meta_keywords" class="form-label">Meta Keywords</label><input type="text" name="meta_keywords" class="form-control" id="meta_keywords" value="<?php echo htmlspecialchars($settings['meta_keywords'] ?? ''); ?>"><div class="form-text">Comma-separated values.</div></div>
                 </div>
             </div>
 
@@ -155,82 +104,67 @@ while($row = $result->fetch_assoc()){
             <div class="card shadow mb-4">
                 <div class="card-header">Payment Gateway Settings</div>
                 <div class="card-body">
-                    <div class="form-check form-switch mb-3">
-                        <input class="form-check-input" type="checkbox" name="paystack_enabled" id="paystack_enabled" value="1" <?php echo (isset($settings['paystack_enabled']) && $settings['paystack_enabled'] == '1') ? 'checked' : ''; ?>>
-                        <label class="form-check-label" for="paystack_enabled">Enable Paystack</label>
-                    </div>
-                    <div class="mb-3">
-                        <label for="paystack_public_key" class="form-label">Paystack Public Key</label>
-                        <input type="text" name="paystack_public_key" class="form-control" id="paystack_public_key" value="<?php echo htmlspecialchars($settings['paystack_public_key'] ?? ''); ?>">
-                    </div>
-                    <div class="mb-3">
-                        <label for="paystack_secret_key" class="form-label">Paystack Secret Key</label>
-                        <input type="password" name="paystack_secret_key" class="form-control" id="paystack_secret_key" value="<?php echo htmlspecialchars($settings['paystack_secret_key'] ?? ''); ?>">
-                    </div>
-                    <hr>
-                    <div class="form-check form-switch mb-3">
-                        <input class="form-check-input" type="checkbox" name="bank_transfer_enabled" id="bank_transfer_enabled" value="1" <?php echo (isset($settings['bank_transfer_enabled']) && $settings['bank_transfer_enabled'] == '1') ? 'checked' : ''; ?>>
-                        <label class="form-check-label" for="bank_transfer_enabled">Enable Bank Transfer</label>
-                    </div>
+                    <!-- Bank Transfer -->
+                    <div class="form-check form-switch mb-2"><input class="form-check-input" type="checkbox" name="bank_transfer_enabled" value="1" <?php echo !empty($settings['bank_transfer_enabled']) ? 'checked' : ''; ?>><label class="form-check-label">Enable Bank Transfer</label></div><hr>
+                    <!-- Paystack -->
+                    <div class="form-check form-switch mb-2"><input class="form-check-input" type="checkbox" name="paystack_enabled" value="1" <?php echo !empty($settings['paystack_enabled']) ? 'checked' : ''; ?>><label class="form-check-label">Enable Paystack</label></div>
+                    <div class="mb-3"><label class="form-label">Paystack Public Key</label><input type="text" name="paystack_public_key" class="form-control" value="<?php echo htmlspecialchars($settings['paystack_public_key'] ?? ''); ?>"></div>
+                    <div class="mb-3"><label class="form-label">Paystack Secret Key</label><input type="password" name="paystack_secret_key" class="form-control" value="<?php echo htmlspecialchars($settings['paystack_secret_key'] ?? ''); ?>"></div><hr>
+                    <!-- Stripe -->
+                    <div class="form-check form-switch mb-2"><input class="form-check-input" type="checkbox" name="stripe_enabled" value="1" <?php echo !empty($settings['stripe_enabled']) ? 'checked' : ''; ?>><label class="form-check-label">Enable Stripe</label></div>
+                    <div class="mb-3"><label class="form-label">Stripe Publishable Key</label><input type="text" name="stripe_public_key" class="form-control" value="<?php echo htmlspecialchars($settings['stripe_public_key'] ?? ''); ?>"></div>
+                    <div class="mb-3"><label class="form-label">Stripe Secret Key</label><input type="password" name="stripe_secret_key" class="form-control" value="<?php echo htmlspecialchars($settings['stripe_secret_key'] ?? ''); ?>"></div><hr>
+                    <!-- Flutterwave -->
+                    <div class="form-check form-switch mb-2"><input class="form-check-input" type="checkbox" name="flutterwave_enabled" value="1" <?php echo !empty($settings['flutterwave_enabled']) ? 'checked' : ''; ?>><label class="form-check-label">Enable Flutterwave</label></div>
+                    <div class="mb-3"><label class="form-label">Flutterwave Public Key</label><input type="text" name="flutterwave_public_key" class="form-control" value="<?php echo htmlspecialchars($settings['flutterwave_public_key'] ?? ''); ?>"></div>
+                    <div class="mb-3"><label class="form-label">Flutterwave Secret Key</label><input type="password" name="flutterwave_secret_key" class="form-control" value="<?php echo htmlspecialchars($settings['flutterwave_secret_key'] ?? ''); ?>"></div>
+                </div>
+            </div>
+             <!-- PWA Settings -->
+            <div class="card shadow mb-4">
+                <div class="card-header">Progressive Web App (PWA) Settings</div>
+                <div class="card-body">
+                    <div class="form-check form-switch mb-3"><input class="form-check-input" type="checkbox" name="pwa_enabled" value="1" <?php echo !empty($settings['pwa_enabled']) ? 'checked' : ''; ?>><label class="form-check-label">Enable PWA for Main Site</label></div>
+                    <div class="mb-3"><label class="form-label">App Name</label><input type="text" name="pwa_app_name" class="form-control" value="<?php echo htmlspecialchars($settings['pwa_app_name'] ?? ''); ?>"></div>
+                    <div class="mb-3"><label class="form-label">App Short Name</label><input type="text" name="pwa_app_short_name" class="form-control" value="<?php echo htmlspecialchars($settings['pwa_app_short_name'] ?? ''); ?>"></div>
+                    <div class="mb-3"><label class="form-label">App Theme Color</label><input type="color" name="pwa_theme_color" class="form-control form-control-color" value="<?php echo htmlspecialchars($settings['pwa_theme_color'] ?? '#ffffff'); ?>"></div>
+                    <div class="mb-3"><label class="form-label">App Background Color</label><input type="color" name="pwa_bg_color" class="form-control form-control-color" value="<?php echo htmlspecialchars($settings['pwa_bg_color'] ?? '#000000'); ?>"></div>
+                    <div class="mb-3"><label class="form-label">App Icons (.png)</label><input type="file" name="pwa_icons[]" class="form-control" multiple><div class="form-text">Upload all required sizes (e.g., 192x192, 512x512). Name them `icon-192x192.png`, etc.</div></div>
                 </div>
             </div>
         </div>
 
         <div class="col-lg-4">
+            <!-- Theme & Color Settings -->
+            <div class="card shadow mb-4">
+                <div class="card-header">Theme & Color Settings</div>
+                <div class="card-body">
+                    <div class="mb-3"><label class="form-label">Primary Color</label><input type="color" name="theme_primary_color" class="form-control form-control-color" value="<?php echo htmlspecialchars($settings['theme_primary_color'] ?? '#ae8e6a'); ?>"></div>
+                    <div class="mb-3"><label class="form-label">Secondary Color</label><input type="color" name="theme_secondary_color" class="form-control form-control-color" value="<?php echo htmlspecialchars($settings['theme_secondary_color'] ?? '#f2f2f2'); ?>"></div>
+                </div>
+            </div>
              <!-- Bank Transfer Details -->
             <div class="card shadow mb-4">
                 <div class="card-header">Bank Transfer Details</div>
                 <div class="card-body">
-                    <div class="mb-3">
-                        <label for="bank_account_name" class="form-label">Account Name</label>
-                        <input type="text" name="bank_account_name" class="form-control" id="bank_account_name" value="<?php echo htmlspecialchars($settings['bank_account_name'] ?? ''); ?>">
-                    </div>
-                    <div class="mb-3">
-                        <label for="bank_account_number" class="form-label">Account Number</label>
-                        <input type="text" name="bank_account_number" class="form-control" id="bank_account_number" value="<?php echo htmlspecialchars($settings['bank_account_number'] ?? ''); ?>">
-                    </div>
-                    <div class="mb-3">
-                        <label for="bank_name" class="form-label">Bank Name</label>
-                        <input type="text" name="bank_name" class="form-control" id="bank_name" value="<?php echo htmlspecialchars($settings['bank_name'] ?? ''); ?>">
-                    </div>
-                     <div class="mb-3">
-                        <label for="bank_payment_instructions" class="form-label">Payment Instructions</label>
-                        <textarea name="bank_payment_instructions" class="form-control" id="bank_payment_instructions" rows="4"><?php echo htmlspecialchars($settings['bank_payment_instructions'] ?? ''); ?></textarea>
-                    </div>
+                    <div class="mb-3"><label class="form-label">Account Name</label><input type="text" name="bank_account_name" class="form-control" value="<?php echo htmlspecialchars($settings['bank_account_name'] ?? ''); ?>"></div>
+                    <div class="mb-3"><label class="form-label">Account Number</label><input type="text" name="bank_account_number" class="form-control" value="<?php echo htmlspecialchars($settings['bank_account_number'] ?? ''); ?>"></div>
+                    <div class="mb-3"><label class="form-label">Bank Name</label><input type="text" name="bank_name" class="form-control" value="<?php echo htmlspecialchars($settings['bank_name'] ?? ''); ?>"></div>
+                    <div class="mb-3"><label class="form-label">Payment Instructions</label><textarea name="bank_payment_instructions" class="form-control" rows="4"><?php echo htmlspecialchars($settings['bank_payment_instructions'] ?? ''); ?></textarea></div>
                 </div>
             </div>
-
             <!-- SMTP Settings -->
             <div class="card shadow mb-4">
                 <div class="card-header">SMTP Email Settings</div>
                 <div class="card-body">
-                    <div class="mb-3">
-                        <label for="smtp_host" class="form-label">SMTP Host</label>
-                        <input type="text" name="smtp_host" class="form-control" id="smtp_host" value="<?php echo htmlspecialchars($settings['smtp_host'] ?? ''); ?>">
-                    </div>
-                    <div class="mb-3">
-                        <label for="smtp_port" class="form-label">SMTP Port</label>
-                        <input type="text" name="smtp_port" class="form-control" id="smtp_port" value="<?php echo htmlspecialchars($settings['smtp_port'] ?? ''); ?>">
-                    </div>
-                    <div class="mb-3">
-                        <label for="smtp_user" class="form-label">SMTP Username</label>
-                        <input type="text" name="smtp_user" class="form-control" id="smtp_user" value="<?php echo htmlspecialchars($settings['smtp_user'] ?? ''); ?>">
-                    </div>
-                    <div class="mb-3">
-                        <label for="smtp_pass" class="form-label">SMTP Password</label>
-                        <input type="password" name="smtp_pass" class="form-control" id="smtp_pass" value="<?php echo htmlspecialchars($settings['smtp_pass'] ?? ''); ?>">
-                    </div>
-                     <div class="mb-3">
-                        <label for="from_email" class="form-label">From Email Address</label>
-                        <input type="email" name="from_email" class="form-control" id="from_email" value="<?php echo htmlspecialchars($settings['from_email'] ?? ''); ?>">
-                    </div>
-                     <div class="mb-3">
-                        <label for="from_name" class="form-label">From Name</label>
-                        <input type="text" name="from_name" class="form-control" id="from_name" value="<?php echo htmlspecialchars($settings['from_name'] ?? ''); ?>">
-                    </div>
-                    <div class="mb-3">
-                        <label for="smtp_encryption" class="form-label">Encryption</label>
-                        <select name="smtp_encryption" id="smtp_encryption" class="form-select">
+                    <div class="mb-3"><label class="form-label">SMTP Host</label><input type="text" name="smtp_host" class="form-control" value="<?php echo htmlspecialchars($settings['smtp_host'] ?? ''); ?>"></div>
+                    <div class="mb-3"><label class="form-label">SMTP Port</label><input type="text" name="smtp_port" class="form-control" value="<?php echo htmlspecialchars($settings['smtp_port'] ?? ''); ?>"></div>
+                    <div class="mb-3"><label class="form-label">SMTP Username</label><input type="text" name="smtp_user" class="form-control" value="<?php echo htmlspecialchars($settings['smtp_user'] ?? ''); ?>"></div>
+                    <div class="mb-3"><label class="form-label">SMTP Password</label><input type="password" name="smtp_pass" class="form-control" value="<?php echo htmlspecialchars($settings['smtp_pass'] ?? ''); ?>"></div>
+                    <div class="mb-3"><label class="form-label">From Email</label><input type="email" name="from_email" class="form-control" value="<?php echo htmlspecialchars($settings['from_email'] ?? ''); ?>"></div>
+                    <div class="mb-3"><label class="form-label">From Name</label><input type="text" name="from_name" class="form-control" value="<?php echo htmlspecialchars($settings['from_name'] ?? ''); ?>"></div>
+                    <div class="mb-3"><label class="form-label">Encryption</label>
+                        <select name="smtp_encryption" class="form-select">
                             <option value="none" <?php if( ($settings['smtp_encryption'] ?? '') == 'none') echo 'selected'; ?>>None</option>
                             <option value="tls" <?php if( ($settings['smtp_encryption'] ?? '') == 'tls') echo 'selected'; ?>>TLS</option>
                             <option value="ssl" <?php if( ($settings['smtp_encryption'] ?? '') == 'ssl') echo 'selected'; ?>>SSL</option>
@@ -238,22 +172,17 @@ while($row = $result->fetch_assoc()){
                     </div>
                 </div>
             </div>
-        </div>
-    </div>
-    <div class="card shadow mb-4">
-        <div class="card-header">Push Notification Settings (OneSignal)</div>
-        <div class="card-body">
-            <div class="mb-3">
-                <label for="onesignal_app_id" class="form-label">OneSignal App ID</label>
-                <input type="text" name="onesignal_app_id" class="form-control" id="onesignal_app_id" value="<?php echo htmlspecialchars($settings['onesignal_app_id'] ?? ''); ?>">
-            </div>
-            <div class="mb-3">
-                <label for="onesignal_rest_api_key" class="form-label">OneSignal REST API Key</label>
-                <input type="password" name="onesignal_rest_api_key" class="form-control" id="onesignal_rest_api_key" value="<?php echo htmlspecialchars($settings['onesignal_rest_api_key'] ?? ''); ?>">
+             <!-- Push Notification Settings -->
+            <div class="card shadow mb-4">
+                <div class="card-header">Push Notification (OneSignal)</div>
+                <div class="card-body">
+                    <div class="mb-3"><label class="form-label">OneSignal App ID</label><input type="text" name="onesignal_app_id" class="form-control" value="<?php echo htmlspecialchars($settings['onesignal_app_id'] ?? ''); ?>"></div>
+                    <div class="mb-3"><label class="form-label">REST API Key</label><input type="password" name="onesignal_rest_api_key" class="form-control" value="<?php echo htmlspecialchars($settings['onesignal_rest_api_key'] ?? ''); ?>"></div>
+                </div>
             </div>
         </div>
     </div>
-    <button type="submit" class="btn btn-primary mt-3 mb-4">Save Settings</button>
+    <button type="submit" name="save_settings" class="btn btn-primary mt-3 mb-4">Save All Settings</button>
 </form>
 
 <?php

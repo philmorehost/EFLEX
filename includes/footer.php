@@ -37,15 +37,46 @@
         </div>
     </div>
     <div class="text-center p-3" style="background-color: rgba(0, 0, 0, 0.2);">
-        © <?php echo date("Y"); ?> Copyright:
-        <a class="text-white" href="index.php">Eflex.com</a>
+        <?php echo $settings['copyright_text'] ?? ('© ' . date("Y") . ' Copyright: <a class="text-white" href="index.php">Eflex.com</a>'); ?>
     </div>
 </footer>
+
+<!-- PWA Install Modal -->
+<div class="modal fade" id="installPwaModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Install Eflex App</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <p>For a better experience, install the Eflex web app on your device. It's fast, reliable, and works offline!</p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Later</button>
+        <button type="button" class="btn btn-primary" id="installPwaBtn">Install</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 
 <!-- Bootstrap JS Bundle with Popper -->
 <script src="js/bootstrap.bundle.min.js"></script>
 <!-- Custom JS -->
 <script src="js/main.js"></script>
+
+<!-- PWA Registration -->
+<?php if($pwa_enabled): ?>
+<script>
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('/sw.js')
+        .then(() => console.log('Service Worker Registered'))
+        .catch(error => console.log('Service Worker registration failed:', error));
+    }
+</script>
+<script src="js/install-pwa.js"></script>
+<?php endif; ?>
 
 </body>
 </html>

@@ -19,15 +19,16 @@ if(empty($_SESSION['cart'])){
 }
 
 // Fetch site settings for payment gateways and email
-$settings_sql = "SELECT setting_key, setting_value FROM settings WHERE setting_key IN ('paystack_enabled', 'bank_transfer_enabled', 'paystack_public_key', 'from_email', 'site_name')";
+$settings_sql = "SELECT setting_key, setting_value FROM settings";
 $result = $mysqli->query($settings_sql);
 $settings = [];
 while($row = $result->fetch_assoc()){
     $settings[$row['setting_key']] = $row['setting_value'];
 }
-$paystack_enabled = !empty($settings['paystack_enabled']) && $settings['paystack_enabled'] == '1';
-$bank_transfer_enabled = !empty($settings['bank_transfer_enabled']) && $settings['bank_transfer_enabled'] == '1';
-$paystack_public_key = $settings['paystack_public_key'] ?? '';
+$paystack_enabled = !empty($settings['paystack_enabled']);
+$bank_transfer_enabled = !empty($settings['bank_transfer_enabled']);
+$stripe_enabled = !empty($settings['stripe_enabled']);
+$flutterwave_enabled = !empty($settings['flutterwave_enabled']);
 $admin_email = $settings['from_email'] ?? '';
 $site_name = $settings['site_name'] ?? 'Eflex';
 
@@ -122,17 +123,17 @@ if($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['place_order'])){
 
 
         if($payment_method === 'paystack'){
-            // Redirect to a page that will handle the Paystack API call
             header("location: paystack_charge.php");
-            exit();
+        } elseif ($payment_method === 'stripe') {
+            header("location: stripe_charge.php");
+        } elseif ($payment_method === 'flutterwave') {
+            header("location: flutterwave_charge.php");
         } elseif ($payment_method === 'bank_transfer') {
              header("location: order_details_bank.php?id=" . $order_id);
-             exit();
         } else {
-            // For any other potential payment method in the future
             header("location: order_success.php?id=" . $order_id);
-            exit();
         }
+        exit();
 
     } catch (mysqli_sql_exception $exception) {
         $mysqli->rollback();
@@ -179,16 +180,29 @@ include 'includes/header.php';
 
             <h5 class="mb-3">Payment Method</h5>
             <div class="my-3">
+                <?php $is_first = true; ?>
                 <?php if($bank_transfer_enabled): ?>
                 <div class="form-check">
-                    <input id="bank_transfer" name="payment_method" type="radio" class="form-check-input" value="bank_transfer" required checked>
+                    <input id="bank_transfer" name="payment_method" type="radio" class="form-check-input" value="bank_transfer" required <?php if($is_first){ echo 'checked'; $is_first = false; } ?>>
                     <label class="form-check-label" for="bank_transfer">Bank Transfer</label>
                 </div>
                 <?php endif; ?>
                 <?php if($paystack_enabled): ?>
                 <div class="form-check">
-                    <input id="paystack" name="payment_method" type="radio" class="form-check-input" value="paystack" required <?php if(!$bank_transfer_enabled) echo 'checked'; ?>>
+                    <input id="paystack" name="payment_method" type="radio" class="form-check-input" value="paystack" required <?php if($is_first){ echo 'checked'; $is_first = false; } ?>>
                     <label class="form-check-label" for="paystack">Paystack (Card, Bank, USSD)</label>
+                </div>
+                <?php endif; ?>
+                <?php if($stripe_enabled): ?>
+                <div class="form-check">
+                    <input id="stripe" name="payment_method" type="radio" class="form-check-input" value="stripe" required <?php if($is_first){ echo 'checked'; $is_first = false; } ?>>
+                    <label class="form-check-label" for="stripe">Stripe (Credit/Debit Card)</label>
+                </div>
+                <?php endif; ?>
+                 <?php if($flutterwave_enabled): ?>
+                <div class="form-check">
+                    <input id="flutterwave" name="payment_method" type="radio" class="form-check-input" value="flutterwave" required <?php if($is_first){ echo 'checked'; $is_first = false; } ?>>
+                    <label class="form-check-label" for="flutterwave">Flutterwave (Card, Bank, etc)</label>
                 </div>
                 <?php endif; ?>
             </div>
