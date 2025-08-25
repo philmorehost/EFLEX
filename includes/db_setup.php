@@ -75,5 +75,22 @@ function setup_database_tables($mysqli) {
             }
         }
     }
+
+    // Check if an admin user exists, if not, create a default one.
+    $result = $mysqli->query("SELECT id FROM users WHERE role = 'admin' LIMIT 1");
+    if($result->num_rows == 0){
+        $username = 'admin';
+        $email = 'admin@example.com';
+        $password = 'password'; // NOTE: User should change this immediately.
+        $role = 'admin';
+        $hashed_password = password_hash($password, PASSWORD_DEFAULT);
+
+        $sql = "INSERT INTO users (username, email, password, role) VALUES (?, ?, ?, ?)";
+        if($stmt = $mysqli->prepare($sql)){
+            $stmt->bind_param("ssss", $username, $email, $hashed_password, $role);
+            $stmt->execute();
+            $stmt->close();
+        }
+    }
 }
 ?>
