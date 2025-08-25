@@ -78,6 +78,25 @@ function setup_database_tables($mysqli) {
         }
     }
 
+    // --- Schema Migration Checks ---
+    // Check for is_featured column in products table
+    $result_featured = $mysqli->query("SHOW COLUMNS FROM `products` LIKE 'is_featured'");
+    if($result_featured->num_rows == 0){
+        $mysqli->query("ALTER TABLE `products` ADD `is_featured` TINYINT(1) NOT NULL DEFAULT 0 AFTER `image`");
+    }
+
+    // Check for is_top_seller column in products table
+    $result_topseller = $mysqli->query("SHOW COLUMNS FROM `products` LIKE 'is_top_seller'");
+    if($result_topseller->num_rows == 0){
+        $mysqli->query("ALTER TABLE `products` ADD `is_top_seller` TINYINT(1) NOT NULL DEFAULT 0 AFTER `is_featured`");
+    }
+
+    // Check for stripe_payment_intent_id column in orders table
+    $result_stripe = $mysqli->query("SHOW COLUMNS FROM `orders` LIKE 'stripe_payment_intent_id'");
+    if($result_stripe->num_rows == 0){
+        $mysqli->query("ALTER TABLE `orders` ADD `stripe_payment_intent_id` VARCHAR(255) DEFAULT NULL AFTER `total_amount`");
+    }
+
     // Check if an admin user exists, if not, create a default one.
     $result = $mysqli->query("SELECT id FROM users WHERE role = 'admin' LIMIT 1");
     if($result->num_rows == 0){
