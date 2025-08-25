@@ -88,7 +88,10 @@ function setup_database_tables($mysqli) {
         $sql = "INSERT INTO users (username, email, password, role) VALUES (?, ?, ?, ?)";
         if($stmt = $mysqli->prepare($sql)){
             $stmt->bind_param("ssss", $username, $email, $hashed_password, $role);
-            $stmt->execute();
+            if($stmt->execute()){
+                // Set a session variable to indicate success
+                $_SESSION['admin_created'] = true;
+            }
             $stmt->close();
         }
     }

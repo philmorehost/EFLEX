@@ -1,6 +1,17 @@
 <?php
 // Include the header
 include 'includes/header.php';
+
+// Check for the admin creation flash message
+if(isset($_SESSION['admin_created']) && $_SESSION['admin_created'] === true){
+    echo '<div class="alert alert-success alert-dismissible fade show" role="alert">
+            <strong>Admin Account Created!</strong> A default admin account has been created.
+            Username: <strong>admin</strong>, Password: <strong>password</strong>. Please change the password immediately.
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+          </div>';
+    // Unset the session variable so it doesn't show again
+    unset($_SESSION['admin_created']);
+}
 ?>
 
 <!-- Hero Section -->
