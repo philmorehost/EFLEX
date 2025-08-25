@@ -45,12 +45,23 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
         if($stmt_update = $mysqli->prepare($sql_update)){
             $stmt_update->bind_param("si", $new_status, $order_id);
             if($stmt_update->execute()){
-                // Send notification email to the user
                 $subject = "Your Order Status Has Been Updated";
-                $body = "<h1>Order Update</h1>"
-                      . "<p>Hi " . htmlspecialchars($username) . ",</p>"
-                      . "<p>The status of your order #" . $order_id . " has been updated to: <strong>" . htmlspecialchars($new_status) . "</strong></p>"
-                      . "<p>You can view your order details here: <a href='http://".$_SERVER['HTTP_HOST']."/my_orders.php'>My Orders</a></p>";
+                $body = "";
+                $invoice_url = 'http://'.$_SERVER['HTTP_HOST']."/invoice.php?id=" . $order_id;
+
+                if($new_status === 'Completed'){
+                    $subject = "Your Order is Complete & Payment Receipt";
+                    $body = "<h1>Your Order is Complete!</h1>"
+                          . "<p>Hi " . htmlspecialchars($username) . ",</p>"
+                          . "<p>We've finished processing your order #" . $order_id . ". Thank you for your payment.</p>"
+                          . "<p>You can view and print your full invoice and payment receipt here: <a href='" . $invoice_url . "'>" . $invoice_url . "</a></p>";
+                } else {
+                    $body = "<h1>Order Update</h1>"
+                          . "<p>Hi " . htmlspecialchars($username) . ",</p>"
+                          . "<p>The status of your order #" . $order_id . " has been updated to: <strong>" . htmlspecialchars($new_status) . "</strong></p>"
+                          . "<p>You can view your order details here: <a href='http://".$_SERVER['HTTP_HOST']."/my_orders.php'>My Orders</a></p>";
+                }
+
                 send_email($user_email, $subject, $body);
                 $message .= '<div class="alert alert-info">User has been notified of the status change.</div>';
             }

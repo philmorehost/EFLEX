@@ -29,10 +29,10 @@
 
             <div class="col-md-4 col-lg-3 col-xl-3 mx-auto mb-md-0 mb-4">
                 <h6 class="text-uppercase fw-bold">Contact</h6>
-                <hr class="mb-4 mt-0 d-inline-block mx-auto" style="width: 60px; background-color: #7c4dff; height: 2px"/>
-                <p><i class="fas fa-home me-3"></i> New York, NY 10012, US</p>
-                <p><i class="fas fa-envelope me-3"></i> info@eflex.com</p>
-                <p><i class="fas fa-phone me-3"></i> + 01 234 567 88</p>
+                <hr class="mb-4 mt-0 d-inline-block mx-auto" style="width: 60px; background-color: var(--woodmart-primary-color); height: 2px"/>
+                <p><i class="fas fa-home me-3"></i> <?php echo htmlspecialchars($settings['company_address'] ?? 'New York, NY 10012, US'); ?></p>
+                <p><i class="fas fa-envelope me-3"></i> <?php echo htmlspecialchars($settings['from_email'] ?? 'info@example.com'); ?></p>
+                <p><i class="fas fa-phone me-3"></i> <?php echo htmlspecialchars($settings['company_phone'] ?? '+ 01 234 567 88'); ?></p>
             </div>
         </div>
     </div>
@@ -40,6 +40,44 @@
         <?php echo $settings['copyright_text'] ?? ('© ' . date("Y") . ' Copyright: <a class="text-white" href="index.php">Eflex.com</a>'); ?>
     </div>
 </footer>
+
+<?php
+// --- Modal Ad Logic ---
+$active_ad = null;
+$current_page = basename($_SERVER['PHP_SELF']);
+$now = new DateTime();
+
+$sql_ad = "SELECT * FROM modal_ads WHERE is_active = 1
+           AND (start_time IS NULL OR start_time <= NOW())
+           AND (end_time IS NULL OR end_time >= NOW())
+           ORDER BY created_at DESC LIMIT 1";
+$ad_result = $mysqli->query($sql_ad);
+if($ad_result->num_rows > 0){
+    $ad_candidate = $ad_result->fetch_assoc();
+    $display_pages = json_decode($ad_candidate['display_pages'], true);
+    if(empty($display_pages) || in_array($current_page, $display_pages)){
+        $active_ad = $ad_candidate;
+    }
+}
+?>
+
+<!-- Modal Ad -->
+<?php if($active_ad): ?>
+<div class="modal fade" id="promoModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content" style="background: url(uploads/<?php echo htmlspecialchars($active_ad['image_url']); ?>) no-repeat center center; background-size: cover;">
+      <div class="modal-body text-center text-white" style="background-color: rgba(0,0,0,0.5); padding: 4rem;">
+        <h2 class="modal-title"><?php echo htmlspecialchars($active_ad['title']); ?></h2>
+        <div><?php echo $active_ad['content']; ?></div>
+        <?php if($active_ad['show_countdown'] && !empty($active_ad['end_time'])): ?>
+            <h4 id="countdown-timer" class="mt-3"></h4>
+        <?php endif; ?>
+         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close" style="position: absolute; top: 10px; right: 10px;"></button>
+      </div>
+    </div>
+  </div>
+</div>
+<?php endif; ?>
 
 <!-- PWA Install Modal -->
 <div class="modal fade" id="installPwaModal" tabindex="-1" aria-hidden="true">
@@ -61,10 +99,75 @@
 </div>
 
 
+<!-- WhatsApp Chat Widget -->
+<?php if(!empty($settings['whatsapp_enabled']) && !empty($settings['whatsapp_number'])): ?>
+<div class="whatsapp-chat-widget">
+    <a href="#" data-bs-toggle="modal" data-bs-target="#whatsappModal">
+        <i class="fab fa-whatsapp"></i>
+    </a>
+</div>
+<!-- WhatsApp Modal -->
+<div class="modal fade" id="whatsappModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title text-dark">Chat with us on WhatsApp</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body text-dark">
+        <p>Hi there! How can we help you?</p>
+        <textarea id="whatsappMessage" class="form-control" rows="3" placeholder="Type your message..."></textarea>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        <button type="button" id="sendWhatsappBtn" class="btn btn-success">Send Message</button>
+      </div>
+    </div>
+  </div>
+</div>
+<?php endif; ?>
+
+
 <!-- Bootstrap JS Bundle with Popper -->
 <script src="js/bootstrap.bundle.min.js"></script>
 <!-- Custom JS -->
 <script src="js/main.js"></script>
+
+<!-- Modal Ad JS -->
+<?php if($active_ad): ?>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const promoModal = new bootstrap.Modal(document.getElementById('promoModal'));
+    // Show modal only once per session
+    if(!sessionStorage.getItem('promoModalShown')) {
+        promoModal.show();
+        sessionStorage.setItem('promoModalShown', 'true');
+    }
+
+    <?php if($active_ad['show_countdown'] && !empty($active_ad['end_time'])): ?>
+    const countDownDate = new Date("<?php echo $active_ad['end_time']; ?>").getTime();
+    const timerElement = document.getElementById("countdown-timer");
+
+    const x = setInterval(function() {
+        const now = new Date().getTime();
+        const distance = countDownDate - now;
+
+        const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+        const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+        const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+        timerElement.innerHTML = days + "d " + hours + "h " + minutes + "m " + seconds + "s ";
+
+        if (distance < 0) {
+            clearInterval(x);
+            timerElement.innerHTML = "EXPIRED";
+        }
+    }, 1000);
+    <?php endif; ?>
+});
+</script>
+<?php endif; ?>
 
 <!-- PWA Registration -->
 <?php if($pwa_enabled): ?>
@@ -76,6 +179,18 @@
     }
 </script>
 <script src="js/install-pwa.js"></script>
+<?php endif; ?>
+
+<!-- WhatsApp JS -->
+<?php if(!empty($settings['whatsapp_enabled']) && !empty($settings['whatsapp_number'])): ?>
+<script>
+document.getElementById('sendWhatsappBtn').addEventListener('click', function() {
+    const message = document.getElementById('whatsappMessage').value;
+    const whatsappNumber = "<?php echo htmlspecialchars($settings['whatsapp_number']); ?>";
+    const url = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`;
+    window.open(url, '_blank');
+});
+</script>
 <?php endif; ?>
 
 </body>

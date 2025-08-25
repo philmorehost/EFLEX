@@ -132,7 +132,8 @@ if($stmt = $mysqli->prepare($sql)){
                         <td><?php echo htmlspecialchars($_SESSION['currency_symbol']); ?><?php echo number_format($order['total_amount'], 2); ?></td>
                         <td><span class="badge bg-primary"><?php echo htmlspecialchars($order['status']); ?></span></td>
                         <td>
-                            <a href="view_order.php?id=<?php echo $order['id']; ?>" class="btn btn-sm btn-info">View</a>
+                            <a href="view_order.php?id=<?php echo $order['id']; ?>" class="btn btn-sm btn-info">View Details</a>
+                            <a href="invoice.php?id=<?php echo $order['id']; ?>" class="btn btn-sm btn-secondary" target="_blank">View Invoice</a>
                             <?php if($order['status'] == 'Awaiting Payment'): ?>
                                 <button type="button" class="btn btn-sm btn-success" data-bs-toggle="modal" data-bs-target="#uploadModal<?php echo $order['id']; ?>">Upload Proof</button>
                             <?php endif; ?>

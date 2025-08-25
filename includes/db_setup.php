@@ -122,6 +122,20 @@ function setup_database_tables($mysqli) {
         KEY `permission_id` (`permission_id`),
         CONSTRAINT `role_permissions_ibfk_1` FOREIGN KEY (`role_id`) REFERENCES `roles` (`id`) ON DELETE CASCADE,
         CONSTRAINT `role_permissions_ibfk_2` FOREIGN KEY (`permission_id`) REFERENCES `permissions` (`id`) ON DELETE CASCADE
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;",
+
+    "modal_ads" => "CREATE TABLE `modal_ads` (
+        `id` int(11) NOT NULL AUTO_INCREMENT,
+        `title` varchar(255) NOT NULL,
+        `content` text,
+        `image_url` varchar(255) DEFAULT NULL,
+        `start_time` datetime DEFAULT NULL,
+        `end_time` datetime DEFAULT NULL,
+        `show_countdown` tinyint(1) NOT NULL DEFAULT '0',
+        `display_pages` text,
+        `is_active` tinyint(1) NOT NULL DEFAULT '1',
+        `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
+        PRIMARY KEY (`id`)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;"
     ];
 
@@ -226,7 +240,7 @@ function setup_database_tables($mysqli) {
         $permissions = [
             'manage_products', 'manage_categories', 'manage_orders',
             'manage_users', 'manage_site_settings', 'manage_banners',
-            'manage_hero_slider', 'manage_roles'
+            'manage_hero_slider', 'manage_roles', 'manage_modal_ads'
         ];
         $stmt_perm = $mysqli->prepare("INSERT INTO permissions (permission_name) VALUES (?)");
         $stmt_rp = $mysqli->prepare("INSERT INTO role_permissions (role_id, permission_id) VALUES (?, ?)");

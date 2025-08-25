@@ -53,8 +53,13 @@ if($stmt_items = $mysqli->prepare($sql_items)){
 ?>
 
 <div class="container mt-5">
-    <h2>Order Details</h2>
-    <a href="profile.php" class="btn btn-secondary mb-3">Back to My Orders</a>
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2>Order Details</h2>
+        <div>
+            <a href="invoice.php?id=<?php echo $order['id']; ?>" class="btn btn-info" target="_blank">View Invoice</a>
+            <a href="my_orders.php" class="btn btn-secondary">Back to My Orders</a>
+        </div>
+    </div>
 
     <div class="card">
         <div class="card-header">
@@ -76,15 +81,15 @@ if($stmt_items = $mysqli->prepare($sql_items)){
                         <tr>
                             <td><?php echo htmlspecialchars($item['product_name']); ?></td>
                             <td><?php echo $item['quantity']; ?></td>
-                            <td>$<?php echo number_format($item['price'], 2); ?></td>
-                            <td class="text-end">$<?php echo number_format($item['price'] * $item['quantity'], 2); ?></td>
+                            <td><?php echo htmlspecialchars($_SESSION['currency_symbol']); ?><?php echo number_format($item['price'], 2); ?></td>
+                            <td class="text-end"><?php echo htmlspecialchars($_SESSION['currency_symbol']); ?><?php echo number_format($item['price'] * $item['quantity'], 2); ?></td>
                         </tr>
                         <?php endforeach; ?>
                     </tbody>
                     <tfoot>
                         <tr>
                             <td colspan="3" class="text-end"><strong>Total</strong></td>
-                            <td class="text-end"><strong>$<?php echo number_format($order['total_amount'], 2); ?></strong></td>
+                            <td class="text-end"><strong><?php echo htmlspecialchars($_SESSION['currency_symbol']); ?><?php echo number_format($order['total_amount'], 2); ?></strong></td>
                         </tr>
                         <tr>
                             <td colspan="3" class="text-end"><strong>Status</strong></td>

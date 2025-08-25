@@ -79,10 +79,36 @@ if(isset($_SESSION['cart']) && is_array($_SESSION['cart'])){
             --woodmart-light-gray: <?php echo htmlspecialchars($theme_secondary_color); ?>;
         }
     </style>
+    <!-- Google Analytics -->
+    <?php if(!empty($settings['ga_enabled']) && !empty($settings['ga_tracking_id'])): ?>
+        <script async src="https://www.googletagmanager.com/gtag/js?id=<?php echo htmlspecialchars($settings['ga_tracking_id']); ?>"></script>
+        <script>
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', '<?php echo htmlspecialchars($settings['ga_tracking_id']); ?>');
+        </script>
+    <?php endif; ?>
 </head>
 <body>
 
 <header class="site-header">
+    <div class="header-top-bar bg-dark text-white py-1">
+        <div class="container d-flex justify-content-between">
+            <div class="header-social-links">
+                <?php if(!empty($settings['social_links_enabled'])): ?>
+                    <?php if(!empty($settings['social_facebook'])): ?><a href="<?php echo htmlspecialchars($settings['social_facebook']); ?>" class="text-white me-2"><i class="fab fa-facebook-f"></i></a><?php endif; ?>
+                    <?php if(!empty($settings['social_twitter'])): ?><a href="<?php echo htmlspecialchars($settings['social_twitter']); ?>" class="text-white me-2"><i class="fab fa-twitter"></i></a><?php endif; ?>
+                    <?php if(!empty($settings['social_instagram'])): ?><a href="<?php echo htmlspecialchars($settings['social_instagram']); ?>" class="text-white me-2"><i class="fab fa-instagram"></i></a><?php endif; ?>
+                    <?php if(!empty($settings['social_youtube'])): ?><a href="<?php echo htmlspecialchars($settings['social_youtube']); ?>" class="text-white me-2"><i class="fab fa-youtube"></i></a><?php endif; ?>
+                    <?php if(!empty($settings['social_threads'])): ?><a href="<?php echo htmlspecialchars($settings['social_threads']); ?>" class="text-white"><i class="fab fa-threads"></i></a><?php endif; ?>
+                <?php endif; ?>
+            </div>
+            <div>
+                <!-- Can add other top bar info here -->
+            </div>
+        </div>
+    </div>
     <div class="header-main">
         <div class="container">
             <div class="d-flex justify-content-between align-items-center">

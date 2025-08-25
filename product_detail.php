@@ -87,6 +87,13 @@ $stmt_gallery->close();
                 </div>
                 <button type="submit" class="btn btn-primary btn-lg mt-3">Add to Cart</button>
             </form>
+            <hr class="my-4">
+            <div class="product-share">
+                <h5>Share this product</h5>
+                <a href="https://www.facebook.com/sharer/sharer.php?u=<?php echo urlencode('http://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI']); ?>" class="btn btn-outline-primary" target="_blank"><i class="fab fa-facebook-f"></i> Facebook</a>
+                <a href="https://twitter.com/intent/tweet?url=<?php echo urlencode('http://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI']); ?>&text=<?php echo urlencode('Check out this product: ' . $product['name']); ?>" class="btn btn-outline-info" target="_blank"><i class="fab fa-twitter"></i> Twitter</a>
+                <a href="https://pinterest.com/pin/create/button/?url=<?php echo urlencode('http://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI']); ?>&media=<?php echo urlencode('http://' . $_SERVER['HTTP_HOST'] . '/uploads/' . $product['image']); ?>&description=<?php echo urlencode($product['name']); ?>" class="btn btn-outline-danger" target="_blank"><i class="fab fa-pinterest"></i> Pinterest</a>
+            </div>
         </div>
     </div>
 </div>
