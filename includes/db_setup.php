@@ -43,6 +43,8 @@ function setup_database_tables($mysqli) {
           `user_id` int(11) NOT NULL,
           `total_amount` decimal(10,2) NOT NULL,
       `stripe_payment_intent_id` varchar(255) DEFAULT NULL,
+      `payment_method` varchar(50) DEFAULT NULL,
+      `payment_proof` varchar(255) DEFAULT NULL,
           `status` varchar(50) NOT NULL DEFAULT 'Pending',
           `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
           PRIMARY KEY (`id`),
@@ -61,6 +63,12 @@ function setup_database_tables($mysqli) {
           KEY `product_id` (`product_id`),
           CONSTRAINT `order_items_ibfk_1` FOREIGN KEY (`order_id`) REFERENCES `orders` (`id`) ON DELETE CASCADE,
           CONSTRAINT `order_items_ibfk_2` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`) ON DELETE CASCADE
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;",
+
+    "settings" => "CREATE TABLE `settings` (
+      `setting_key` varchar(255) NOT NULL,
+      `setting_value` text,
+      PRIMARY KEY (`setting_key`)
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;"
     ];
 
@@ -95,6 +103,18 @@ function setup_database_tables($mysqli) {
     $result_stripe = $mysqli->query("SHOW COLUMNS FROM `orders` LIKE 'stripe_payment_intent_id'");
     if($result_stripe->num_rows == 0){
         $mysqli->query("ALTER TABLE `orders` ADD `stripe_payment_intent_id` VARCHAR(255) DEFAULT NULL AFTER `total_amount`");
+    }
+
+    // Check for payment_method column in orders table
+    $result_pm = $mysqli->query("SHOW COLUMNS FROM `orders` LIKE 'payment_method'");
+    if($result_pm->num_rows == 0){
+        $mysqli->query("ALTER TABLE `orders` ADD `payment_method` VARCHAR(50) DEFAULT NULL AFTER `stripe_payment_intent_id`");
+    }
+
+    // Check for payment_proof column in orders table
+    $result_pp = $mysqli->query("SHOW COLUMNS FROM `orders` LIKE 'payment_proof'");
+    if($result_pp->num_rows == 0){
+        $mysqli->query("ALTER TABLE `orders` ADD `payment_proof` VARCHAR(255) DEFAULT NULL AFTER `payment_method`");
     }
 
     // Check if an admin user exists, if not, create a default one.
