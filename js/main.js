@@ -24,8 +24,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (cartBadge) {
                     cartBadge.textContent = data.cart_count;
                 }
-                // Optional: Show a success notification/toast
-                // For now, we just update the count.
+                // Show the success modal
+                const cartModal = new bootstrap.Modal(document.getElementById('addToCartModal'));
+                cartModal.show();
             } else {
                 // Handle error
                 console.error('Error adding to cart:', data.message);

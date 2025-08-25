@@ -41,6 +41,25 @@
     </div>
 </footer>
 
+<!-- Add to Cart Modal -->
+<div class="modal fade" id="addToCartModal" tabindex="-1" aria-labelledby="addToCartModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="addToCartModalLabel"><i class="fas fa-check-circle text-success"></i> Product Added to Cart</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        The product has been successfully added to your cart. What would you like to do next?
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Continue Shopping</button>
+        <a href="cart.php" class="btn btn-primary">View Cart & Checkout</a>
+      </div>
+    </div>
+  </div>
+</div>
+
 <?php
 // --- Modal Ad Logic ---
 $active_ad = null;
