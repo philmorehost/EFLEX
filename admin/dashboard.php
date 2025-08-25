@@ -41,7 +41,7 @@ if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true || !isset($_S
     <div class="list-group">
       <a href="manage_products.php" class="list-group-item list-group-item-action">Manage Products</a>
       <a href="manage_categories.php" class="list-group-item list-group-item-action">Manage Categories</a>
-      <a href="#" class="list-group-item list-group-item-action">Manage Orders</a>
+      <a href="manage_orders.php" class="list-group-item list-group-item-action">Manage Orders</a>
       <a href="#" class="list-group-item list-group-item-action">Manage Users</a>
     </div>
 
