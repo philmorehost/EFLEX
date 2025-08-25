@@ -1,6 +1,7 @@
 <?php
 // Include the new admin header
 include 'includes/admin_header.php';
+require_permission('manage_orders');
 
 // Pagination variables
 $page = isset($_GET['page']) && is_numeric($_GET['page']) ? (int)$_GET['page'] : 1;

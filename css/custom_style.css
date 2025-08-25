@@ -331,12 +331,12 @@ h1, h2, h3, h4, h5, h6 {
     transform: translate(-50%, -50%);
 }
 
-.hero-section .carousel-caption-custom {
+.hero-section .carousel-caption-overlay {
     position: relative;
     z-index: 1;
-    background-color: rgba(0, 0, 0, 0.5); /* Dark overlay for text readability */
     padding: 2rem;
     border-radius: .5rem;
+    max-width: 700px;
 }
 
 /* "How It Works" Section */

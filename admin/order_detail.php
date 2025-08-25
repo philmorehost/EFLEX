@@ -2,6 +2,7 @@
 <?php
 // Include the new admin header
 include 'includes/admin_header.php';
+require_permission('manage_orders');
 require_once '../includes/send_email.php';
 
 // Check if Order ID is provided

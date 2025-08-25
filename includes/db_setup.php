@@ -90,6 +90,38 @@ function setup_database_tables($mysqli) {
         `sort_order` int(11) NOT NULL DEFAULT '0',
         `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
         PRIMARY KEY (`id`)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;",
+
+    "product_images" => "CREATE TABLE `product_images` (
+        `id` int(11) NOT NULL AUTO_INCREMENT,
+        `product_id` int(11) NOT NULL,
+        `image_url` varchar(255) NOT NULL,
+        `sort_order` int(11) NOT NULL DEFAULT '0',
+        PRIMARY KEY (`id`),
+        KEY `product_id` (`product_id`),
+        CONSTRAINT `product_images_ibfk_1` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`) ON DELETE CASCADE
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;",
+
+    "roles" => "CREATE TABLE `roles` (
+        `id` int(11) NOT NULL AUTO_INCREMENT,
+        `role_name` varchar(255) NOT NULL UNIQUE,
+        PRIMARY KEY (`id`)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;",
+
+    "permissions" => "CREATE TABLE `permissions` (
+        `id` int(11) NOT NULL AUTO_INCREMENT,
+        `permission_name` varchar(255) NOT NULL UNIQUE,
+        PRIMARY KEY (`id`)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;",
+
+    "role_permissions" => "CREATE TABLE `role_permissions` (
+        `role_id` int(11) NOT NULL,
+        `permission_id` int(11) NOT NULL,
+        PRIMARY KEY (`role_id`, `permission_id`),
+        KEY `role_id` (`role_id`),
+        KEY `permission_id` (`permission_id`),
+        CONSTRAINT `role_permissions_ibfk_1` FOREIGN KEY (`role_id`) REFERENCES `roles` (`id`) ON DELETE CASCADE,
+        CONSTRAINT `role_permissions_ibfk_2` FOREIGN KEY (`permission_id`) REFERENCES `permissions` (`id`) ON DELETE CASCADE
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;"
     ];
 
@@ -150,23 +182,75 @@ function setup_database_tables($mysqli) {
         $mysqli->query("ALTER TABLE `orders` ADD `transaction_reference` VARCHAR(255) DEFAULT NULL AFTER `payment_proof`");
     }
 
-    // Check if an admin user exists, if not, create a default one.
-    $result = $mysqli->query("SELECT id FROM users WHERE role = 'admin' LIMIT 1");
-    if($result->num_rows == 0){
-        $username = 'admin';
-        $email = 'admin@example.com';
-        $password = 'password'; // NOTE: User should change this immediately.
-        $role = 'admin';
-        $hashed_password = password_hash($password, PASSWORD_DEFAULT);
+    // RBAC Migrations
+    // Add role_id to users table
+    $result_role_id = $mysqli->query("SHOW COLUMNS FROM `users` LIKE 'role_id'");
+    if($result_role_id->num_rows == 0){
+        $mysqli->query("ALTER TABLE `users` ADD `role_id` INT(11) NULL AFTER `email`");
+        // Could add a foreign key constraint here, but might be complex with default roles.
+    }
 
-        $sql = "INSERT INTO users (username, email, password, role) VALUES (?, ?, ?, ?)";
-        if($stmt = $mysqli->prepare($sql)){
-            $stmt->bind_param("ssss", $username, $email, $hashed_password, $role);
-            if($stmt->execute()){
-                // Set a session variable to indicate success
-                $_SESSION['admin_created'] = true;
+    // Drop old role column if role_id exists
+    $result_old_role = $mysqli->query("SHOW COLUMNS FROM `users` LIKE 'role'");
+    if($result_old_role->num_rows > 0 && $result_role_id->num_rows > 0){
+        $mysqli->query("ALTER TABLE `users` DROP COLUMN `role`");
+    }
+
+    // Check for overlay_color column in hero_slides table
+    $result_oc = $mysqli->query("SHOW COLUMNS FROM `hero_slides` LIKE 'overlay_color'");
+    if($result_oc->num_rows == 0){
+        $mysqli->query("ALTER TABLE `hero_slides` ADD `overlay_color` VARCHAR(10) DEFAULT '#000000' AFTER `description`");
+    }
+
+    // Check for overlay_opacity column in hero_slides table
+    $result_oo = $mysqli->query("SHOW COLUMNS FROM `hero_slides` LIKE 'overlay_opacity'");
+    if($result_oo->num_rows == 0){
+        $mysqli->query("ALTER TABLE `hero_slides` ADD `overlay_opacity` DECIMAL(2,1) DEFAULT 0.5 AFTER `overlay_color`");
+    }
+
+    // Seed Roles and Permissions and create a default Super Admin
+    $result = $mysqli->query("SELECT id FROM roles WHERE role_name = 'Super Admin'");
+    if($result->num_rows == 0){
+        // 1. Create Super Admin Role
+        $mysqli->query("INSERT INTO roles (role_name) VALUES ('Super Admin')");
+        $super_admin_role_id = $mysqli->insert_id;
+
+        // 2. Define and create all permissions
+        $permissions = [
+            'manage_products', 'manage_categories', 'manage_orders',
+            'manage_users', 'manage_site_settings', 'manage_banners',
+            'manage_hero_slider', 'manage_roles'
+        ];
+        $stmt_perm = $mysqli->prepare("INSERT INTO permissions (permission_name) VALUES (?)");
+        foreach($permissions as $p_name){
+            $stmt_perm->bind_param("s", $p_name);
+            $stmt_perm->execute();
+            $permission_id = $mysqli->insert_id;
+
+            // 3. Assign this new permission to the Super Admin role
+            $stmt_rp = $mysqli->prepare("INSERT INTO role_permissions (role_id, permission_id) VALUES (?, ?)");
+            $stmt_rp->bind_param("ii", $super_admin_role_id, $permission_id);
+            $stmt_rp->execute();
+            $stmt_rp->close();
+        }
+        $stmt_perm->close();
+
+        // 4. Create the default admin user and assign the Super Admin role
+        $result_admin = $mysqli->query("SELECT id FROM users WHERE username = 'admin'");
+        if($result_admin->num_rows == 0){
+            $username = 'admin';
+            $email = 'admin@example.com';
+            $password = 'password'; // NOTE: User should change this immediately.
+            $hashed_password = password_hash($password, PASSWORD_DEFAULT);
+
+            $sql_user = "INSERT INTO users (username, email, password, role_id) VALUES (?, ?, ?, ?)";
+            if($stmt_user = $mysqli->prepare($sql_user)){
+                $stmt_user->bind_param("sssi", $username, $email, $hashed_password, $super_admin_role_id);
+                if($stmt_user->execute()){
+                    $_SESSION['admin_created'] = true;
+                }
+                $stmt_user->close();
             }
-            $stmt->close();
         }
     }
 }

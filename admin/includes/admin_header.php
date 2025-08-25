@@ -4,15 +4,18 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-// Check if the user is logged in and is an admin. If not, redirect them to the homepage.
-if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true || !isset($_SESSION["role"]) || $_SESSION["role"] !== 'admin'){
-    // Adjust the path to the root index.php from the admin/includes directory
-    header("location: ../../index.php");
+// Basic login check. Specific permissions are checked on each page.
+if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true){
+    header("location: ../../login.php");
     exit;
 }
 
-// Fetch site name for the header
+// Include database and auth check
 require_once __DIR__ . '/../../includes/db_connect.php';
+require_once __DIR__ . '/../../includes/auth_check.php';
+
+
+// Fetch site name for the header
 $settings_sql = "SELECT setting_key, setting_value FROM settings WHERE setting_key = 'site_name'";
 $result = $mysqli->query($settings_sql);
 $settings = $result->fetch_assoc();
@@ -47,27 +50,33 @@ $active_page = basename($_SERVER['PHP_SELF']);
             <li class="<?php echo ($active_page == 'dashboard.php') ? 'active' : ''; ?>">
                 <a href="dashboard.php"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
             </li>
-            <li class="<?php echo ($active_page == 'manage_products.php' || $active_page == 'add_product.php' || $active_page == 'edit_product.php') ? 'active' : ''; ?>">
+            <?php if(has_permission('manage_products')): ?><li class="<?php echo ($active_page == 'manage_products.php' || $active_page == 'add_product.php' || $active_page == 'edit_product.php') ? 'active' : ''; ?>">
                 <a href="manage_products.php"><i class="fas fa-box"></i> Products</a>
-            </li>
-            <li class="<?php echo ($active_page == 'manage_categories.php') ? 'active' : ''; ?>">
+            </li><?php endif; ?>
+            <?php if(has_permission('manage_categories')): ?><li class="<?php echo ($active_page == 'manage_categories.php') ? 'active' : ''; ?>">
                 <a href="manage_categories.php"><i class="fas fa-list"></i> Categories</a>
-            </li>
-             <li class="<?php echo ($active_page == 'manage_banners.php') ? 'active' : ''; ?>">
+            </li><?php endif; ?>
+            <?php if(has_permission('manage_banners')): ?><li class="<?php echo ($active_page == 'manage_banners.php') ? 'active' : ''; ?>">
                 <a href="manage_banners.php"><i class="fas fa-images"></i> Banners</a>
-            </li>
-            <li class="<?php echo ($active_page == 'manage_hero.php') ? 'active' : ''; ?>">
+            </li><?php endif; ?>
+            <?php if(has_permission('manage_hero_slider')): ?><li class="<?php echo ($active_page == 'manage_hero.php') ? 'active' : ''; ?>">
                 <a href="manage_hero.php"><i class="fas fa-film"></i> Hero Slider</a>
-            </li>
-            <li class="<?php echo ($active_page == 'manage_orders.php' || $active_page == 'order_detail.php') ? 'active' : ''; ?>">
+            </li><?php endif; ?>
+            <?php if(has_permission('manage_orders')): ?><li class="<?php echo ($active_page == 'manage_orders.php' || $active_page == 'order_detail.php') ? 'active' : ''; ?>">
                 <a href="manage_orders.php"><i class="fas fa-shopping-cart"></i> Orders</a>
-            </li>
-            <li class="<?php echo ($active_page == 'manage_users.php' || $active_page == 'edit_user.php') ? 'active' : ''; ?>">
-                <a href="manage_users.php"><i class="fas fa-users"></i> Users</a>
-            </li>
-            <li class="<?php echo ($active_page == 'site_settings.php') ? 'active' : ''; ?>">
+            </li><?php endif; ?>
+            <?php if(has_permission('manage_roles')): ?><li class="<?php echo ($active_page == 'manage_staff.php') ? 'active' : ''; ?>">
+                <a href="manage_staff.php"><i class="fas fa-user-tie"></i> Staff</a>
+            </li><?php endif; ?>
+            <?php if(has_permission('manage_roles')): ?><li class="<?php echo ($active_page == 'manage_roles.php') ? 'active' : ''; ?>">
+                <a href="manage_roles.php"><i class="fas fa-user-shield"></i> Roles & Permissions</a>
+            </li><?php endif; ?>
+            <?php if(has_permission('manage_users')): ?><li class="<?php echo ($active_page == 'manage_users.php' || $active_page == 'edit_user.php') ? 'active' : ''; ?>">
+                <a href="manage_users.php"><i class="fas fa-users"></i> Customers</a>
+            </li><?php endif; ?>
+            <?php if(has_permission('manage_site_settings')): ?><li class="<?php echo ($active_page == 'site_settings.php') ? 'active' : ''; ?>">
                 <a href="site_settings.php"><i class="fas fa-cog"></i> Site Settings</a>
-            </li>
+            </li><?php endif; ?>
         </ul>
         <ul class="list-unstyled CTAs">
              <li><a href="../index.php" class="btn btn-info w-100 text-white" target="_blank">View Live Site</a></li>

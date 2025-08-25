@@ -1,6 +1,7 @@
 <?php
 // Include the new admin header
 include 'includes/admin_header.php';
+require_permission('manage_hero_slider');
 
 $message = "";
 
@@ -36,6 +37,8 @@ if($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['save_slide'])){
     $content_url = trim($_POST['content_url']);
     $is_active = isset($_POST['is_active']) ? 1 : 0;
     $sort_order = (int)$_POST['sort_order'];
+    $overlay_color = $_POST['overlay_color'];
+    $overlay_opacity = (float)$_POST['overlay_opacity'];
 
     if($type === 'image'){
         $upload_result = handle_hero_image_upload('image_file');
@@ -48,9 +51,9 @@ if($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['save_slide'])){
 
     if(empty($message)){
         if(empty($id)){ // Add new slide
-            $sql = "INSERT INTO hero_slides (title, description, type, content_url, is_active, sort_order) VALUES (?, ?, ?, ?, ?, ?)";
+            $sql = "INSERT INTO hero_slides (title, description, overlay_color, overlay_opacity, type, content_url, is_active, sort_order) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
             if($stmt = $mysqli->prepare($sql)){
-                $stmt->bind_param("ssssii", $title, $description, $type, $content_url, $is_active, $sort_order);
+                $stmt->bind_param("ssssssii", $title, $description, $overlay_color, $overlay_opacity, $type, $content_url, $is_active, $sort_order);
                 if($stmt->execute()){
                     $message = '<div class="alert alert-success">Slide added successfully.</div>';
                 } else {
@@ -59,9 +62,9 @@ if($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['save_slide'])){
                 $stmt->close();
             }
         } else { // Update existing slide
-            $sql = "UPDATE hero_slides SET title=?, description=?, type=?, content_url=?, is_active=?, sort_order=? WHERE id=?";
+            $sql = "UPDATE hero_slides SET title=?, description=?, overlay_color=?, overlay_opacity=?, type=?, content_url=?, is_active=?, sort_order=? WHERE id=?";
             if($stmt = $mysqli->prepare($sql)){
-                $stmt->bind_param("ssssiii", $title, $description, $type, $content_url, $is_active, $sort_order, $id);
+                $stmt->bind_param("ssssssiii", $title, $description, $overlay_color, $overlay_opacity, $type, $content_url, $is_active, $sort_order, $id);
                 if($stmt->execute()){
                     $message = '<div class="alert alert-success">Slide updated successfully.</div>';
                 } else {
@@ -102,7 +105,7 @@ if(isset($_GET['delete'])){
 
 // Check if we are in edit mode
 $is_edit_mode = false;
-$edit_slide = ['id' => '', 'title' => '', 'description' => '', 'type' => 'image', 'content_url' => '', 'is_active' => 1, 'sort_order' => 0];
+$edit_slide = ['id' => '', 'title' => '', 'description' => '', 'overlay_color' => '#000000', 'overlay_opacity' => 0.5, 'type' => 'image', 'content_url' => '', 'is_active' => 1, 'sort_order' => 0];
 if(isset($_GET['edit'])){
     $is_edit_mode = true;
     $id = $_GET['edit'];
@@ -152,11 +155,22 @@ $slides = $result->fetch_all(MYSQLI_ASSOC);
             </div>
             <div class="mb-3">
                 <label for="description" class="form-label">Description (optional)</label>
-                <textarea name="description" id="description" class="form-control" rows="3"><?php echo htmlspecialchars($edit_slide['description']); ?></textarea>
+                <textarea name="description" id="description" class="form-control" rows="2"><?php echo htmlspecialchars($edit_slide['description']); ?></textarea>
+            </div>
+             <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="overlay_color" class="form-label">Overlay Color</label>
+                    <input type="color" name="overlay_color" id="overlay_color" class="form-control form-control-color" value="<?php echo htmlspecialchars($edit_slide['overlay_color']); ?>">
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label for="overlay_opacity" class="form-label">Overlay Opacity (0.0 - 1.0)</label>
+                    <input type="number" name="overlay_opacity" id="overlay_opacity" class="form-control" value="<?php echo htmlspecialchars($edit_slide['overlay_opacity']); ?>" min="0" max="1" step="0.1">
+                </div>
             </div>
             <div class="mb-3" id="image-input">
                 <label for="image_file" class="form-label">Image File</label>
                 <input type="file" name="image_file" id="image_file" class="form-control">
+                <div class="form-text">Recommended size: 1920x1080px for best results.</div>
                 <?php if($is_edit_mode && $edit_slide['type'] == 'image' && !empty($edit_slide['content_url'])): ?>
                     <div class="mt-2">Current: <img src="../<?php echo htmlspecialchars($edit_slide['content_url']); ?>" style="height: 60px;"></div>
                     <input type="hidden" name="content_url" value="<?php echo htmlspecialchars($edit_slide['content_url']); ?>">

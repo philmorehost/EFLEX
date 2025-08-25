@@ -72,10 +72,17 @@ $top_sellers = $top_sellers_result->fetch_all(MYSQLI_ASSOC);
                     <div class="image-background" style="background-image: url('<?php echo htmlspecialchars($slide['content_url']); ?>');"></div>
                 <?php endif; ?>
 
-                <div class="container carousel-caption-custom">
-                    <h1><?php echo htmlspecialchars($slide['title']); ?></h1>
-                    <p class="lead"><?php echo htmlspecialchars($slide['description']); ?></p>
-                    <a class="btn btn-primary btn-lg" href="products.php" role="button">Shop Now</a>
+                <?php
+                    // Convert hex color to RGB
+                    list($r, $g, $b) = sscanf($slide['overlay_color'], "#%02x%02x%02x");
+                    $rgba_color = "rgba($r, $g, $b, " . $slide['overlay_opacity'] . ")";
+                ?>
+                <div class="container d-flex h-100 align-items-center justify-content-center">
+                    <div class="carousel-caption-overlay" style="background-color: <?php echo $rgba_color; ?>;">
+                        <h1><?php echo htmlspecialchars($slide['title']); ?></h1>
+                        <p class="lead"><?php echo htmlspecialchars($slide['description']); ?></p>
+                        <a class="btn btn-primary btn-lg" href="products.php" role="button">Shop Now</a>
+                    </div>
                 </div>
             </div>
         <?php endforeach; ?>

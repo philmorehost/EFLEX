@@ -33,12 +33,37 @@ if(!$product){
     include 'includes/footer.php';
     exit();
 }
+
+// Fetch gallery images
+$sql_gallery = "SELECT * FROM product_images WHERE product_id = ? ORDER BY sort_order ASC";
+$stmt_gallery = $mysqli->prepare($sql_gallery);
+$stmt_gallery->bind_param("i", $product_id);
+$stmt_gallery->execute();
+$gallery_images = $stmt_gallery->get_result()->fetch_all(MYSQLI_ASSOC);
+$stmt_gallery->close();
+
 ?>
 
 <div class="container mt-5">
     <div class="row">
         <div class="col-md-6">
-            <img src="uploads/<?php echo htmlspecialchars($product['image']); ?>" class="img-fluid" alt="<?php echo htmlspecialchars($product['name']); ?>">
+            <div class="main-image-container mb-3">
+                 <img src="uploads/<?php echo htmlspecialchars($product['image']); ?>" class="img-fluid w-100" id="mainProductImage" alt="<?php echo htmlspecialchars($product['name']); ?>">
+            </div>
+            <?php if(count($gallery_images) > 0): ?>
+            <div class="product-thumbnails d-flex gap-2">
+                <!-- Main image as first thumbnail -->
+                <div class="thumbnail-item">
+                    <img src="uploads/<?php echo htmlspecialchars($product['image']); ?>" class="img-fluid" alt="Thumbnail" onclick="changeMainImage(this)">
+                </div>
+                <!-- Gallery images -->
+                <?php foreach($gallery_images as $img): ?>
+                <div class="thumbnail-item">
+                    <img src="uploads/<?php echo htmlspecialchars($img['image_url']); ?>" class="img-fluid" alt="Thumbnail" onclick="changeMainImage(this)">
+                </div>
+                <?php endforeach; ?>
+            </div>
+            <?php endif; ?>
         </div>
         <div class="col-md-6">
             <nav aria-label="breadcrumb">
@@ -51,9 +76,7 @@ if(!$product){
             <h2><?php echo htmlspecialchars($product['name']); ?></h2>
             <h4 class="text-success">$<?php echo htmlspecialchars($product['price']); ?></h4>
             <p class="lead"><?php echo nl2br(htmlspecialchars($product['description'])); ?></p>
-
             <hr>
-
             <form id="add-to-cart-form" class="ajax-add-to-cart-form">
                 <input type="hidden" name="product_id" value="<?php echo $product['id']; ?>">
                 <div class="row">
@@ -68,6 +91,42 @@ if(!$product){
     </div>
 </div>
 
+<style>
+.product-thumbnails {
+    overflow-x: auto;
+}
+.thumbnail-item {
+    flex: 0 0 80px; /* Do not grow, do not shrink, initial width 80px */
+    cursor: pointer;
+    border: 2px solid transparent;
+    padding: 2px;
+}
+.thumbnail-item:hover, .thumbnail-item.active {
+    border-color: var(--woodmart-primary-color);
+}
+.main-image-container {
+    border: 1px solid #eee;
+}
+</style>
+
+<script>
+function changeMainImage(thumbnail) {
+    const mainImage = document.getElementById('mainProductImage');
+    mainImage.src = thumbnail.src;
+
+    // Optional: Add active state to thumbnail
+    const thumbnails = document.querySelectorAll('.thumbnail-item');
+    thumbnails.forEach(item => item.classList.remove('active'));
+    thumbnail.parentElement.classList.add('active');
+}
+// Set the first thumbnail as active initially
+document.addEventListener('DOMContentLoaded', function() {
+    const firstThumbnail = document.querySelector('.thumbnail-item');
+    if (firstThumbnail) {
+        firstThumbnail.classList.add('active');
+    }
+});
+</script>
 
 <?php
 // Include the footer
