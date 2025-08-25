@@ -36,19 +36,19 @@ h1, h2, h3, h4, h5, h6 {
 
 /* 2. Header Redesign */
 .site-header {
-    background-color: #fff;
     box-shadow: 0 2px 4px rgba(0,0,0,0.05);
 }
 
 .header-main {
     padding: 20px 0;
-    border-bottom: 1px solid var(--woodmart-light-gray);
+    background-color: #212529; /* Dark mode background */
+    color: #fff;
 }
 
 .header-logo .navbar-brand {
     font-size: 2rem;
     font-weight: 700;
-    color: var(--woodmart-text-color);
+    color: #fff; /* White logo text */
 }
 
 .header-search {
@@ -73,10 +73,20 @@ h1, h2, h3, h4, h5, h6 {
     align-items: center;
 }
 
+.header-search .form-control {
+    background-color: #495057;
+    color: #fff;
+    border-color: #495057;
+}
+
+.header-search .form-control::placeholder {
+    color: #ced4da;
+}
+
 .header-action-btn {
     display: flex;
     align-items: center;
-    color: var(--woodmart-text-color);
+    color: #fff; /* White icon/text */
     text-decoration: none;
     margin-left: 20px;
     position: relative;
@@ -279,4 +289,17 @@ h1, h2, h3, h4, h5, h6 {
 .hero-section {
     background-color: var(--woodmart-light-gray);
     padding: 60px 0;
+}
+
+/* "How It Works" Section */
+.how-it-works-step .step-icon i {
+    font-size: 3rem;
+    color: var(--woodmart-primary-color);
+    margin-bottom: 20px;
+}
+
+.how-it-works-step h5 {
+    margin-bottom: 10px;
+    font-size: 1.1rem;
+    text-transform: uppercase;
 }

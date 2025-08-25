@@ -30,6 +30,8 @@ function setup_database_tables($mysqli) {
           `description` text NOT NULL,
           `price` decimal(10,2) NOT NULL,
           `image` varchar(255) DEFAULT 'default.jpg',
+      `is_featured` tinyint(1) NOT NULL DEFAULT '0',
+      `is_top_seller` tinyint(1) NOT NULL DEFAULT '0',
           `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
           PRIMARY KEY (`id`),
           KEY `category_id` (`category_id`),
