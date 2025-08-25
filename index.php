@@ -4,10 +4,10 @@ include 'includes/header.php';
 ?>
 
 <!-- Hero Section -->
-<div class="p-5 mb-4 bg-light rounded-3">
-    <div class="container-fluid py-5">
-        <h1 class="display-5 fw-bold">Welcome to Eflex</h1>
-        <p class="col-md-8 fs-4">Your one-stop shop for everything you need. We offer the best products at the best prices.</p>
+<div class="hero-section text-center">
+    <div class="container">
+        <h1>Welcome to Eflex</h1>
+        <p class="lead">Your one-stop shop for everything you need. We offer the best products at the best prices.</p>
         <a class="btn btn-primary btn-lg" href="products.php" role="button">Shop Now</a>
     </div>
 </div>

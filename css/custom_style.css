@@ -1,0 +1,282 @@
+/*
+ * Custom Stylesheet for Eflex E-commerce
+ *
+ * This file will be used to override and extend Bootstrap styles
+ * to match the look and feel of the Woodmart theme.
+ */
+
+/* 1. Theme Colors & Typography */
+:root {
+    --woodmart-font: 'Lato', sans-serif;
+    --woodmart-primary-color: #ae8e6a;
+    --woodmart-text-color: #333333;
+    --woodmart-background-color: #f7f7f7;
+    --woodmart-light-gray: #f2f2f2;
+}
+
+body {
+    font-family: var(--woodmart-font);
+    background-color: var(--woodmart-background-color);
+    color: var(--woodmart-text-color);
+}
+
+a {
+    color: var(--woodmart-primary-color);
+    text-decoration: none;
+}
+
+a:hover {
+    color: #8e7354; /* A darker shade for hover */
+}
+
+h1, h2, h3, h4, h5, h6 {
+    font-family: var(--woodmart-font);
+    font-weight: 700;
+}
+
+/* 2. Header Redesign */
+.site-header {
+    background-color: #fff;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.header-main {
+    padding: 20px 0;
+    border-bottom: 1px solid var(--woodmart-light-gray);
+}
+
+.header-logo .navbar-brand {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--woodmart-text-color);
+}
+
+.header-search {
+    flex-grow: 1;
+    max-width: 500px;
+    margin: 0 40px;
+}
+
+.header-search .form-control {
+    border-right: 0;
+    border-radius: 20px 0 0 20px;
+}
+.header-search .btn {
+    border-radius: 0 20px 20px 0;
+    background-color: var(--woodmart-primary-color);
+    border-color: var(--woodmart-primary-color);
+    color: #fff;
+}
+
+.header-actions {
+    display: flex;
+    align-items: center;
+}
+
+.header-action-btn {
+    display: flex;
+    align-items: center;
+    color: var(--woodmart-text-color);
+    text-decoration: none;
+    margin-left: 20px;
+    position: relative;
+}
+
+.header-action-btn:hover {
+    color: var(--woodmart-primary-color);
+}
+
+.header-action-btn i {
+    font-size: 1.5rem;
+    margin-right: 8px;
+}
+
+.cart-badge {
+    position: absolute;
+    top: -5px;
+    right: -10px;
+    font-size: 0.7rem;
+}
+
+.header-nav {
+    background-color: #fff;
+}
+
+.nav-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    justify-content: center;
+}
+
+.nav-list > li > a.nav-link {
+    padding: 15px 20px;
+    text-transform: uppercase;
+    font-weight: 700;
+    font-size: 0.9rem;
+    color: var(--woodmart-text-color);
+    position: relative;
+}
+
+.nav-list > li > a.nav-link:hover {
+    color: var(--woodmart-primary-color);
+}
+
+/* Custom Dropdown */
+.nav-item-dropdown {
+    position: relative;
+}
+
+.dropdown-menu-custom {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    background-color: #fff;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    list-style: none;
+    padding: 10px 0;
+    margin: 0;
+    min-width: 200px;
+    z-index: 1000;
+}
+
+.nav-item-dropdown:hover .dropdown-menu-custom {
+    display: block;
+}
+
+.dropdown-menu-custom li a {
+    display: block;
+    padding: 8px 20px;
+    color: var(--woodmart-text-color);
+    text-decoration: none;
+}
+
+.dropdown-menu-custom li a:hover {
+    background-color: var(--woodmart-light-gray);
+    color: var(--woodmart-primary-color);
+}
+
+.dropdown-menu-custom .divider {
+    height: 1px;
+    background-color: var(--woodmart-light-gray);
+    margin: 5px 0;
+}
+
+/* 3. Product Card Redesign */
+.card {
+    border: 1px solid #e9e9e9;
+    transition: all 0.3s ease-in-out;
+    text-align: center;
+}
+
+.card:hover {
+    box-shadow: 0 10px 20px rgba(0,0,0,0.08);
+    transform: translateY(-5px);
+}
+
+.card .card-img-top {
+    border-radius: 0;
+}
+
+.card .card-body {
+    padding: 20px;
+}
+
+.card .card-title a {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--woodmart-text-color);
+}
+.card .card-title a:hover {
+    color: var(--woodmart-primary-color);
+}
+
+.card .card-text.text-muted {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--woodmart-primary-color) !important;
+    margin-bottom: 15px;
+}
+
+.card .btn {
+    opacity: 0;
+    transform: translateY(10px);
+    transition: all 0.3s ease-in-out;
+    background-color: var(--woodmart-primary-color);
+    border-color: var(--woodmart-primary-color);
+    text-transform: uppercase;
+    font-weight: 700;
+    font-size: 0.8rem;
+    padding: 10px;
+}
+
+.card:hover .btn {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* 4. Standardize Component Styles */
+
+/* Buttons */
+.btn-primary {
+    background-color: var(--woodmart-primary-color);
+    border-color: var(--woodmart-primary-color);
+    text-transform: uppercase;
+    font-weight: 700;
+    padding: 10px 25px;
+    border-radius: 2px;
+}
+
+.btn-primary:hover {
+    background-color: #8e7354;
+    border-color: #8e7354;
+}
+
+.btn-secondary {
+    background-color: #f2f2f2;
+    border-color: #e9e9e9;
+    color: var(--woodmart-text-color);
+    text-transform: uppercase;
+    font-weight: 700;
+    padding: 10px 25px;
+    border-radius: 2px;
+}
+
+.btn-secondary:hover {
+    background-color: #e9e9e9;
+    border-color: #e0e0e0;
+}
+
+
+/* Forms */
+.form-control, .form-select {
+    border-radius: 2px;
+    border-color: #e9e9e9;
+}
+
+.form-control:focus, .form-select:focus {
+    border-color: var(--woodmart-primary-color);
+    box-shadow: 0 0 0 0.25rem rgba(174, 142, 106, 0.25);
+}
+
+
+/* Tables */
+.table {
+    border-color: #e9e9e9;
+}
+
+.table > :not(caption) > * > * {
+    background-color: #fff; /* Override Bootstrap's transparent background for rows */
+}
+
+.table-striped > tbody > tr:nth-of-type(odd) > * {
+    --bs-table-accent-bg: var(--woodmart-background-color); /* Use our light gray for striping */
+}
+
+/* Hero Section on Homepage */
+.hero-section {
+    background-color: var(--woodmart-light-gray);
+    padding: 60px 0;
+}
