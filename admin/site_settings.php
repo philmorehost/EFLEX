@@ -23,7 +23,14 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
             'bank_account_name' => $_POST['bank_account_name'],
             'bank_account_number' => $_POST['bank_account_number'],
             'bank_name' => $_POST['bank_name'],
-            'bank_payment_instructions' => $_POST['bank_payment_instructions']
+            'bank_payment_instructions' => $_POST['bank_payment_instructions'],
+            'smtp_host' => $_POST['smtp_host'],
+            'smtp_port' => $_POST['smtp_port'],
+            'smtp_user' => $_POST['smtp_user'],
+            'smtp_pass' => $_POST['smtp_pass'],
+            'from_email' => $_POST['from_email'],
+            'from_name' => $_POST['from_name'],
+            'smtp_encryption' => $_POST['smtp_encryption'],
         ];
 
         foreach($settings_to_save as $key => $value){
@@ -94,9 +101,42 @@ while($row = $result->fetch_assoc()){
             </div>
         </div>
         <div class="card mt-3">
-            <div class="card-header">Paystack Settings (Placeholder)</div>
+            <div class="card-header">SMTP Email Settings</div>
             <div class="card-body">
-                <p>Paystack API keys and settings will go here in a future step.</p>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="smtp_host" class="form-label">SMTP Host</label>
+                        <input type="text" name="smtp_host" class="form-control" id="smtp_host" value="<?php echo htmlspecialchars($settings['smtp_host'] ?? ''); ?>">
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="smtp_port" class="form-label">SMTP Port</label>
+                        <input type="text" name="smtp_port" class="form-control" id="smtp_port" value="<?php echo htmlspecialchars($settings['smtp_port'] ?? ''); ?>">
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="smtp_user" class="form-label">SMTP Username</label>
+                        <input type="text" name="smtp_user" class="form-control" id="smtp_user" value="<?php echo htmlspecialchars($settings['smtp_user'] ?? ''); ?>">
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="smtp_pass" class="form-label">SMTP Password</label>
+                        <input type="password" name="smtp_pass" class="form-control" id="smtp_pass" value="<?php echo htmlspecialchars($settings['smtp_pass'] ?? ''); ?>">
+                    </div>
+                     <div class="col-md-6 mb-3">
+                        <label for="from_email" class="form-label">From Email Address</label>
+                        <input type="email" name="from_email" class="form-control" id="from_email" value="<?php echo htmlspecialchars($settings['from_email'] ?? ''); ?>">
+                    </div>
+                     <div class="col-md-6 mb-3">
+                        <label for="from_name" class="form-label">From Name</label>
+                        <input type="text" name="from_name" class="form-control" id="from_name" value="<?php echo htmlspecialchars($settings['from_name'] ?? ''); ?>">
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="smtp_encryption" class="form-label">Encryption</label>
+                        <select name="smtp_encryption" id="smtp_encryption" class="form-select">
+                            <option value="none" <?php if( ($settings['smtp_encryption'] ?? '') == 'none') echo 'selected'; ?>>None</option>
+                            <option value="tls" <?php if( ($settings['smtp_encryption'] ?? '') == 'tls') echo 'selected'; ?>>TLS</option>
+                            <option value="ssl" <?php if( ($settings['smtp_encryption'] ?? '') == 'ssl') echo 'selected'; ?>>SSL</option>
+                        </select>
+                    </div>
+                </div>
             </div>
         </div>
         <button type="submit" class="btn btn-primary mt-3">Save Settings</button>

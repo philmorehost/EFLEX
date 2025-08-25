@@ -4,7 +4,22 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-// Include the database connection.
+// --- Initial Setup Checks ---
+
+// 1. Check and create upload directories
+// Use absolute paths based on this file's location to avoid relative path issues.
+$base_path = __DIR__ . '/../';
+$uploads_dir = $base_path . 'uploads';
+$proofs_dir = $uploads_dir . '/payment_proofs';
+
+if (!is_dir($uploads_dir)) {
+    mkdir($uploads_dir, 0777, true); // Use true for recursive creation and 0777 for broad permissions
+}
+if (!is_dir($proofs_dir)) {
+    mkdir($proofs_dir, 0777, true);
+}
+
+// 2. Include and run database setup/migration
 require_once 'db_connect.php';
 
 // Fetch categories for the navigation dropdown
