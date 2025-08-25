@@ -74,6 +74,60 @@ switch ($action) {
         }
         break;
 
+    case 'toggle_wishlist':
+        if (!isset($_SESSION['loggedin']) || $_SESSION['loggedin'] !== true) {
+            $response['message'] = 'User not logged in.';
+            $response['status'] = 'login_required';
+            break;
+        }
+
+        $product_id = $data['product_id'] ?? 0;
+        $user_id = $_SESSION['id'];
+
+        if ($product_id > 0) {
+            // Check if item is already in wishlist
+            $stmt_check = $mysqli->prepare("SELECT id FROM wishlist WHERE user_id = ? AND product_id = ?");
+            $stmt_check->bind_param("ii", $user_id, $product_id);
+            $stmt_check->execute();
+            $stmt_check->store_result();
+
+            if($stmt_check->num_rows > 0) {
+                // Remove from wishlist
+                $stmt_remove = $mysqli->prepare("DELETE FROM wishlist WHERE user_id = ? AND product_id = ?");
+                $stmt_remove->bind_param("ii", $user_id, $product_id);
+                $stmt_remove->execute();
+                $response = ['status' => 'success', 'action' => 'removed'];
+            } else {
+                // Add to wishlist
+                $stmt_add = $mysqli->prepare("INSERT INTO wishlist (user_id, product_id) VALUES (?, ?)");
+                $stmt_add->bind_param("ii", $user_id, $product_id);
+                $stmt_add->execute();
+                $response = ['status' => 'success', 'action' => 'added'];
+            }
+        } else {
+            $response['message'] = 'Invalid product ID.';
+        }
+        break;
+
+    case 'product_search':
+        $query = $data['query'] ?? '';
+        $products = [];
+        if(!empty($query)){
+            $sql = "SELECT id, name, image, price FROM products WHERE name LIKE ? LIMIT 10";
+            if($stmt = $mysqli->prepare($sql)){
+                $search_query = "%" . $query . "%";
+                $stmt->bind_param("s", $search_query);
+                $stmt->execute();
+                $result = $stmt->get_result();
+                while($row = $result->fetch_assoc()){
+                    $products[] = $row;
+                }
+                $stmt->close();
+            }
+        }
+        $response = ['status' => 'success', 'products' => $products];
+        break;
+
     default:
         // Keep the default invalid request message
         break;

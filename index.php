@@ -215,6 +215,30 @@ $top_sellers = $top_sellers_result->fetch_all(MYSQLI_ASSOC);
 </div>
 -->
 
+<!-- Featured Products Section -->
+<div class="container my-5">
+    <h2 class="text-center mb-4">Featured Products</h2>
+    <div class="row">
+        <?php foreach(array_slice($featured_products, 0, 4) as $product): ?>
+            <div class="col-md-4 col-lg-3 mb-4">
+                <?php include 'includes/product_card.php'; ?>
+            </div>
+        <?php endforeach; ?>
+    </div>
+</div>
+
+<!-- Top Sellers Section -->
+<div class="container my-5">
+    <h2 class="text-center mb-4">Top Sellers</h2>
+     <div class="row">
+        <?php foreach(array_slice($top_sellers, 0, 4) as $product): ?>
+            <div class="col-md-4 col-lg-3 mb-4">
+                <?php include 'includes/product_card.php'; ?>
+            </div>
+        <?php endforeach; ?>
+    </div>
+</div>
+
 <!-- How It Works Section -->
 <div class="how-it-works-section py-5" style="background-color: <?php echo htmlspecialchars($how_it_works_bg_color); ?>;">
 <div class="container">

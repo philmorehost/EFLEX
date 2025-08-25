@@ -22,7 +22,7 @@ if(isset($_GET['action']) && $_GET['action'] == 'delete' && isset($_GET['id'])){
             $stmt_check->close();
 
             if($order_count > 0){
-                $message = '<div class="alert alert-warning">Cannot delete user. This user has existing orders.</div>';
+                $message = '<div class="alert alert-warning">Cannot delete user. This user has existing orders. Consider disabling their account instead.</div>';
             } else {
                 // No orders, proceed with deletion
                 $sql_delete = "DELETE FROM users WHERE id = ?";
@@ -41,19 +41,18 @@ if(isset($_GET['action']) && $_GET['action'] == 'delete' && isset($_GET['id'])){
     }
 }
 
-
 // Pagination variables
 $page = isset($_GET['page']) && is_numeric($_GET['page']) ? (int)$_GET['page'] : 1;
 $records_per_page = 10;
 $offset = ($page - 1) * $records_per_page;
 
-// Get total number of users
-$total_records_result = $mysqli->query("SELECT COUNT(*) FROM users");
+// Get total number of customers
+$total_records_result = $mysqli->query("SELECT COUNT(*) FROM users WHERE role_id IS NULL");
 $total_records = $total_records_result->fetch_row()[0];
 $total_pages = ceil($total_records / $records_per_page);
 
-// Fetch users for the current page
-$sql = "SELECT id, username, email, role, created_at FROM users ORDER BY created_at DESC LIMIT ? OFFSET ?";
+// Fetch customers for the current page (users with no role_id)
+$sql = "SELECT id, username, email, created_at FROM users WHERE role_id IS NULL ORDER BY created_at DESC LIMIT ? OFFSET ?";
 if($stmt = $mysqli->prepare($sql)){
     $stmt->bind_param("ii", $records_per_page, $offset);
     $stmt->execute();
@@ -65,18 +64,18 @@ if($stmt = $mysqli->prepare($sql)){
 }
 ?>
 <div class="d-flex justify-content-between align-items-center mb-3">
-    <h2>Manage Users</h2>
+    <h2>Manage Customers</h2>
 </div>
 
 <?php echo $message; ?>
 
 <div class="card shadow">
-    <div class="card-header">All Users</div>
+    <div class="card-header">All Customer Accounts</div>
     <div class="card-body">
         <div class="table-responsive">
             <table class="table table-striped">
                 <!-- Table Header -->
-                <thead><tr><th>ID</th><th>Username</th><th>Email</th><th>Role</th><th>Registered On</th><th class="text-end">Actions</th></tr></thead>
+                <thead><tr><th>ID</th><th>Username</th><th>Email</th><th>Registered On</th><th class="text-end">Actions</th></tr></thead>
                 <tbody>
                     <?php if(count($users) > 0): ?>
                         <?php foreach ($users as $user): ?>
@@ -84,18 +83,15 @@ if($stmt = $mysqli->prepare($sql)){
                             <td><?php echo $user['id']; ?></td>
                             <td><?php echo htmlspecialchars($user['username']); ?></td>
                             <td><?php echo htmlspecialchars($user['email']); ?></td>
-                            <td><?php echo htmlspecialchars($user['role']); ?></td>
                             <td><?php echo $user['created_at']; ?></td>
                             <td class="text-end">
-                                <a href="edit_user.php?id=<?php echo $user['id']; ?>" class="btn btn-sm btn-warning">Edit Role</a>
-                                <?php if($user['id'] != $_SESSION['id']): // Prevent self-delete button from even showing ?>
-                                <a href="manage_users.php?action=delete&id=<?php echo $user['id']; ?>" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure you want to delete this user?')">Delete</a>
-                                <?php endif; ?>
+                                <!-- Actions for customers could be view orders, etc. For now, just delete. -->
+                                <a href="manage_users.php?action=delete&id=<?php echo $user['id']; ?>" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure you want to delete this user? This cannot be undone.')">Delete</a>
                             </td>
                         </tr>
                         <?php endforeach; ?>
                     <?php else: ?>
-                        <tr><td colspan="6">No users found.</td></tr>
+                        <tr><td colspan="5" class="text-center">No customers found.</td></tr>
                     <?php endif; ?>
                 </tbody>
             </table>

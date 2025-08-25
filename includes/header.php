@@ -121,24 +121,27 @@ if(isset($_SESSION['cart']) && is_array($_SESSION['cart'])){
                         <?php endif; ?>
                     </a>
                 </div>
-                <div class="header-search">
-                    <form class="d-flex" action="search.php" method="get">
-                        <input class="form-control me-2" type="search" name="query" placeholder="Search Products" aria-label="Search">
+                <div class="header-search flex-grow-1 mx-lg-4">
+                    <form class="d-flex position-relative" action="search.php" method="get">
+                        <input class="form-control me-2" type="search" name="query" id="header-search-input" placeholder="Search Products" aria-label="Search" autocomplete="off">
                         <button class="btn btn-primary" type="submit"><i class="fas fa-search"></i></button>
+                        <div class="search-suggestions" id="search-suggestions" style="display: none;"></div>
                     </form>
                 </div>
                 <div class="header-actions">
                     <?php if(isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true): ?>
                         <a href="account.php" class="header-action-btn"><i class="fas fa-user"></i><span><?php echo htmlspecialchars($_SESSION["username"]); ?></span></a>
-                        <a href="logout.php" class="header-action-btn"><i class="fas fa-sign-out-alt"></i><span>Logout</span></a>
                     <?php else: ?>
                         <a href="login.php" class="header-action-btn"><i class="fas fa-user"></i><span>Login</span></a>
                     <?php endif; ?>
+                     <a href="wishlist.php" class="header-action-btn"><i class="fas fa-heart"></i><span>Wishlist</span></a>
+                    <a href="compare.php" class="header-action-btn"><i class="fas fa-exchange-alt"></i><span class="compare-badge">0</span><span>Compare</span></a>
                     <a href="cart.php" class="header-action-btn">
                         <i class="fas fa-shopping-cart"></i>
                         <span class="badge rounded-pill bg-primary cart-badge"><?php echo $cart_item_count; ?></span>
                         <span>Cart</span>
                     </a>
+                    <a href="logout.php" class="header-action-btn"><i class="fas fa-sign-out-alt"></i><span>Logout</span></a>
                 </div>
             </div>
         </div>
