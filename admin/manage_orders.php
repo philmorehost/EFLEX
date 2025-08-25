@@ -11,13 +11,31 @@ if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true || !isset($_S
 // Include database connection file
 require_once "../includes/db_connect.php";
 
-// Fetch all orders
+// Pagination variables
+$page = isset($_GET['page']) && is_numeric($_GET['page']) ? (int)$_GET['page'] : 1;
+$records_per_page = 10;
+$offset = ($page - 1) * $records_per_page;
+
+// Get total number of orders
+$total_records_result = $mysqli->query("SELECT COUNT(*) FROM orders");
+$total_records = $total_records_result->fetch_row()[0];
+$total_pages = ceil($total_records / $records_per_page);
+
+// Fetch orders for the current page
 $sql = "SELECT o.id, u.username, o.total_amount, o.status, o.created_at
         FROM orders o
         JOIN users u ON o.user_id = u.id
-        ORDER BY o.created_at DESC";
-$result = $mysqli->query($sql);
-$orders = $result->fetch_all(MYSQLI_ASSOC);
+        ORDER BY o.created_at DESC
+        LIMIT ? OFFSET ?";
+if($stmt = $mysqli->prepare($sql)){
+    $stmt->bind_param("ii", $records_per_page, $offset);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $orders = $result->fetch_all(MYSQLI_ASSOC);
+    $stmt->close();
+} else {
+    $orders = [];
+}
 ?>
 
 <!DOCTYPE html>
@@ -31,6 +49,7 @@ $orders = $result->fetch_all(MYSQLI_ASSOC);
 <body>
 
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <!-- Navbar -->
     <div class="container-fluid">
         <a class="navbar-brand" href="dashboard.php">Admin Panel</a>
         <div class="collapse navbar-collapse">
@@ -40,9 +59,7 @@ $orders = $result->fetch_all(MYSQLI_ASSOC);
                 <li class="nav-item"><a class="nav-link" href="manage_categories.php">Categories</a></li>
                 <li class="nav-item"><a class="nav-link active" href="manage_orders.php">Orders</a></li>
             </ul>
-            <ul class="navbar-nav ms-auto">
-                <li class="nav-item"><a class="nav-link" href="../logout.php">Logout</a></li>
-            </ul>
+            <ul class="navbar-nav ms-auto"><li class="nav-item"><a class="nav-link" href="../logout.php">Logout</a></li></ul>
         </div>
     </div>
 </nav>
@@ -56,16 +73,8 @@ $orders = $result->fetch_all(MYSQLI_ASSOC);
         <div class="card-header">All Orders</div>
         <div class="card-body">
             <table class="table table-striped">
-                <thead>
-                    <tr>
-                        <th>Order ID</th>
-                        <th>Customer</th>
-                        <th>Date</th>
-                        <th>Total</th>
-                        <th>Status</th>
-                        <th class="text-end">Actions</th>
-                    </tr>
-                </thead>
+                <!-- Table header -->
+                <thead><tr><th>Order ID</th><th>Customer</th><th>Date</th><th>Total</th><th>Status</th><th class="text-end">Actions</th></tr></thead>
                 <tbody>
                     <?php if(count($orders) > 0): ?>
                         <?php foreach ($orders as $order): ?>
@@ -87,6 +96,15 @@ $orders = $result->fetch_all(MYSQLI_ASSOC);
             </table>
         </div>
     </div>
+
+    <!-- Pagination -->
+    <nav aria-label="Page navigation">
+      <ul class="pagination justify-content-center mt-4">
+        <?php if($page > 1): ?><li class="page-item"><a class="page-link" href="manage_orders.php?page=<?php echo $page-1; ?>">Previous</a></li><?php endif; ?>
+        <?php for($i = 1; $i <= $total_pages; $i++): ?><li class="page-item <?php if($page == $i) echo 'active'; ?>"><a class="page-link" href="manage_orders.php?page=<?php echo $i; ?>"><?php echo $i; ?></a></li><?php endfor; ?>
+        <?php if($page < $total_pages): ?><li class="page-item"><a class="page-link" href="manage_orders.php?page=<?php echo $page+1; ?>">Next</a></li><?php endif; ?>
+      </ul>
+    </nav>
 </div>
 
 <script src="../js/bootstrap.bundle.min.js"></script>

@@ -14,12 +14,32 @@ if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true){
 include 'includes/header.php';
 require_once 'includes/db_connect.php';
 
-// Fetch user's orders
+// Get current user's ID
 $user_id = $_SESSION['id'];
-$sql = "SELECT id, created_at, total_amount, status FROM orders WHERE user_id = ? ORDER BY created_at DESC";
+
+// Pagination variables
+$page = isset($_GET['page']) && is_numeric($_GET['page']) ? (int)$_GET['page'] : 1;
+$records_per_page = 5; // Show 5 orders per page
+$offset = ($page - 1) * $records_per_page;
+
+// Get total number of orders for the current user
+$sql_total = "SELECT COUNT(*) FROM orders WHERE user_id = ?";
+if($stmt_total = $mysqli->prepare($sql_total)){
+    $stmt_total->bind_param("i", $user_id);
+    $stmt_total->execute();
+    $total_records = $stmt_total->get_result()->fetch_row()[0];
+    $stmt_total->close();
+} else {
+    $total_records = 0;
+}
+$total_pages = ceil($total_records / $records_per_page);
+
+
+// Fetch user's orders for the current page
+$sql = "SELECT id, created_at, total_amount, status FROM orders WHERE user_id = ? ORDER BY created_at DESC LIMIT ? OFFSET ?";
 $orders = [];
 if($stmt = $mysqli->prepare($sql)){
-    $stmt->bind_param("i", $user_id);
+    $stmt->bind_param("iii", $user_id, $records_per_page, $offset);
     $stmt->execute();
     $result = $stmt->get_result();
     $orders = $result->fetch_all(MYSQLI_ASSOC);
@@ -60,6 +80,16 @@ if($stmt = $mysqli->prepare($sql)){
             </tbody>
         </table>
     </div>
+
+    <!-- Pagination -->
+    <nav aria-label="Page navigation">
+      <ul class="pagination justify-content-center mt-4">
+        <?php if($page > 1): ?><li class="page-item"><a class="page-link" href="profile.php?page=<?php echo $page-1; ?>">Previous</a></li><?php endif; ?>
+        <?php for($i = 1; $i <= $total_pages; $i++): ?><li class="page-item <?php if($page == $i) echo 'active'; ?>"><a class="page-link" href="profile.php?page=<?php echo $i; ?>"><?php echo $i; ?></a></li><?php endfor; ?>
+        <?php if($page < $total_pages): ?><li class="page-item"><a class="page-link" href="profile.php?page=<?php echo $page+1; ?>">Next</a></li><?php endif; ?>
+      </ul>
+    </nav>
+
     <?php else: ?>
     <p>You have not placed any orders yet.</p>
     <?php endif; ?>

@@ -60,7 +60,11 @@ if(isset($_SESSION['cart']) && is_array($_SESSION['cart'])){
                     </a>
                 </li>
             </ul>
-            <ul class="navbar-nav">
+            <form class="d-flex" action="search.php" method="get">
+                <input class="form-control me-2" type="search" name="query" placeholder="Search Products" aria-label="Search">
+                <button class="btn btn-outline-success" type="submit">Search</button>
+            </form>
+            <ul class="navbar-nav ms-auto">
                 <?php if(isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true): ?>
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" href="#" id="navbarUserDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
