@@ -19,10 +19,13 @@ $settings = [];
 while($row = $result->fetch_assoc()){
     $settings[$row['setting_key']] = $row['setting_value'];
 }
-$hero_title = $settings['hero_section_title'] ?? 'Welcome to Eflex';
-$hero_desc = $settings['hero_section_description'] ?? 'Your one-stop shop for everything you need.';
-$hero_bg_url = $settings['hero_section_background_url'] ?? '';
 $how_it_works_bg_color = $settings['how_it_works_bg_color'] ?? '#f8f9fa';
+
+// Fetch hero slides
+$hero_slides_sql = "SELECT * FROM hero_slides WHERE is_active = 1 ORDER BY sort_order ASC";
+$hero_slides_result = $mysqli->query($hero_slides_sql);
+$hero_slides = $hero_slides_result->fetch_all(MYSQLI_ASSOC);
+
 
 // Fetch categories for the slider
 $slider_categories_sql = "SELECT * FROM categories WHERE image IS NOT NULL ORDER BY name ASC";
@@ -53,12 +56,40 @@ $top_sellers = $top_sellers_result->fetch_all(MYSQLI_ASSOC);
 ?>
 
 <!-- Hero Section -->
-<div class="hero-section text-center" style="background-image: url('<?php echo htmlspecialchars($hero_bg_url); ?>');">
-    <div class="container">
-        <h1><?php echo htmlspecialchars($hero_title); ?></h1>
-        <p class="lead"><?php echo htmlspecialchars($hero_desc); ?></p>
-        <a class="btn btn-primary btn-lg" href="products.php" role="button">Shop Now</a>
+<div id="heroCarousel" class="carousel slide hero-section" data-bs-ride="carousel">
+    <div class="carousel-inner">
+        <?php foreach($hero_slides as $index => $slide): ?>
+            <div class="carousel-item <?php echo $index === 0 ? 'active' : ''; ?>">
+                <?php if($slide['type'] === 'video'):
+                    // Convert YouTube watch URL to embed URL
+                    $video_url = str_replace("watch?v=", "embed/", $slide['content_url']);
+                    $video_url .= "?autoplay=1&mute=1&loop=1&controls=0&playlist=" . basename($video_url);
+                ?>
+                    <div class="video-background-wrapper">
+                        <iframe src="<?php echo htmlspecialchars($video_url); ?>" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+                    </div>
+                <?php else: ?>
+                    <div class="image-background" style="background-image: url('<?php echo htmlspecialchars($slide['content_url']); ?>');"></div>
+                <?php endif; ?>
+
+                <div class="container carousel-caption-custom">
+                    <h1><?php echo htmlspecialchars($slide['title']); ?></h1>
+                    <p class="lead"><?php echo htmlspecialchars($slide['description']); ?></p>
+                    <a class="btn btn-primary btn-lg" href="products.php" role="button">Shop Now</a>
+                </div>
+            </div>
+        <?php endforeach; ?>
     </div>
+    <?php if(count($hero_slides) > 1): ?>
+    <button class="carousel-control-prev" type="button" data-bs-target="#heroCarousel" data-bs-slide="prev">
+        <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+        <span class="visually-hidden">Previous</span>
+    </button>
+    <button class="carousel-control-next" type="button" data-bs-target="#heroCarousel" data-bs-slide="next">
+        <span class="carousel-control-next-icon" aria-hidden="true"></span>
+        <span class="visually-hidden">Next</span>
+    </button>
+    <?php endif; ?>
 </div>
 
 <!-- Top Categories Section -->

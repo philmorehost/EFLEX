@@ -78,6 +78,18 @@ function setup_database_tables($mysqli) {
         `is_active` tinyint(1) NOT NULL DEFAULT '1',
         `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
         PRIMARY KEY (`id`)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;",
+
+    "hero_slides" => "CREATE TABLE `hero_slides` (
+        `id` int(11) NOT NULL AUTO_INCREMENT,
+        `type` enum('image','video') NOT NULL DEFAULT 'image',
+        `content_url` varchar(255) NOT NULL,
+        `title` varchar(255) DEFAULT NULL,
+        `description` text,
+        `is_active` tinyint(1) NOT NULL DEFAULT '1',
+        `sort_order` int(11) NOT NULL DEFAULT '0',
+        `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
+        PRIMARY KEY (`id`)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;"
     ];
 

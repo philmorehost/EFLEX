@@ -287,8 +287,56 @@ h1, h2, h3, h4, h5, h6 {
 
 /* Hero Section on Homepage */
 .hero-section {
-    background-color: var(--woodmart-light-gray);
-    padding: 60px 0;
+    position: relative;
+    height: 60vh; /* Increased height */
+    min-height: 400px;
+    color: #fff;
+    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+
+.hero-section .carousel-item {
+    height: 60vh;
+    min-height: 400px;
+}
+
+.hero-section .image-background {
+    width: 100%;
+    height: 100%;
+    background-size: cover;
+    background-position: center center;
+}
+
+.hero-section .video-background-wrapper {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 100%;
+    height: 100%;
+    transform: translate(-50%, -50%);
+    z-index: 0;
+}
+
+.hero-section .video-background-wrapper iframe {
+    width: 100vw;
+    height: 56.25vw; /* 16:9 aspect ratio */
+    min-width: 177.77vh; /* 16:9 aspect ratio */
+    min-height: 100vh;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+.hero-section .carousel-caption-custom {
+    position: relative;
+    z-index: 1;
+    background-color: rgba(0, 0, 0, 0.5); /* Dark overlay for text readability */
+    padding: 2rem;
+    border-radius: .5rem;
 }
 
 /* "How It Works" Section */

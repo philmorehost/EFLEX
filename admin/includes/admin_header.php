@@ -56,6 +56,9 @@ $active_page = basename($_SERVER['PHP_SELF']);
              <li class="<?php echo ($active_page == 'manage_banners.php') ? 'active' : ''; ?>">
                 <a href="manage_banners.php"><i class="fas fa-images"></i> Banners</a>
             </li>
+            <li class="<?php echo ($active_page == 'manage_hero.php') ? 'active' : ''; ?>">
+                <a href="manage_hero.php"><i class="fas fa-film"></i> Hero Slider</a>
+            </li>
             <li class="<?php echo ($active_page == 'manage_orders.php' || $active_page == 'order_detail.php') ? 'active' : ''; ?>">
                 <a href="manage_orders.php"><i class="fas fa-shopping-cart"></i> Orders</a>
             </li>
