@@ -146,10 +146,17 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
                 $param_password = password_hash($password, PASSWORD_DEFAULT);
 
                 if($stmt->execute()){
+                    // Also log the user in directly
+                    $_SESSION["loggedin"] = true;
+                    $_SESSION["id"] = $stmt->insert_id;
+                    $_SESSION["username"] = $username;
+
                     $subject = "Welcome to Eflex!";
-                    $body = "<h1>Welcome, " . htmlspecialchars($username) . "!</h1><p>Thank you for registering. You can now log in.</p>";
+                    $body = "<h1>Welcome, " . htmlspecialchars($username) . "!</h1><p>Thank you for registering. Your account is active.</p>";
                     send_email($email, $subject, $body);
-                    header("location: login.php?registration=success");
+
+                    // Redirect to cart page as requested
+                    header("location: cart.php");
                     exit();
                 } else {
                     echo "Oops! Something went wrong. Please try again later.";

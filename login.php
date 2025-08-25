@@ -31,7 +31,8 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
     }
 
     if(empty($username_err) && empty($password_err)){
-        $sql = "SELECT id, username, password, role FROM users WHERE username = ?";
+        // The role column was removed in a previous migration, this query is now corrected.
+        $sql = "SELECT id, username, password, is_verified FROM users WHERE username = ?";
 
         if($stmt = $mysqli->prepare($sql)){
             $stmt->bind_param("s", $param_username);
@@ -41,35 +42,23 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
                 $stmt->store_result();
 
                 if($stmt->num_rows == 1){
-                    $stmt->bind_result($id, $username, $hashed_password, $role);
+                    $stmt->bind_result($id, $username, $hashed_password, $is_verified);
                     if($stmt->fetch()){
                         if(password_verify($password, $hashed_password)){
-                            // Password is correct, now check if verified
-                            $check_sql = "SELECT is_verified, id, username FROM users WHERE username = ?";
-                            if($check_stmt = $mysqli->prepare($check_sql)){
-                                $check_stmt->bind_param("s", $param_username);
-                                $param_username = $username;
-                                $check_stmt->execute();
-                                $check_stmt->store_result();
-                                $check_stmt->bind_result($is_verified, $id, $username);
-                                $check_stmt->fetch();
+                            // Password is correct, now check if the account is verified
+                            if($is_verified == 1){
+                                // User is verified, start a new session
+                                $_SESSION["loggedin"] = true;
+                                $_SESSION["id"] = $id;
+                                $_SESSION["username"] = $username;
 
-                                if($is_verified == 1){
-                                    // User is verified, start a new session
-                                    // session_start(); // Session already started at the top
-                                    $_SESSION["loggedin"] = true;
-                                    $_SESSION["id"] = $id;
-                                    $_SESSION["username"] = $username;
-
-                                    // Redirect user to index page
-                                    header("location: index.php");
-                                    exit;
-                                } else {
-                                    // User is not verified
-                                    $_SESSION['unverified_user_id'] = $id;
-                                    $login_err = 'Your account is not verified. Please <a href="verify_otp.php">verify your account</a>.';
-                                }
-                                $check_stmt->close();
+                                // Redirect user to index page
+                                header("location: index.php");
+                                exit;
+                            } else {
+                                // User is not verified, guide them to the verification page
+                                $_SESSION['unverified_user_id'] = $id;
+                                $login_err = 'Your account is not verified. Please <a href="verify_otp.php">verify your account</a>.';
                             }
                         } else{
                             $login_err = "Invalid username or password.";

@@ -94,7 +94,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                                         $_SESSION["username"] = $username;
                                         // Customers don't need a role_id in session for basic site access
                                         unset($_SESSION["unverified_user_id"]);
-                                        header("location: account.php?verified=true");
+                                        // Redirect to cart page as requested
+                                        header("location: cart.php");
                                         exit;
                                     }
                                 }
