@@ -1,54 +1,242 @@
 <?php
-// Initialize the session
-session_start();
+// Include the new admin header
+include 'includes/admin_header.php';
 
-// Check if the user is logged in and is an admin. If not, redirect them to the homepage.
-if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true || !isset($_SESSION["role"]) || $_SESSION["role"] !== 'admin'){
-    header("location: ../index.php");
-    exit;
+// --- Data Fetching for Dashboard ---
+
+// 1. Statistics Cards Data
+// Total Sales (assuming 'Completed' is a valid status for a successful order)
+$sales_result = $mysqli->query("SELECT SUM(total_amount) as total_sales FROM orders WHERE status = 'Completed'");
+$total_sales = $sales_result->fetch_assoc()['total_sales'] ?? 0;
+
+// New Orders
+$new_orders_result = $mysqli->query("SELECT COUNT(id) as new_orders FROM orders WHERE status = 'Pending'");
+$new_orders_count = $new_orders_result->fetch_assoc()['new_orders'] ?? 0;
+
+// Total Users
+$users_result = $mysqli->query("SELECT COUNT(id) as total_users FROM users");
+$total_users = $users_result->fetch_assoc()['total_users'] ?? 0;
+
+// Total Products
+$products_result = $mysqli->query("SELECT COUNT(id) as total_products FROM products");
+$total_products = $products_result->fetch_assoc()['total_products'] ?? 0;
+
+
+// 2. Sales Analytics Data (for the chart)
+// Fetching sales data for the last 7 days
+$sales_data_points = [];
+$sales_labels = [];
+for ($i = 6; $i >= 0; $i--) {
+    $date = date('Y-m-d', strtotime("-$i days"));
+    $sales_labels[] = date('M d', strtotime($date));
+    $query = "SELECT SUM(total_amount) as daily_sales FROM orders WHERE status = 'Completed' AND DATE(created_at) = '$date'";
+    $result = $mysqli->query($query);
+    $row = $result->fetch_assoc();
+    $sales_data_points[] = $row['daily_sales'] ?? 0;
 }
+
+
+// 3. Recent Orders Data
+$recent_orders_result = $mysqli->query("SELECT o.id, u.username, o.total_amount, o.status, o.created_at FROM orders o JOIN users u ON o.user_id = u.id ORDER BY o.created_at DESC LIMIT 5");
+$recent_orders = $recent_orders_result->fetch_all(MYSQLI_ASSOC);
+
 ?>
 
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Dashboard</title>
-    <!-- Bootstrap CSS -->
-    <link href="../css/bootstrap.min.css" rel="stylesheet">
-</head>
-<body>
+<h1 class="mb-4">Admin Dashboard</h1>
 
-<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-    <div class="container-fluid">
-        <a class="navbar-brand" href="#">Admin Panel</a>
-        <div class="collapse navbar-collapse">
-            <ul class="navbar-nav ms-auto">
-                <li class="nav-item">
-                    <a class="nav-link" href="../logout.php">Logout</a>
-                </li>
-            </ul>
+<!-- Statistics Cards -->
+<div class="row">
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="stat-card border-left-primary shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Total Revenue</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">$<?php echo number_format($total_sales, 2); ?></div>
+                    </div>
+                    <div class="col-auto">
+                        <div class="icon-circle bg-primary">
+                             <i class="fas fa-dollar-sign fa-2x text-white"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
-</nav>
-
-<div class="container mt-4">
-    <h1>Admin Dashboard</h1>
-    <p>Welcome, <b><?php echo htmlspecialchars($_SESSION["username"]); ?></b>. You are logged in as an admin.</p>
-    <p>Here you can manage products, orders, and users.</p>
-
-    <div class="list-group">
-      <a href="manage_products.php" class="list-group-item list-group-item-action">Manage Products</a>
-      <a href="manage_categories.php" class="list-group-item list-group-item-action">Manage Categories</a>
-      <a href="manage_orders.php" class="list-group-item list-group-item-action">Manage Orders</a>
-      <a href="manage_users.php" class="list-group-item list-group-item-action">Manage Users</a>
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="stat-card border-left-success shadow h-100 py-2">
+             <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-success text-uppercase mb-1">New Orders</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800"><?php echo $new_orders_count; ?></div>
+                    </div>
+                    <div class="col-auto">
+                        <div class="icon-circle bg-success">
+                            <i class="fas fa-shopping-cart fa-2x text-white"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
-
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="stat-card border-left-info shadow h-100 py-2">
+             <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-info text-uppercase mb-1">Total Products</div>
+                        <div class="h5 mb-0 mr-3 font-weight-bold text-gray-800"><?php echo $total_products; ?></div>
+                    </div>
+                    <div class="col-auto">
+                        <div class="icon-circle bg-info">
+                            <i class="fas fa-box fa-2x text-white"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="stat-card border-left-warning shadow h-100 py-2">
+             <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">Total Users</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800"><?php echo $total_users; ?></div>
+                    </div>
+                    <div class="col-auto">
+                        <div class="icon-circle bg-warning">
+                            <i class="fas fa-users fa-2x text-white"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 
-<!-- Bootstrap JS Bundle with Popper -->
-<script src="../js/bootstrap.bundle.min.js"></script>
+<!-- Sales Analytics & Quick Links -->
+<div class="row">
+    <!-- Sales Analytics Chart -->
+    <div class="col-xl-8 col-lg-7">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                <h6 class="m-0 font-weight-bold text-primary">Sales Overview (Last 7 Days)</h6>
+            </div>
+            <div class="card-body">
+                <div class="chart-area">
+                    <canvas id="salesChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
 
-</body>
-</html>
+    <!-- Quick Links -->
+    <div class="col-xl-4 col-lg-5">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">Quick Links</h6>
+            </div>
+            <div class="card-body">
+                <a href="manage_orders.php?status=Pending" class="btn btn-primary w-100 mb-2">View Pending Orders</a>
+                <a href="add_product.php" class="btn btn-info w-100 mb-2">Add New Product</a>
+                <a href="manage_categories.php" class="btn btn-secondary w-100">Manage Categories</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Orders Table -->
+<div class="card shadow mb-4">
+    <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold text-primary">Recent Orders</h6>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
+                <thead>
+                    <tr>
+                        <th>Order ID</th>
+                        <th>Customer</th>
+                        <th>Total</th>
+                        <th>Status</th>
+                        <th>Date</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php if (count($recent_orders) > 0): ?>
+                        <?php foreach ($recent_orders as $order): ?>
+                            <tr>
+                                <td>#<?php echo $order['id']; ?></td>
+                                <td><?php echo htmlspecialchars($order['username']); ?></td>
+                                <td>$<?php echo number_format($order['total_amount'], 2); ?></td>
+                                <td><span class="badge bg-primary"><?php echo htmlspecialchars($order['status']); ?></span></td>
+                                <td><?php echo date("M d, Y", strtotime($order['created_at'])); ?></td>
+                                <td>
+                                    <a href="order_detail.php?id=<?php echo $order['id']; ?>" class="btn btn-sm btn-info">View</a>
+                                </td>
+                            </tr>
+                        <?php endforeach; ?>
+                    <?php else: ?>
+                        <tr>
+                            <td colspan="6" class="text-center">No recent orders found.</td>
+                        </tr>
+                    <?php endif; ?>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+// Sales Chart
+document.addEventListener('DOMContentLoaded', function() {
+    var ctx = document.getElementById('salesChart').getContext('2d');
+    var salesChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: <?php echo json_encode($sales_labels); ?>,
+            datasets: [{
+                label: 'Sales ($)',
+                data: <?php echo json_encode($sales_data_points); ?>,
+                backgroundColor: 'rgba(78, 115, 223, 0.05)',
+                borderColor: 'rgba(78, 115, 223, 1)',
+                pointRadius: 3,
+                pointBackgroundColor: 'rgba(78, 115, 223, 1)',
+                pointBorderColor: 'rgba(78, 115, 223, 1)',
+                pointHoverRadius: 3,
+                pointHoverBackgroundColor: 'rgba(78, 115, 223, 1)',
+                pointHoverBorderColor: 'rgba(78, 115, 223, 1)',
+                pointHitRadius: 10,
+                pointBorderWidth: 2,
+                tension: 0.4
+            }]
+        },
+        options: {
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        callback: function(value, index, values) {
+                            return '$' + value;
+                        }
+                    }
+                }
+            },
+            plugins: {
+                legend: {
+                    display: false
+                }
+            }
+        }
+    });
+});
+</script>
+
+<?php
+// Include the new admin footer
+include 'includes/admin_footer.php';
+?>

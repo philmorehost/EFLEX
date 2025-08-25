@@ -1,31 +1,56 @@
 <?php
-// Initialize the session
-session_start();
-
-// Check if the user is logged in and is an admin.
-if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true || !isset($_SESSION["role"]) || $_SESSION["role"] !== 'admin'){
-    header("location: ../index.php");
-    exit;
-}
-
-// Include database connection file
-require_once "../includes/db_connect.php";
+// Include the new admin header
+include 'includes/admin_header.php';
 
 $message = "";
+
+// Function to handle image upload
+function handle_image_upload($file_input_name) {
+    if(isset($_FILES[$file_input_name]) && $_FILES[$file_input_name]["error"] == 0){
+        $allowed = ["jpg" => "image/jpeg", "png" => "image/png", "gif" => "image/gif"];
+        $filename = $_FILES[$file_input_name]["name"];
+        $ext = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
+
+        if(!array_key_exists($ext, $allowed)) {
+            return [ "error" => "Invalid file type. Please upload a JPG, PNG, or GIF." ];
+        }
+
+        $new_filename = "cat_" . uniqid() . "." . $ext;
+        $upload_path = "../uploads/" . $new_filename;
+
+        if(move_uploaded_file($_FILES[$file_input_name]["tmp_name"], $upload_path)){
+            return [ "success" => $new_filename ];
+        } else {
+            return [ "error" => "Error uploading file." ];
+        }
+    }
+    return [ "no_file" => true ];
+}
+
 
 // Handle Add Category
 if(isset($_POST['add_category'])){
     $name = trim($_POST['name']);
+    $image_filename = null;
+
     if(!empty($name)){
-        $sql = "INSERT INTO categories (name) VALUES (?)";
-        if($stmt = $mysqli->prepare($sql)){
-            $stmt->bind_param("s", $name);
-            if($stmt->execute()){
-                $message = '<div class="alert alert-success">Category added successfully.</div>';
-            } else {
-                $message = '<div class="alert alert-danger">Error adding category.</div>';
+        $upload_result = handle_image_upload('image');
+        if(isset($upload_result['error'])){
+            $message = '<div class="alert alert-danger">' . $upload_result['error'] . '</div>';
+        } else {
+            if(isset($upload_result['success'])) {
+                $image_filename = $upload_result['success'];
             }
-            $stmt->close();
+            $sql = "INSERT INTO categories (name, image) VALUES (?, ?)";
+            if($stmt = $mysqli->prepare($sql)){
+                $stmt->bind_param("ss", $name, $image_filename);
+                if($stmt->execute()){
+                    $message = '<div class="alert alert-success">Category added successfully.</div>';
+                } else {
+                    $message = '<div class="alert alert-danger">Error adding category.</div>';
+                }
+                $stmt->close();
+            }
         }
     } else {
         $message = '<div class="alert alert-danger">Category name cannot be empty.</div>';
@@ -35,25 +60,39 @@ if(isset($_POST['add_category'])){
 // Handle Delete Category
 if(isset($_GET['delete'])){
     $id = $_GET['delete'];
-    // First, check if any products are associated with this category
+    // First, check for associated products
     $sql_check = "SELECT id FROM products WHERE category_id = ?";
     if($stmt_check = $mysqli->prepare($sql_check)){
         $stmt_check->bind_param("i", $id);
         $stmt_check->execute();
         $stmt_check->store_result();
         if($stmt_check->num_rows > 0){
-            $message = '<div class="alert alert-danger">Cannot delete category. It is associated with existing products.</div>';
+            $message = '<div class="alert alert-danger">Cannot delete. Category is linked to existing products.</div>';
         } else {
-            $sql = "DELETE FROM categories WHERE id = ?";
-            if($stmt = $mysqli->prepare($sql)){
-                $stmt->bind_param("i", $id);
-                if($stmt->execute()){
-                     header("location: manage_categories.php"); // Redirect to clean the URL
-                     exit();
+            // Get image filename to delete it
+            $sql_img = "SELECT image FROM categories WHERE id = ?";
+            $stmt_img = $mysqli->prepare($sql_img);
+            $stmt_img->bind_param("i", $id);
+            $stmt_img->execute();
+            $stmt_img->bind_result($image_to_delete);
+            $stmt_img->fetch();
+            $stmt_img->close();
+
+            // Delete from DB
+            $sql_delete = "DELETE FROM categories WHERE id = ?";
+            if($stmt_delete = $mysqli->prepare($sql_delete)){
+                $stmt_delete->bind_param("i", $id);
+                if($stmt_delete->execute()){
+                    // If DB delete is successful, delete the image file
+                    if($image_to_delete && file_exists("../uploads/" . $image_to_delete)){
+                        unlink("../uploads/" . $image_to_delete);
+                    }
+                    header("location: manage_categories.php");
+                    exit();
                 } else {
                     $message = '<div class="alert alert-danger">Error deleting category.</div>';
                 }
-                $stmt->close();
+                $stmt_delete->close();
             }
         }
         $stmt_check->close();
@@ -64,17 +103,28 @@ if(isset($_GET['delete'])){
 if(isset($_POST['update_category'])){
     $name = trim($_POST['name']);
     $id = trim($_POST['id']);
+    $image_filename = $_POST['existing_image']; // Keep existing image by default
+
     if(!empty($name) && !empty($id)){
-        $sql = "UPDATE categories SET name = ? WHERE id = ?";
-        if($stmt = $mysqli->prepare($sql)){
-            $stmt->bind_param("si", $name, $id);
-            if($stmt->execute()){
-                header("location: manage_categories.php");
-                exit();
-            } else {
-                $message = '<div class="alert alert-danger">Error updating category.</div>';
+        $upload_result = handle_image_upload('image');
+        if(isset($upload_result['error'])){
+            $message = '<div class="alert alert-danger">' . $upload_result['error'] . '</div>';
+        } else {
+            if(isset($upload_result['success'])) {
+                $image_filename = $upload_result['success'];
+                // Optional: Delete the old image if a new one is uploaded
             }
-            $stmt->close();
+            $sql = "UPDATE categories SET name = ?, image = ? WHERE id = ?";
+            if($stmt = $mysqli->prepare($sql)){
+                $stmt->bind_param("ssi", $name, $image_filename, $id);
+                if($stmt->execute()){
+                    header("location: manage_categories.php");
+                    exit();
+                } else {
+                    $message = '<div class="alert alert-danger">Error updating category.</div>';
+                }
+                $stmt->close();
+            }
         }
     } else {
         $message = '<div class="alert alert-danger">Category name or ID is invalid.</div>';
@@ -83,21 +133,17 @@ if(isset($_POST['update_category'])){
 
 // Check if we are in edit mode
 $is_edit_mode = false;
-$edit_name = "";
-$edit_id = 0;
+$edit_category = ['name' => '', 'image' => '', 'id' => 0];
 if(isset($_GET['edit'])){
     $is_edit_mode = true;
     $id = $_GET['edit'];
-    $sql = "SELECT name FROM categories WHERE id = ?";
+    $sql = "SELECT id, name, image FROM categories WHERE id = ?";
     if($stmt = $mysqli->prepare($sql)){
         $stmt->bind_param("i", $id);
         if($stmt->execute()){
-            $stmt->store_result();
-            if($stmt->num_rows == 1){
-                $stmt->bind_result($name);
-                $stmt->fetch();
-                $edit_name = $name;
-                $edit_id = $id;
+            $result = $stmt->get_result();
+            if($result->num_rows == 1){
+                $edit_category = $result->fetch_assoc();
             }
         }
         $stmt->close();
@@ -108,74 +154,52 @@ if(isset($_GET['edit'])){
 $sql = "SELECT * FROM categories ORDER BY name ASC";
 $result = $mysqli->query($sql);
 $categories = $result->fetch_all(MYSQLI_ASSOC);
-
 ?>
 
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Manage Categories</title>
-    <link href="../css/bootstrap.min.css" rel="stylesheet">
-</head>
-<body>
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h2>Manage Categories</h2>
+</div>
 
-<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-    <div class="container-fluid">
-        <a class="navbar-brand" href="dashboard.php">Admin Panel</a>
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#adminNavbar">
-            <span class="navbar-toggler-icon"></span>
-        </button>
-        <div class="collapse navbar-collapse" id="adminNavbar">
-             <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-                <li class="nav-item"><a class="nav-link" href="dashboard.php">Dashboard</a></li>
-                <li class="nav-item"><a class="nav-link" href="manage_products.php">Products</a></li>
-                <li class="nav-item"><a class="nav-link active" href="manage_categories.php">Categories</a></li>
-            </ul>
-            <ul class="navbar-nav ms-auto">
-                <li class="nav-item">
-                    <a class="nav-link" href="../logout.php">Logout</a>
-                </li>
-            </ul>
-        </div>
-    </div>
-</nav>
+<?php echo $message; ?>
 
-<div class="container mt-4">
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <h2>Manage Categories</h2>
-    </div>
-
-    <?php echo $message; ?>
-
-    <!-- Form for Add/Edit -->
-    <div class="card mb-4">
-        <div class="card-header"><?php echo $is_edit_mode ? 'Edit Category' : 'Add New Category'; ?></div>
-        <div class="card-body">
-            <form action="manage_categories.php" method="post">
-                <input type="hidden" name="id" value="<?php echo $edit_id; ?>">
-                <div class="input-group">
-                    <input type="text" name="name" class="form-control" placeholder="Category Name" value="<?php echo htmlspecialchars($edit_name); ?>" required>
-                    <?php if($is_edit_mode): ?>
-                        <button class="btn btn-primary" type="submit" name="update_category">Update Category</button>
-                        <a href="manage_categories.php" class="btn btn-secondary">Cancel</a>
-                    <?php else: ?>
-                        <button class="btn btn-primary" type="submit" name="add_category">Add Category</button>
-                    <?php endif; ?>
+<!-- Form for Add/Edit -->
+<div class="card shadow mb-4">
+    <div class="card-header"><?php echo $is_edit_mode ? 'Edit Category' : 'Add New Category'; ?></div>
+    <div class="card-body">
+        <form action="manage_categories.php" method="post" enctype="multipart/form-data">
+            <input type="hidden" name="id" value="<?php echo $edit_category['id']; ?>">
+            <input type="hidden" name="existing_image" value="<?php echo htmlspecialchars($edit_category['image']); ?>">
+            <div class="row">
+                <div class="col-md-6">
+                    <label for="name" class="form-label">Category Name</label>
+                    <input type="text" name="name" id="name" class="form-control" placeholder="Category Name" value="<?php echo htmlspecialchars($edit_category['name']); ?>" required>
                 </div>
-            </form>
-        </div>
+                <div class="col-md-6">
+                     <label for="image" class="form-label">Category Image</label>
+                    <input type="file" name="image" id="image" class="form-control">
+                </div>
+            </div>
+            <div class="mt-3">
+                 <?php if($is_edit_mode): ?>
+                    <button class="btn btn-primary" type="submit" name="update_category">Update Category</button>
+                    <a href="manage_categories.php" class="btn btn-secondary">Cancel</a>
+                <?php else: ?>
+                    <button class="btn btn-primary" type="submit" name="add_category">Add Category</button>
+                <?php endif; ?>
+            </div>
+        </form>
     </div>
+</div>
 
-    <!-- Categories Table -->
-    <div class="card">
-        <div class="card-header">Existing Categories</div>
-        <div class="card-body">
+<!-- Categories Table -->
+<div class="card shadow">
+    <div class="card-header">Existing Categories</div>
+    <div class="card-body">
+        <div class="table-responsive">
             <table class="table table-striped">
                 <thead>
                     <tr>
-                        <th>ID</th>
+                        <th>Image</th>
                         <th>Name</th>
                         <th class="text-end">Actions</th>
                     </tr>
@@ -184,7 +208,9 @@ $categories = $result->fetch_all(MYSQLI_ASSOC);
                     <?php if(count($categories) > 0): ?>
                         <?php foreach ($categories as $category): ?>
                         <tr>
-                            <td><?php echo $category['id']; ?></td>
+                            <td>
+                                <img src="../uploads/<?php echo htmlspecialchars($category['image'] ?? 'default.jpg'); ?>" alt="<?php echo htmlspecialchars($category['name']); ?>" style="width: 50px; height: 50px; object-fit: cover; border-radius: 50%;">
+                            </td>
                             <td><?php echo htmlspecialchars($category['name']); ?></td>
                             <td class="text-end">
                                 <a href="manage_categories.php?edit=<?php echo $category['id']; ?>" class="btn btn-sm btn-warning">Edit</a>
@@ -193,14 +219,14 @@ $categories = $result->fetch_all(MYSQLI_ASSOC);
                         </tr>
                         <?php endforeach; ?>
                     <?php else: ?>
-                        <tr><td colspan="3">No categories found.</td></tr>
+                        <tr><td colspan="3" class="text-center">No categories found.</td></tr>
                     <?php endif; ?>
                 </tbody>
             </table>
         </div>
     </div>
 </div>
-
-<script src="../js/bootstrap.bundle.min.js"></script>
-</body>
-</html>
+<?php
+// Include the new admin footer
+include 'includes/admin_footer.php';
+?>

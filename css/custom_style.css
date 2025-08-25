@@ -303,3 +303,64 @@ h1, h2, h3, h4, h5, h6 {
     font-size: 1.1rem;
     text-transform: uppercase;
 }
+
+/* Category Slider */
+.category-slider {
+    overflow-x: auto;
+    white-space: nowrap;
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox */
+}
+
+.category-slider::-webkit-scrollbar {
+    display: none; /* Chrome, Safari, Opera */
+}
+
+.slider-track {
+    display: flex;
+    gap: 20px;
+    padding-bottom: 15px; /* For shadow visibility */
+}
+
+.category-slide a {
+    display: block;
+    text-decoration: none;
+    color: var(--woodmart-text-color);
+    transition: transform 0.3s;
+}
+
+.category-slide a:hover {
+    transform: translateY(-5px);
+}
+
+.category-slide img {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid #fff;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+}
+
+.category-slide span {
+    display: block;
+    margin-top: 15px;
+    font-weight: 700;
+}
+
+/* Special Offer Banner Section */
+.special-offer-banner {
+    border-radius: 5px;
+    overflow: hidden;
+    box-shadow: 0 10px 20px rgba(0,0,0,0.08);
+}
+
+.special-offer-banner .carousel,
+.special-offer-banner .carousel-inner,
+.special-offer-banner .carousel-item img {
+    border-radius: 5px;
+}
+
+.special-offer-banner .carousel-item img {
+    object-fit: cover;
+}

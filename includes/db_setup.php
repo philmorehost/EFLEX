@@ -69,7 +69,16 @@ function setup_database_tables($mysqli) {
       `setting_key` varchar(255) NOT NULL,
       `setting_value` text,
       PRIMARY KEY (`setting_key`)
-        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;"
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;",
+
+    "banners" => "CREATE TABLE `banners` (
+        `id` int(11) NOT NULL AUTO_INCREMENT,
+        `image_url` varchar(255) NOT NULL,
+        `link_url` varchar(255) DEFAULT NULL,
+        `is_active` tinyint(1) NOT NULL DEFAULT '1',
+        `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
+        PRIMARY KEY (`id`)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;"
     ];
 
     // The foreign key constraints require the tables to be created in a specific order.
@@ -115,6 +124,18 @@ function setup_database_tables($mysqli) {
     $result_pp = $mysqli->query("SHOW COLUMNS FROM `orders` LIKE 'payment_proof'");
     if($result_pp->num_rows == 0){
         $mysqli->query("ALTER TABLE `orders` ADD `payment_proof` VARCHAR(255) DEFAULT NULL AFTER `payment_method`");
+    }
+
+    // Check for image column in categories table
+    $result_cat_img = $mysqli->query("SHOW COLUMNS FROM `categories` LIKE 'image'");
+    if($result_cat_img->num_rows == 0){
+        $mysqli->query("ALTER TABLE `categories` ADD `image` VARCHAR(255) DEFAULT NULL AFTER `name`");
+    }
+
+    // Check for transaction_reference column in orders table
+    $result_tr = $mysqli->query("SHOW COLUMNS FROM `orders` LIKE 'transaction_reference'");
+    if($result_tr->num_rows == 0){
+        $mysqli->query("ALTER TABLE `orders` ADD `transaction_reference` VARCHAR(255) DEFAULT NULL AFTER `payment_proof`");
     }
 
     // Check if an admin user exists, if not, create a default one.

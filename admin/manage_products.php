@@ -1,15 +1,6 @@
 <?php
-// Initialize the session
-session_start();
-
-// Check if the user is logged in and is an admin.
-if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true || !isset($_SESSION["role"]) || $_SESSION["role"] !== 'admin'){
-    header("location: ../index.php");
-    exit;
-}
-
-// Include database connection file
-require_once "../includes/db_connect.php";
+// Include the new admin header
+include 'includes/admin_header.php';
 
 $message = "";
 
@@ -67,66 +58,40 @@ if($stmt = $mysqli->prepare($sql)){
     $products = [];
 }
 ?>
-
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Manage Products</title>
-    <link href="../css/bootstrap.min.css" rel="stylesheet">
-</head>
-<body>
-
-<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-    <!-- Navbar -->
-    <div class="container-fluid">
-        <a class="navbar-brand" href="dashboard.php">Admin Panel</a>
-        <div class="collapse navbar-collapse">
-             <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-                <li class="nav-item"><a class="nav-link" href="dashboard.php">Dashboard</a></li>
-                <li class="nav-item"><a class="nav-link active" href="manage_products.php">Products</a></li>
-                <li class="nav-item"><a class="nav-link" href="manage_categories.php">Categories</a></li>
-                <li class="nav-item"><a class="nav-link" href="manage_orders.php">Orders</a></li>
-            </ul>
-            <ul class="navbar-nav ms-auto"><li class="nav-item"><a class="nav-link" href="../logout.php">Logout</a></li></ul>
-        </div>
-    </div>
-</nav>
-
-<div class="container mt-4">
-    <div class="d-flex justify-content-between align-items-center mb-3">
+<div class="d-flex justify-content-between align-items-center mb-3">
         <h2>Manage Products</h2>
         <a href="add_product.php" class="btn btn-success">Add New Product</a>
     </div>
 
     <?php echo $message; ?>
 
-    <div class="card">
+    <div class="card shadow">
         <div class="card-header">Existing Products</div>
         <div class="card-body">
-            <table class="table table-striped">
-                <!-- Table header -->
-                <thead><tr><th>Image</th><th>Name</th><th>Category</th><th>Price</th><th class="text-end">Actions</th></tr></thead>
-                <tbody>
-                    <?php if(count($products) > 0): ?>
-                        <?php foreach ($products as $product): ?>
-                        <tr>
-                            <td><img src="../uploads/<?php echo htmlspecialchars($product['image']); ?>" alt="<?php echo htmlspecialchars($product['name']); ?>" style="width: 50px; height: 50px; object-fit: cover;"></td>
-                            <td><?php echo htmlspecialchars($product['name']); ?></td>
-                            <td><?php echo htmlspecialchars($product['category_name']); ?></td>
-                            <td>$<?php echo htmlspecialchars($product['price']); ?></td>
-                            <td class="text-end">
-                                <a href="edit_product.php?id=<?php echo $product['id']; ?>" class="btn btn-sm btn-warning">Edit</a>
-                                <a href="manage_products.php?delete=<?php echo $product['id']; ?>" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure?')">Delete</a>
-                            </td>
-                        </tr>
-                        <?php endforeach; ?>
-                    <?php else: ?>
-                        <tr><td colspan="5">No products found.</td></tr>
-                    <?php endif; ?>
-                </tbody>
-            </table>
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <!-- Table header -->
+                    <thead><tr><th>Image</th><th>Name</th><th>Category</th><th>Price</th><th class="text-end">Actions</th></tr></thead>
+                    <tbody>
+                        <?php if(count($products) > 0): ?>
+                            <?php foreach ($products as $product): ?>
+                            <tr>
+                                <td><img src="../uploads/<?php echo htmlspecialchars($product['image']); ?>" alt="<?php echo htmlspecialchars($product['name']); ?>" style="width: 50px; height: 50px; object-fit: cover;"></td>
+                                <td><?php echo htmlspecialchars($product['name']); ?></td>
+                                <td><?php echo htmlspecialchars($product['category_name']); ?></td>
+                                <td>$<?php echo htmlspecialchars($product['price']); ?></td>
+                                <td class="text-end">
+                                    <a href="edit_product.php?id=<?php echo $product['id']; ?>" class="btn btn-sm btn-warning">Edit</a>
+                                    <a href="manage_products.php?delete=<?php echo $product['id']; ?>" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure?')">Delete</a>
+                                </td>
+                            </tr>
+                            <?php endforeach; ?>
+                        <?php else: ?>
+                            <tr><td colspan="5">No products found.</td></tr>
+                        <?php endif; ?>
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 
@@ -139,7 +104,7 @@ if($stmt = $mysqli->prepare($sql)){
       </ul>
     </nav>
 </div>
-
-<script src="../js/bootstrap.bundle.min.js"></script>
-</body>
-</html>
+<?php
+// Include the new admin footer
+include 'includes/admin_footer.php';
+?>

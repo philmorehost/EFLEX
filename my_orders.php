@@ -13,9 +13,26 @@ if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true){
 // Include the header and database connection
 include 'includes/header.php';
 require_once 'includes/db_connect.php';
+require_once 'includes/send_email.php';
 
 $user_id = $_SESSION['id'];
 $message = "";
+
+// Handle Cancel Order
+if($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['cancel_order'])){
+    $order_id_to_cancel = $_POST['order_id'];
+    // Update order status to 'Cancelled'
+    $sql_cancel = "UPDATE orders SET status = 'Cancelled' WHERE id = ? AND user_id = ? AND (status = 'Pending' OR status = 'Awaiting Payment')";
+    if($stmt_cancel = $mysqli->prepare($sql_cancel)){
+        $stmt_cancel->bind_param("ii", $order_id_to_cancel, $user_id);
+        if($stmt_cancel->execute()){
+            $message = '<div class="alert alert-info">Order #' . $order_id_to_cancel . ' has been cancelled.</div>';
+        } else {
+            $message = '<div class="alert alert-danger">There was an error cancelling your order.</div>';
+        }
+        $stmt_cancel->close();
+    }
+}
 
 // Handle Payment Proof Upload
 if($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['upload_proof'])){
@@ -40,9 +57,29 @@ if($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['upload_proof'])){
                 $sql_update = "UPDATE orders SET payment_proof = ?, status = 'Processing' WHERE id = ? AND user_id = ?";
                 if($stmt_update = $mysqli->prepare($sql_update)){
                     $stmt_update->bind_param("sii", $new_filename, $order_id, $user_id);
-                    $stmt_update->execute();
+                    if($stmt_update->execute()){
+                        $message = '<div class="alert alert-success">Payment proof uploaded successfully. Your order is now being processed.</div>';
+
+                        // Send notification to admin
+                        $settings_sql = "SELECT setting_key, setting_value FROM settings WHERE setting_key IN ('from_email', 'site_name')";
+                        $result_settings = $mysqli->query($settings_sql);
+                        $settings = [];
+                        while($row = $result_settings->fetch_assoc()){
+                            $settings[$row['setting_key']] = $row['setting_value'];
+                        }
+                        $admin_email = $settings['from_email'] ?? '';
+                        $site_name = $settings['site_name'] ?? 'Eflex';
+
+                        if(!empty($admin_email)){
+                            $admin_subject = "Payment Proof Uploaded for Order #" . $order_id;
+                            $admin_body = "<h1>Payment Proof Submitted</h1>"
+                                        . "<p>A customer has uploaded a payment proof for order #" . $order_id . ".</p>"
+                                        . "<p><strong>Customer:</strong> " . $_SESSION['username'] . "</p>"
+                                        . "<p>Please log in to the admin panel to review and approve the payment.</p>";
+                            send_email($admin_email, $admin_subject, $admin_body);
+                        }
+                    }
                     $stmt_update->close();
-                    $message = '<div class="alert alert-success">Payment proof uploaded successfully. Your order is now being processed.</div>';
                 }
             } else {
                 $message = '<div class="alert alert-danger">Error: There was a problem uploading your file.</div>';
@@ -95,34 +132,39 @@ if($stmt = $mysqli->prepare($sql)){
                         <td>$<?php echo number_format($order['total_amount'], 2); ?></td>
                         <td><span class="badge bg-primary"><?php echo htmlspecialchars($order['status']); ?></span></td>
                         <td>
-                            <a href="view_order.php?id=<?php echo $order['id']; ?>" class="btn btn-sm btn-info">View Details</a>
+                            <a href="view_order.php?id=<?php echo $order['id']; ?>" class="btn btn-sm btn-info">View</a>
                             <?php if($order['status'] == 'Awaiting Payment'): ?>
-                                <!-- Button to trigger modal -->
-                                <button type="button" class="btn btn-sm btn-success" data-bs-toggle="modal" data-bs-target="#uploadModal<?php echo $order['id']; ?>">
-                                  Upload Proof
-                                </button>
+                                <button type="button" class="btn btn-sm btn-success" data-bs-toggle="modal" data-bs-target="#uploadModal<?php echo $order['id']; ?>">Upload Proof</button>
+                            <?php endif; ?>
+                            <?php if($order['status'] == 'Pending' || $order['status'] == 'Awaiting Payment'): ?>
+                                <form action="my_orders.php" method="post" class="d-inline">
+                                    <input type="hidden" name="order_id" value="<?php echo $order['id']; ?>">
+                                    <button type="submit" name="cancel_order" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure you want to cancel this order?')">Cancel</button>
+                                </form>
+                            <?php endif; ?>
 
-                                <!-- Modal -->
-                                <div class="modal fade" id="uploadModal<?php echo $order['id']; ?>" tabindex="-1">
-                                  <div class="modal-dialog">
-                                    <div class="modal-content">
-                                      <div class="modal-header">
-                                        <h5 class="modal-title">Upload Payment Proof for Order #<?php echo $order['id']; ?></h5>
-                                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                                      </div>
-                                      <div class="modal-body">
-                                        <form action="my_orders.php" method="post" enctype="multipart/form-data">
-                                            <input type="hidden" name="order_id" value="<?php echo $order['id']; ?>">
-                                            <div class="mb-3">
-                                                <label for="payment_proof" class="form-label">Select file (JPG, PNG, PDF)</label>
-                                                <input class="form-control" type="file" name="payment_proof" required>
-                                            </div>
-                                            <button type="submit" name="upload_proof" class="btn btn-primary">Upload</button>
-                                        </form>
-                                      </div>
-                                    </div>
+                            <!-- Upload Proof Modal -->
+                            <?php if($order['status'] == 'Awaiting Payment'): ?>
+                            <div class="modal fade" id="uploadModal<?php echo $order['id']; ?>" tabindex="-1">
+                              <div class="modal-dialog">
+                                <div class="modal-content">
+                                  <div class="modal-header">
+                                    <h5 class="modal-title">Upload Payment Proof for Order #<?php echo $order['id']; ?></h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                  </div>
+                                  <div class="modal-body">
+                                    <form action="my_orders.php" method="post" enctype="multipart/form-data">
+                                        <input type="hidden" name="order_id" value="<?php echo $order['id']; ?>">
+                                        <div class="mb-3">
+                                            <label for="payment_proof" class="form-label">Select file (JPG, PNG, PDF)</label>
+                                            <input class="form-control" type="file" name="payment_proof" required>
+                                        </div>
+                                        <button type="submit" name="upload_proof" class="btn btn-primary">Upload</button>
+                                    </form>
                                   </div>
                                 </div>
+                              </div>
+                            </div>
                             <?php endif; ?>
                         </td>
                     </tr>

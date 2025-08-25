@@ -8,8 +8,9 @@ if(isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true){
     exit;
 }
 
-// Include database connection file
+// Include database connection and email function
 require_once "includes/db_connect.php";
+require_once "includes/send_email.php";
 
 // Define variables and initialize with empty values
 $username = $email = $password = $confirm_password = "";
@@ -104,15 +105,22 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
             $param_password = password_hash($password, PASSWORD_DEFAULT);
 
             if($stmt->execute()){
+                // Send welcome email
+                $subject = "Welcome to Eflex!";
+                $body = "<h1>Welcome, " . htmlspecialchars($username) . "!</h1>"
+                      . "<p>Thank you for registering at Eflex. We're excited to have you.</p>"
+                      . "<p>You can now log in and start shopping.</p>"
+                      . "<p>Best regards,<br>The Eflex Team</p>";
+                send_email($email, $subject, $body);
+
                 header("location: login.php?registration=success");
+                exit();
             } else{
                 echo "Oops! Something went wrong. Please try again later.";
             }
             $stmt->close();
         }
     }
-
-    $mysqli->close();
 }
 
 // Include the header

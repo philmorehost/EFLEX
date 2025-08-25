@@ -12,6 +12,28 @@ if(isset($_SESSION['admin_created']) && $_SESSION['admin_created'] === true){
     unset($_SESSION['admin_created']);
 }
 
+// Fetch site settings
+$settings_sql = "SELECT setting_key, setting_value FROM settings";
+$result = $mysqli->query($settings_sql);
+$settings = [];
+while($row = $result->fetch_assoc()){
+    $settings[$row['setting_key']] = $row['setting_value'];
+}
+$hero_title = $settings['hero_section_title'] ?? 'Welcome to Eflex';
+$hero_desc = $settings['hero_section_description'] ?? 'Your one-stop shop for everything you need.';
+$hero_bg_url = $settings['hero_section_background_url'] ?? '';
+$how_it_works_bg_color = $settings['how_it_works_bg_color'] ?? '#f8f9fa';
+
+// Fetch categories for the slider
+$slider_categories_sql = "SELECT * FROM categories WHERE image IS NOT NULL ORDER BY name ASC";
+$slider_categories_result = $mysqli->query($slider_categories_sql);
+$slider_categories = $slider_categories_result->fetch_all(MYSQLI_ASSOC);
+
+// Fetch active banners for the slider
+$banners_sql = "SELECT * FROM banners WHERE is_active = 1";
+$banners_result = $mysqli->query($banners_sql);
+$banners = $banners_result->fetch_all(MYSQLI_ASSOC);
+
 // Fetch products for the tabs
 // New Products
 $new_products_sql = "SELECT * FROM products ORDER BY created_at DESC LIMIT 8";
@@ -31,57 +53,114 @@ $top_sellers = $top_sellers_result->fetch_all(MYSQLI_ASSOC);
 ?>
 
 <!-- Hero Section -->
-<div class="hero-section text-center">
+<div class="hero-section text-center" style="background-image: url('<?php echo htmlspecialchars($hero_bg_url); ?>');">
     <div class="container">
-        <h1>Welcome to Eflex</h1>
-        <p class="lead">Your one-stop shop for everything you need. We offer the best products at the best prices.</p>
+        <h1><?php echo htmlspecialchars($hero_title); ?></h1>
+        <p class="lead"><?php echo htmlspecialchars($hero_desc); ?></p>
         <a class="btn btn-primary btn-lg" href="products.php" role="button">Shop Now</a>
     </div>
 </div>
 
-<!-- Product Tabs Section -->
+<!-- Top Categories Section -->
+<?php if(count($slider_categories) > 0): ?>
 <div class="container my-5">
-    <div class="product-tabs">
-        <ul class="nav nav-tabs justify-content-center" id="productTab" role="tablist">
-            <li class="nav-item" role="presentation">
-                <button class="nav-link active" id="new-tab" data-bs-toggle="tab" data-bs-target="#new" type="button" role="tab" aria-controls="new" aria-selected="true">New Arrivals</button>
-            </li>
-            <li class="nav-item" role="presentation">
-                <button class="nav-link" id="featured-tab" data-bs-toggle="tab" data-bs-target="#featured" type="button" role="tab" aria-controls="featured" aria-selected="false">Featured</button>
-            </li>
-            <li class="nav-item" role="presentation">
-                <button class="nav-link" id="topsellers-tab" data-bs-toggle="tab" data-bs-target="#topsellers" type="button" role="tab" aria-controls="topsellers" aria-selected="false">Top Sellers</button>
-            </li>
-        </ul>
-        <div class="tab-content mt-4" id="productTabContent">
-            <!-- New Arrivals Pane -->
-            <div class="tab-pane fade show active" id="new" role="tabpanel" aria-labelledby="new-tab">
-                <div class="row">
-                    <?php foreach($new_products as $product): ?>
-                        <div class="col-md-4 col-lg-3 mb-4">
-                            <?php include 'includes/product_card.php'; ?>
-                        </div>
-                    <?php endforeach; ?>
-                </div>
+    <h2 class="text-center mb-4">Top Categories</h2>
+    <div class="category-slider">
+        <div class="slider-track">
+            <?php foreach($slider_categories as $category): ?>
+            <div class="category-slide">
+                <a href="category.php?id=<?php echo $category['id']; ?>">
+                    <img src="uploads/<?php echo htmlspecialchars($category['image']); ?>" alt="<?php echo htmlspecialchars($category['name']); ?>">
+                    <span><?php echo htmlspecialchars($category['name']); ?></span>
+                </a>
             </div>
-            <!-- Featured Pane -->
-            <div class="tab-pane fade" id="featured" role="tabpanel" aria-labelledby="featured-tab">
-                <div class="row">
-                    <?php foreach($featured_products as $product): ?>
-                        <div class="col-md-4 col-lg-3 mb-4">
-                            <?php include 'includes/product_card.php'; ?>
+            <?php endforeach; ?>
+        </div>
+    </div>
+</div>
+<?php endif; ?>
+
+<!-- Special Offer & Product Tabs Section -->
+<div class="container my-5">
+    <div class="row">
+        <!-- Side 1: Special Offer Banner -->
+        <div class="col-lg-4 mb-4 mb-lg-0">
+            <div class="special-offer-banner h-100">
+                <?php if(count($banners) > 0): ?>
+                <div id="bannerCarousel" class="carousel slide h-100" data-bs-ride="carousel">
+                    <div class="carousel-inner h-100">
+                        <?php foreach($banners as $index => $banner): ?>
+                        <div class="carousel-item h-100 <?php echo $index === 0 ? 'active' : ''; ?>">
+                            <a href="<?php echo htmlspecialchars($banner['link_url']); ?>" target="_blank">
+                                <img src="uploads/<?php echo htmlspecialchars($banner['image_url']); ?>" class="d-block w-100 h-100" alt="Special Offer">
+                            </a>
                         </div>
-                    <?php endforeach; ?>
+                        <?php endforeach; ?>
+                    </div>
+                    <?php if(count($banners) > 1): ?>
+                    <button class="carousel-control-prev" type="button" data-bs-target="#bannerCarousel" data-bs-slide="prev">
+                        <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                        <span class="visually-hidden">Previous</span>
+                    </button>
+                    <button class="carousel-control-next" type="button" data-bs-target="#bannerCarousel" data-bs-slide="next">
+                        <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                        <span class="visually-hidden">Next</span>
+                    </button>
+                    <?php endif; ?>
                 </div>
+                <?php else: ?>
+                    <div class="d-flex align-items-center justify-content-center h-100 bg-light">
+                        <p>Special Offers Coming Soon!</p>
+                    </div>
+                <?php endif; ?>
             </div>
-            <!-- Top Sellers Pane -->
-            <div class="tab-pane fade" id="topsellers" role="tabpanel" aria-labelledby="topsellers-tab">
-                <div class="row">
-                     <?php foreach($top_sellers as $product): ?>
-                        <div class="col-md-4 col-lg-3 mb-4">
-                           <?php include 'includes/product_card.php'; ?>
+        </div>
+
+        <!-- Side 2: Product Tabs -->
+        <div class="col-lg-8">
+            <div class="product-tabs">
+                <ul class="nav nav-tabs justify-content-center" id="productTab" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="new-tab" data-bs-toggle="tab" data-bs-target="#new" type="button" role="tab" aria-controls="new" aria-selected="true">New Arrivals</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="featured-tab" data-bs-toggle="tab" data-bs-target="#featured" type="button" role="tab" aria-controls="featured" aria-selected="false">Featured</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="topsellers-tab" data-bs-toggle="tab" data-bs-target="#topsellers" type="button" role="tab" aria-controls="topsellers" aria-selected="false">Top Sellers</button>
+                    </li>
+                </ul>
+                <div class="tab-content mt-4" id="productTabContent">
+                    <!-- New Arrivals Pane -->
+                    <div class="tab-pane fade show active" id="new" role="tabpanel" aria-labelledby="new-tab">
+                        <div class="row">
+                            <?php foreach($new_products as $product): ?>
+                                <div class="col-md-4 col-lg-3 mb-4">
+                                    <?php include 'includes/product_card.php'; ?>
+                                </div>
+                            <?php endforeach; ?>
                         </div>
-                    <?php endforeach; ?>
+                    </div>
+                    <!-- Featured Pane -->
+                    <div class="tab-pane fade" id="featured" role="tabpanel" aria-labelledby="featured-tab">
+                        <div class="row">
+                            <?php foreach($featured_products as $product): ?>
+                                <div class="col-md-4 col-lg-3 mb-4">
+                                    <?php include 'includes/product_card.php'; ?>
+                                </div>
+                            <?php endforeach; ?>
+                        </div>
+                    </div>
+                    <!-- Top Sellers Pane -->
+                    <div class="tab-pane fade" id="topsellers" role="tabpanel" aria-labelledby="topsellers-tab">
+                        <div class="row">
+                             <?php foreach($top_sellers as $product): ?>
+                                <div class="col-md-4 col-lg-3 mb-4">
+                                   <?php include 'includes/product_card.php'; ?>
+                                </div>
+                            <?php endforeach; ?>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -99,7 +178,8 @@ $top_sellers = $top_sellers_result->fetch_all(MYSQLI_ASSOC);
 -->
 
 <!-- How It Works Section -->
-<div class="container my-5">
+<div class="how-it-works-section py-5" style="background-color: <?php echo htmlspecialchars($how_it_works_bg_color); ?>;">
+<div class="container">
     <h2 class="text-center mb-4">How It Works</h2>
     <div class="row text-center">
         <div class="col-md-3">
@@ -131,6 +211,7 @@ $top_sellers = $top_sellers_result->fetch_all(MYSQLI_ASSOC);
             </div>
         </div>
     </div>
+</div>
 </div>
 
 

@@ -1,46 +1,63 @@
 <?php
-// Initialize the session
-session_start();
-
-// Check if the user is logged in and is an admin.
-if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true || !isset($_SESSION["role"]) || $_SESSION["role"] !== 'admin'){
-    header("location: ../index.php");
-    exit;
-}
-
-// Include database connection file
-require_once "../includes/db_connect.php";
+<?php
+// Include the new admin header
+include 'includes/admin_header.php';
+require_once '../includes/send_email.php';
 
 // Check if Order ID is provided
 if(!isset($_GET['id']) || empty($_GET['id'])){
-    header("location: manage_orders.php");
+    echo "<script>window.location.href='manage_orders.php';</script>";
     exit;
 }
 $order_id = $_GET['id'];
+$message = "";
 
 // Handle status update from both dropdown and approve/reject buttons
 if($_SERVER["REQUEST_METHOD"] == "POST"){
+    // We need to fetch the order details BEFORE the update to get the old status and user email
+    $sql_old_order = "SELECT o.status, u.email, u.username FROM orders o JOIN users u ON o.user_id = u.id WHERE o.id = ?";
+    $stmt_old = $mysqli->prepare($sql_old_order);
+    $stmt_old->bind_param("i", $order_id);
+    $stmt_old->execute();
+    $old_order_result = $stmt_old->get_result()->fetch_assoc();
+    $old_status = $old_order_result['status'];
+    $user_email = $old_order_result['email'];
+    $username = $old_order_result['username'];
+    $stmt_old->close();
+
     $new_status = "";
+    $send_notification = false;
+
     if(isset($_POST['update_status'])){
         $new_status = $_POST['status'];
     } elseif(isset($_POST['approve_payment'])){
         $new_status = 'Completed';
+        $message = '<div class="alert alert-success">Payment approved and order marked as Completed.</div>';
     } elseif(isset($_POST['reject_payment'])){
         $new_status = 'Awaiting Payment';
-        // Also clear the payment proof on rejection
         $mysqli->query("UPDATE orders SET payment_proof = NULL WHERE id = $order_id");
+        $message = '<div class="alert alert-warning">Payment rejected. Status set to Awaiting Payment and proof has been removed.</div>';
     }
 
-    if(!empty($new_status)){
+    if(!empty($new_status) && $new_status !== $old_status){
         $sql_update = "UPDATE orders SET status = ? WHERE id = ?";
         if($stmt_update = $mysqli->prepare($sql_update)){
             $stmt_update->bind_param("si", $new_status, $order_id);
-            $stmt_update->execute();
+            if($stmt_update->execute()){
+                // Send notification email to the user
+                $subject = "Your Order Status Has Been Updated";
+                $body = "<h1>Order Update</h1>"
+                      . "<p>Hi " . htmlspecialchars($username) . ",</p>"
+                      . "<p>The status of your order #" . $order_id . " has been updated to: <strong>" . htmlspecialchars($new_status) . "</strong></p>"
+                      . "<p>You can view your order details here: <a href='http://".$_SERVER['HTTP_HOST']."/my_orders.php'>My Orders</a></p>";
+                send_email($user_email, $subject, $body);
+                $message .= '<div class="alert alert-info">User has been notified of the status change.</div>';
+            }
             $stmt_update->close();
         }
+    } elseif(!empty($new_status) && $new_status === $old_status) {
+        //If status is the same, no need to update or send email.
     }
-    header("location: order_detail.php?id=" . $order_id);
-    exit;
 }
 
 
@@ -60,7 +77,7 @@ if($stmt_order = $mysqli->prepare($sql_order)){
 if(!$order){ echo "Order not found."; exit; }
 
 // Fetch Order Items
-$sql_items = "SELECT oi.*, p.name as product_name FROM order_items oi JOIN products p ON oi.product_id = p.id WHERE oi.order_id = ?";
+$sql_items = "SELECT oi.*, p.name as product_name, p.image as product_image FROM order_items oi JOIN products p ON oi.product_id = p.id WHERE oi.order_id = ?";
 $order_items = [];
 if($stmt_items = $mysqli->prepare($sql_items)){
     $stmt_items->bind_param("i", $order_id);
@@ -71,83 +88,102 @@ if($stmt_items = $mysqli->prepare($sql_items)){
 }
 ?>
 
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Order Details</title>
-    <link href="../css/bootstrap.min.css" rel="stylesheet">
-    <link href="../css/custom_style.css" rel="stylesheet">
-</head>
-<body>
-
-<nav class="navbar navbar-expand-lg navbar-dark bg-dark"><!-- Navbar --></nav>
-
-<div class="container mt-4">
+<div class="d-flex justify-content-between align-items-center mb-3">
     <h2>Order Details for #<?php echo $order['id']; ?></h2>
-    <a href="manage_orders.php" class="btn btn-secondary mb-3">Back to Orders</a>
+    <a href="manage_orders.php" class="btn btn-secondary">Back to Orders</a>
+</div>
 
-    <div class="row">
-        <div class="col-md-8">
-            <div class="card mb-3">
-                <div class="card-header">Order Items</div>
-                <div class="card-body">
+<?php echo $message; ?>
+
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card shadow mb-4">
+            <div class="card-header">Order Items</div>
+            <div class="card-body">
+                <div class="table-responsive">
                     <table class="table">
-                        <!-- Table content -->
+                        <thead>
+                            <tr>
+                                <th>Product</th>
+                                <th>Quantity</th>
+                                <th class="text-end">Price</th>
+                                <th class="text-end">Total</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php foreach($order_items as $item): ?>
+                            <tr>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <img src="../uploads/<?php echo htmlspecialchars($item['product_image']); ?>" class="me-3" style="width: 60px; height: 60px; object-fit: cover;">
+                                        <?php echo htmlspecialchars($item['product_name']); ?>
+                                    </div>
+                                </td>
+                                <td><?php echo $item['quantity']; ?></td>
+                                <td class="text-end">$<?php echo number_format($item['price'], 2); ?></td>
+                                <td class="text-end">$<?php echo number_format($item['price'] * $item['quantity'], 2); ?></td>
+                            </tr>
+                            <?php endforeach; ?>
+                        </tbody>
                     </table>
                 </div>
             </div>
-
-            <?php if($order['payment_proof']): ?>
-            <div class="card">
-                <div class="card-header">Payment Proof</div>
-                <div class="card-body">
-                    <a href="../uploads/payment_proofs/<?php echo htmlspecialchars($order['payment_proof']); ?>" target="_blank">
-                        <img src="../uploads/payment_proofs/<?php echo htmlspecialchars($order['payment_proof']); ?>" class="img-fluid" alt="Payment Proof">
-                    </a>
-                    <?php if($order['status'] == 'Processing'): ?>
-                    <form action="order_detail.php?id=<?php echo $order_id; ?>" method="post" class="mt-3 d-flex justify-content-end">
-                        <button type="submit" name="reject_payment" class="btn btn-danger me-2">Reject</button>
-                        <button type="submit" name="approve_payment" class="btn btn-success">Approve</button>
-                    </form>
-                    <?php endif; ?>
-                </div>
-            </div>
-            <?php endif; ?>
-
         </div>
-        <div class="col-md-4">
-            <div class="card mb-3">
-                <div class="card-header">Order Summary</div>
-                <div class="card-body">
-                    <!-- Summary content -->
-                </div>
+
+        <?php if($order['payment_proof']): ?>
+        <div class="card shadow mb-4">
+            <div class="card-header bg-info text-white">Payment Proof Submitted</div>
+            <div class="card-body text-center">
+                <a href="../uploads/payment_proofs/<?php echo htmlspecialchars($order['payment_proof']); ?>" target="_blank">
+                    <img src="../uploads/payment_proofs/<?php echo htmlspecialchars($order['payment_proof']); ?>" class="img-fluid" style="max-height: 400px;" alt="Payment Proof">
+                </a>
+                <?php if($order['status'] == 'Processing'): ?>
+                <form action="order_detail.php?id=<?php echo $order_id; ?>" method="post" class="mt-3 d-flex justify-content-center">
+                    <button type="submit" name="reject_payment" class="btn btn-danger me-2">Reject Payment</button>
+                    <button type="submit" name="approve_payment" class="btn btn-success">Approve Payment</button>
+                </form>
+                <?php endif; ?>
             </div>
-            <div class="card mb-3">
-                <div class="card-header">Customer Details</div>
-                <div class="card-body">
-                    <!-- Customer content -->
-                </div>
+        </div>
+        <?php endif; ?>
+
+    </div>
+    <div class="col-lg-4">
+        <div class="card shadow mb-4">
+            <div class="card-header">Order Summary</div>
+            <div class="card-body">
+                <p><strong>Order ID:</strong> #<?php echo $order['id']; ?></p>
+                <p><strong>Date:</strong> <?php echo $order['created_at']; ?></p>
+                <p><strong>Total:</strong> <span class="fw-bold fs-5">$<?php echo number_format($order['total_amount'], 2); ?></span></p>
+                <p><strong>Payment Method:</strong> <?php echo htmlspecialchars($order['payment_method']); ?></p>
+                <p><strong>Status:</strong> <span class="badge bg-primary"><?php echo htmlspecialchars($order['status']); ?></span></p>
             </div>
-             <div class="card">
-                <div class="card-header">Update Status</div>
-                <div class="card-body">
-                    <form action="order_detail.php?id=<?php echo $order_id; ?>" method="post">
-                        <select name="status" class="form-select">
-                            <option value="Awaiting Payment" <?php if($order['status'] == 'Awaiting Payment') echo 'selected'; ?>>Awaiting Payment</option>
-                            <option value="Processing" <?php if($order['status'] == 'Processing') echo 'selected'; ?>>Processing</option>
-                            <option value="Completed" <?php if($order['status'] == 'Completed') echo 'selected'; ?>>Completed</option>
-                            <option value="Cancelled" <?php if($order['status'] == 'Cancelled') echo 'selected'; ?>>Cancelled</option>
-                        </select>
-                        <button type="submit" name="update_status" class="btn btn-primary mt-2 w-100">Update Status</button>
-                    </form>
-                </div>
+        </div>
+        <div class="card shadow mb-4">
+            <div class="card-header">Customer Details</div>
+            <div class="card-body">
+                <p><strong>Username:</strong> <?php echo htmlspecialchars($order['username']); ?></p>
+                <p><strong>Email:</strong> <?php echo htmlspecialchars($order['email']); ?></p>
+            </div>
+        </div>
+         <div class="card shadow">
+            <div class="card-header">Update Status</div>
+            <div class="card-body">
+                <form action="order_detail.php?id=<?php echo $order_id; ?>" method="post">
+                    <select name="status" class="form-select">
+                        <option value="Awaiting Payment" <?php if($order['status'] == 'Awaiting Payment') echo 'selected'; ?>>Awaiting Payment</option>
+                        <option value="Processing" <?php if($order['status'] == 'Processing') echo 'selected'; ?>>Processing</option>
+                        <option value="Completed" <?php if($order['status'] == 'Completed') echo 'selected'; ?>>Completed</option>
+                        <option value="Cancelled" <?php if($order['status'] == 'Cancelled') echo 'selected'; ?>>Cancelled</option>
+                    </select>
+                    <button type="submit" name="update_status" class="btn btn-primary mt-2 w-100">Update Status Manually</button>
+                </form>
             </div>
         </div>
     </div>
 </div>
 
-<script src="../js/bootstrap.bundle.min.js"></script>
-</body>
-</html>
+<?php
+// Include the new admin footer
+include 'includes/admin_footer.php';
+?>

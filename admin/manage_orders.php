@@ -1,15 +1,6 @@
 <?php
-// Initialize the session
-session_start();
-
-// Check if the user is logged in and is an admin.
-if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true || !isset($_SESSION["role"]) || $_SESSION["role"] !== 'admin'){
-    header("location: ../index.php");
-    exit;
-}
-
-// Include database connection file
-require_once "../includes/db_connect.php";
+// Include the new admin header
+include 'includes/admin_header.php';
 
 // Pagination variables
 $page = isset($_GET['page']) && is_numeric($_GET['page']) ? (int)$_GET['page'] : 1;
@@ -37,41 +28,14 @@ if($stmt = $mysqli->prepare($sql)){
     $orders = [];
 }
 ?>
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h2>Manage Orders</h2>
+</div>
 
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Manage Orders</title>
-    <link href="../css/bootstrap.min.css" rel="stylesheet">
-</head>
-<body>
-
-<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-    <!-- Navbar -->
-    <div class="container-fluid">
-        <a class="navbar-brand" href="dashboard.php">Admin Panel</a>
-        <div class="collapse navbar-collapse">
-             <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-                <li class="nav-item"><a class="nav-link" href="dashboard.php">Dashboard</a></li>
-                <li class="nav-item"><a class="nav-link" href="manage_products.php">Products</a></li>
-                <li class="nav-item"><a class="nav-link" href="manage_categories.php">Categories</a></li>
-                <li class="nav-item"><a class="nav-link active" href="manage_orders.php">Orders</a></li>
-            </ul>
-            <ul class="navbar-nav ms-auto"><li class="nav-item"><a class="nav-link" href="../logout.php">Logout</a></li></ul>
-        </div>
-    </div>
-</nav>
-
-<div class="container mt-4">
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <h2>Manage Orders</h2>
-    </div>
-
-    <div class="card">
-        <div class="card-header">All Orders</div>
-        <div class="card-body">
+<div class="card shadow">
+    <div class="card-header">All Orders</div>
+    <div class="card-body">
+        <div class="table-responsive">
             <table class="table table-striped">
                 <!-- Table header -->
                 <thead><tr><th>Order ID</th><th>Customer</th><th>Date</th><th>Total</th><th>Status</th><th class="text-end">Actions</th></tr></thead>
@@ -96,17 +60,17 @@ if($stmt = $mysqli->prepare($sql)){
             </table>
         </div>
     </div>
-
-    <!-- Pagination -->
-    <nav aria-label="Page navigation">
-      <ul class="pagination justify-content-center mt-4">
-        <?php if($page > 1): ?><li class="page-item"><a class="page-link" href="manage_orders.php?page=<?php echo $page-1; ?>">Previous</a></li><?php endif; ?>
-        <?php for($i = 1; $i <= $total_pages; $i++): ?><li class="page-item <?php if($page == $i) echo 'active'; ?>"><a class="page-link" href="manage_orders.php?page=<?php echo $i; ?>"><?php echo $i; ?></a></li><?php endfor; ?>
-        <?php if($page < $total_pages): ?><li class="page-item"><a class="page-link" href="manage_orders.php?page=<?php echo $page+1; ?>">Next</a></li><?php endif; ?>
-      </ul>
-    </nav>
 </div>
 
-<script src="../js/bootstrap.bundle.min.js"></script>
-</body>
-</html>
+<!-- Pagination -->
+<nav aria-label="Page navigation">
+  <ul class="pagination justify-content-center mt-4">
+    <?php if($page > 1): ?><li class="page-item"><a class="page-link" href="manage_orders.php?page=<?php echo $page-1; ?>">Previous</a></li><?php endif; ?>
+    <?php for($i = 1; $i <= $total_pages; $i++): ?><li class="page-item <?php if($page == $i) echo 'active'; ?>"><a class="page-link" href="manage_orders.php?page=<?php echo $i; ?>"><?php echo $i; ?></a></li><?php endfor; ?>
+    <?php if($page < $total_pages): ?><li class="page-item"><a class="page-link" href="manage_orders.php?page=<?php echo $page+1; ?>">Next</a></li><?php endif; ?>
+  </ul>
+</nav>
+<?php
+// Include the new admin footer
+include 'includes/admin_footer.php';
+?>
