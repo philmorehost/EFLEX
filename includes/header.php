@@ -3,16 +3,20 @@
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
-// Include the database connection. The path is relative to the file including this header.
-// This is not ideal. A better approach would be to define a ROOT_PATH constant.
-// For now, we assume db_connect.php is in the same directory as this header file.
-// All top-level files (index.php, products.php) include this correctly.
+
+// Include the database connection.
 require_once 'db_connect.php';
 
 // Fetch categories for the navigation dropdown
 $category_sql = "SELECT * FROM categories ORDER BY name ASC";
 $category_result = $mysqli->query($category_sql);
 $nav_categories = $category_result->fetch_all(MYSQLI_ASSOC);
+
+// Calculate cart item count
+$cart_item_count = 0;
+if(isset($_SESSION['cart']) && is_array($_SESSION['cart'])){
+    $cart_item_count = array_sum($_SESSION['cart']);
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -51,7 +55,9 @@ $nav_categories = $category_result->fetch_all(MYSQLI_ASSOC);
                     </ul>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="cart.php">Cart</a>
+                    <a class="nav-link" href="cart.php">
+                        Cart <span class="badge rounded-pill bg-primary"><?php echo $cart_item_count; ?></span>
+                    </a>
                 </li>
             </ul>
             <ul class="navbar-nav">
