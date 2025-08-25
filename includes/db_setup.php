@@ -40,6 +40,7 @@ function setup_database_tables($mysqli) {
           `id` int(11) NOT NULL AUTO_INCREMENT,
           `user_id` int(11) NOT NULL,
           `total_amount` decimal(10,2) NOT NULL,
+      `stripe_payment_intent_id` varchar(255) DEFAULT NULL,
           `status` varchar(50) NOT NULL DEFAULT 'Pending',
           `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
           PRIMARY KEY (`id`),
