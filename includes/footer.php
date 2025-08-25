@@ -6,6 +6,8 @@
 
 <!-- Bootstrap JS Bundle with Popper -->
 <script src="js/bootstrap.bundle.min.js"></script>
+<!-- Custom JS -->
+<script src="js/main.js"></script>
 
 </body>
 </html>
