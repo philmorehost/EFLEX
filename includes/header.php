@@ -67,10 +67,11 @@ if(isset($_SESSION['cart']) && is_array($_SESSION['cart'])){
                             Welcome, <?php echo htmlspecialchars($_SESSION["username"]); ?>
                         </a>
                         <ul class="dropdown-menu" aria-labelledby="navbarUserDropdown">
+                            <li><a class="dropdown-item" href="profile.php">My Orders</a></li>
                             <?php if(isset($_SESSION["role"]) && $_SESSION["role"] === 'admin'): ?>
                                 <li><a class="dropdown-item" href="admin/dashboard.php">Admin Dashboard</a></li>
-                                <li><hr class="dropdown-divider"></li>
                             <?php endif; ?>
+                            <li><hr class="dropdown-divider"></li>
                             <li><a class="dropdown-item" href="logout.php">Logout</a></li>
                         </ul>
                     </li>
