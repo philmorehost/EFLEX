@@ -11,6 +11,7 @@ if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true){
 
 require_once 'includes/db_connect.php';
 require_once 'includes/send_email.php';
+require_once 'includes/send_notification.php';
 
 if(empty($_SESSION['cart'])){
     header("location: cart.php");
@@ -106,6 +107,19 @@ if($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['place_order'])){
                         . "<p>You can view the full details in the admin panel.</p>";
             send_email($admin_email, $admin_subject, $admin_body);
         }
+
+        // Send push notification to all staff
+        $sql_staff_players = "SELECT onesignal_player_id FROM users WHERE role_id IS NOT NULL AND onesignal_player_id IS NOT NULL";
+        $result_players = $mysqli->query($sql_staff_players);
+        $player_ids = [];
+        while($row = $result_players->fetch_assoc()){
+            $player_ids[] = $row['onesignal_player_id'];
+        }
+        if(!empty($player_ids)){
+            $push_message = "New order (#" . $order_id . ") placed for $" . number_format($total_price, 2);
+            send_push_notification($player_ids, $push_message, "New Order Received!");
+        }
+
 
         if($payment_method === 'paystack'){
             // Redirect to a page that will handle the Paystack API call

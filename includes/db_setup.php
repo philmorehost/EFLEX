@@ -208,6 +208,12 @@ function setup_database_tables($mysqli) {
         $mysqli->query("ALTER TABLE `hero_slides` ADD `overlay_opacity` DECIMAL(2,1) DEFAULT 0.5 AFTER `overlay_color`");
     }
 
+    // Check for onesignal_player_id column in users table
+    $result_osid = $mysqli->query("SHOW COLUMNS FROM `users` LIKE 'onesignal_player_id'");
+    if($result_osid->num_rows == 0){
+        $mysqli->query("ALTER TABLE `users` ADD `onesignal_player_id` VARCHAR(255) NULL DEFAULT NULL AFTER `role_id`");
+    }
+
     // Seed Roles and Permissions and create a default Super Admin
     $result = $mysqli->query("SELECT id FROM roles WHERE role_name = 'Super Admin'");
     if($result->num_rows == 0){
@@ -251,6 +257,14 @@ function setup_database_tables($mysqli) {
                 }
                 $stmt_user->close();
             }
+        }
+    } else {
+        // If the Super Admin role already exists, ensure the 'admin' user has it.
+        $super_admin_role_id = $result->fetch_assoc()['id'];
+        $admin_user_result = $mysqli->query("SELECT id FROM users WHERE username = 'admin' AND role_id IS NULL");
+        if($admin_user_result->num_rows > 0){
+            $admin_user_id = $admin_user_result->fetch_assoc()['id'];
+            $mysqli->query("UPDATE users SET role_id = $super_admin_role_id WHERE id = $admin_user_id");
         }
     }
 }

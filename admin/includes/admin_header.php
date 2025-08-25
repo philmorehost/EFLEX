@@ -15,11 +15,15 @@ require_once __DIR__ . '/../../includes/db_connect.php';
 require_once __DIR__ . '/../../includes/auth_check.php';
 
 
-// Fetch site name for the header
-$settings_sql = "SELECT setting_key, setting_value FROM settings WHERE setting_key = 'site_name'";
+// Fetch site name and OneSignal App ID for the header
+$settings_sql = "SELECT setting_key, setting_value FROM settings WHERE setting_key IN ('site_name', 'onesignal_app_id')";
 $result = $mysqli->query($settings_sql);
-$settings = $result->fetch_assoc();
-$site_name = $settings['setting_value'] ?? 'Eflex';
+$settings = [];
+while($row = $result->fetch_assoc()){
+    $settings[$row['setting_key']] = $row['setting_value'];
+}
+$site_name = $settings['site_name'] ?? 'Eflex';
+$oneSignalAppId = $settings['onesignal_app_id'] ?? '';
 
 // Determine the active page to highlight the nav link
 $active_page = basename($_SERVER['PHP_SELF']);
@@ -36,6 +40,12 @@ $active_page = basename($_SERVER['PHP_SELF']);
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <!-- Custom Admin CSS -->
     <link href="css/admin_style.css" rel="stylesheet">
+    <!-- OneSignal SDK -->
+    <script src="https://cdn.onesignal.com/sdks/OneSignalSDK.js" async=""></script>
+    <script>
+      var oneSignalAppId = "<?php echo $oneSignalAppId; ?>";
+    </script>
+    <script src="js/pwa-init.js"></script>
 </head>
 <body>
 

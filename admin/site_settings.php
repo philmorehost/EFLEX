@@ -28,6 +28,8 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
         'from_email' => $_POST['from_email'] ?? '',
         'from_name' => $_POST['from_name'] ?? '',
         'smtp_encryption' => $_POST['smtp_encryption'] ?? 'none',
+        'onesignal_app_id' => $_POST['onesignal_app_id'] ?? '',
+        'onesignal_rest_api_key' => $_POST['onesignal_rest_api_key'] ?? '',
     ];
 
     // Handle Site Logo Upload
@@ -235,6 +237,19 @@ while($row = $result->fetch_assoc()){
                         </select>
                     </div>
                 </div>
+            </div>
+        </div>
+    </div>
+    <div class="card shadow mb-4">
+        <div class="card-header">Push Notification Settings (OneSignal)</div>
+        <div class="card-body">
+            <div class="mb-3">
+                <label for="onesignal_app_id" class="form-label">OneSignal App ID</label>
+                <input type="text" name="onesignal_app_id" class="form-control" id="onesignal_app_id" value="<?php echo htmlspecialchars($settings['onesignal_app_id'] ?? ''); ?>">
+            </div>
+            <div class="mb-3">
+                <label for="onesignal_rest_api_key" class="form-label">OneSignal REST API Key</label>
+                <input type="password" name="onesignal_rest_api_key" class="form-control" id="onesignal_rest_api_key" value="<?php echo htmlspecialchars($settings['onesignal_rest_api_key'] ?? ''); ?>">
             </div>
         </div>
     </div>
