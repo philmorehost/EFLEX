@@ -52,7 +52,7 @@ if(isset($_SESSION['cart']) && is_array($_SESSION['cart'])){
                 </div>
                 <div class="header-actions">
                     <?php if(isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true): ?>
-                        <a href="profile.php" class="header-action-btn"><i class="fas fa-user"></i><span><?php echo htmlspecialchars($_SESSION["username"]); ?></span></a>
+                        <a href="account.php" class="header-action-btn"><i class="fas fa-user"></i><span><?php echo htmlspecialchars($_SESSION["username"]); ?></span></a>
                         <a href="logout.php" class="header-action-btn"><i class="fas fa-sign-out-alt"></i><span>Logout</span></a>
                     <?php else: ?>
                         <a href="login.php" class="header-action-btn"><i class="fas fa-user"></i><span>Login</span></a>

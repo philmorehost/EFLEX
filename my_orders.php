@@ -84,9 +84,9 @@ if($stmt = $mysqli->prepare($sql)){
     <!-- Pagination -->
     <nav aria-label="Page navigation">
       <ul class="pagination justify-content-center mt-4">
-        <?php if($page > 1): ?><li class="page-item"><a class="page-link" href="profile.php?page=<?php echo $page-1; ?>">Previous</a></li><?php endif; ?>
-        <?php for($i = 1; $i <= $total_pages; $i++): ?><li class="page-item <?php if($page == $i) echo 'active'; ?>"><a class="page-link" href="profile.php?page=<?php echo $i; ?>"><?php echo $i; ?></a></li><?php endfor; ?>
-        <?php if($page < $total_pages): ?><li class="page-item"><a class="page-link" href="profile.php?page=<?php echo $page+1; ?>">Next</a></li><?php endif; ?>
+        <?php if($page > 1): ?><li class="page-item"><a class="page-link" href="my_orders.php?page=<?php echo $page-1; ?>">Previous</a></li><?php endif; ?>
+        <?php for($i = 1; $i <= $total_pages; $i++): ?><li class="page-item <?php if($page == $i) echo 'active'; ?>"><a class="page-link" href="my_orders.php?page=<?php echo $i; ?>"><?php echo $i; ?></a></li><?php endfor; ?>
+        <?php if($page < $total_pages): ?><li class="page-item"><a class="page-link" href="my_orders.php?page=<?php echo $page+1; ?>">Next</a></li><?php endif; ?>
       </ul>
     </nav>
 
