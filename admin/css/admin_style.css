@@ -16,6 +16,7 @@ body {
     height: 100%;
     overflow-y: auto;
     transition: all 0.3s;
+    z-index: 1040; /* Higher than main content, lower than modals */
 }
 
 .admin-sidebar .sidebar-header {
@@ -60,6 +61,21 @@ body {
     padding: 20px;
     transition: all 0.3s;
 }
+
+.sidebar-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0,0,0,0.7);
+    z-index: 1039;
+}
+.sidebar-overlay.active {
+    display: block;
+}
+
 
 /* For mobile */
 @media (max-width: 768px) {

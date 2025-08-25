@@ -31,8 +31,14 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
     }
 
     if(empty($username_err) && empty($password_err)){
+        // Fetch settings first
+        $settings_result = $mysqli->query("SELECT setting_key, setting_value FROM settings WHERE setting_key IN ('otp_login_enabled')");
+        $settings = $settings_result->fetch_all(MYSQLI_ASSOC);
+        $settings = array_column($settings, 'setting_value', 'setting_key');
+        $otp_enabled = isset($settings['otp_login_enabled']) && $settings['otp_login_enabled'] == '1';
+
         // Validate credentials
-        $sql = "SELECT id, username, password, role_id FROM users WHERE username = ?";
+        $sql = "SELECT id, username, email, password, role_id, is_verified FROM users WHERE username = ?";
 
         if($stmt = $mysqli->prepare($sql)){
             $stmt->bind_param("s", $param_username);
@@ -42,22 +48,45 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
                 $stmt->store_result();
 
                 if($stmt->num_rows == 1){
-                    $stmt->bind_result($id, $username, $hashed_password, $role_id);
+                    $stmt->bind_result($id, $username, $email, $hashed_password, $role_id, $is_verified);
                     if($stmt->fetch()){
                         if(password_verify($password, $hashed_password)){
                             // Password is correct, check if the user has a role assigned
                             if(!empty($role_id)){
-                                // Role is assigned, start a new session
-                                // session_start(); // Session already started
+                                // Check if OTP is enabled for admin login
+                                if ($otp_enabled) {
+                                    // Generate OTP
+                                    $otp = rand(100000, 999999);
+                                    $otp_expiry = date('Y-m-d H:i:s', strtotime('+5 minutes'));
 
-                                // Store data in session variables
-                                $_SESSION["loggedin"] = true;
-                                $_SESSION["id"] = $id;
-                                $_SESSION["username"] = $username;
-                                $_SESSION["role_id"] = $role_id; // Store role_id
+                                    // Store OTP in the database
+                                    $otp_sql = "INSERT INTO otp_codes (user_id, otp_code, expires_at) VALUES (?, ?, ?)";
+                                    if($otp_stmt = $mysqli->prepare($otp_sql)){
+                                        $otp_stmt->bind_param("iss", $id, $otp, $otp_expiry);
+                                        $otp_stmt->execute();
+                                        $otp_stmt->close();
+                                    }
 
-                                // Redirect user to admin dashboard
-                                header("location: dashboard.php");
+                                    // Send OTP email
+                                    require_once '../includes/send_email.php';
+                                    $subject = "Your Admin Login OTP";
+                                    $body = "Your one-time password to log in to the admin panel is: <strong>$otp</strong>. It will expire in 5 minutes.";
+                                    send_email($email, $subject, $body);
+
+                                    // Store user ID in session and redirect to OTP verification page
+                                    $_SESSION["otp_user_id"] = $id;
+                                    header("location: verify_otp.php");
+                                    exit;
+
+                                } else {
+                                    // OTP is not enabled, log in directly
+                                    $_SESSION["loggedin"] = true;
+                                    $_SESSION["id"] = $id;
+                                    $_SESSION["username"] = $username;
+                                    $_SESSION["role_id"] = $role_id;
+                                    header("location: dashboard.php");
+                                    exit;
+                                }
                             } else {
                                 $login_err = "Access Denied. You are not an authorized staff member.";
                             }

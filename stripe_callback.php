@@ -60,7 +60,10 @@ if (isset($response['id']) && $response['payment_status'] === 'paid') {
     $order_id = $_SESSION['order_id'] ?? null;
     if($order_id){
          // Optionally update status to 'Failed'
-        $mysqli->query("UPDATE orders SET status = 'Failed' WHERE id = $order_id");
+        $stmt_fail = $mysqli->prepare("UPDATE orders SET status = 'Failed' WHERE id = ?");
+        $stmt_fail->bind_param("i", $order_id);
+        $stmt_fail->execute();
+        $stmt_fail->close();
     }
     unset($_SESSION['order_id']);
     header("Location: my_orders.php"); // Redirect to a generic failure/orders page

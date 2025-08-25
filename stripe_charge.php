@@ -94,7 +94,10 @@ $response = json_decode($result, true);
 if (isset($response['id'])) {
     // Save the session ID to the order
     $stripe_session_id = $response['id'];
-    $mysqli->query("UPDATE orders SET stripe_payment_intent_id = '$stripe_session_id' WHERE id = $order_id");
+    $stmt_update = $mysqli->prepare("UPDATE orders SET stripe_payment_intent_id = ? WHERE id = ?");
+    $stmt_update->bind_param("si", $stripe_session_id, $order_id);
+    $stmt_update->execute();
+    $stmt_update->close();
 
     // 6. Redirect user to Stripe payment page
     header('Location: ' . $response['url']);

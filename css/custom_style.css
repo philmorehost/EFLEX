@@ -480,3 +480,16 @@ h1, h2, h3, h4, h5, h6 {
     object-fit: cover;
     margin-right: 15px;
 }
+
+/* Responsive Product Tabs on Homepage */
+@media (max-width: 767px) {
+    .product-tabs .nav-tabs {
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        overflow-y: hidden;
+        -webkit-overflow-scrolling: touch;
+    }
+    .product-tabs .nav-item {
+        flex-shrink: 0;
+    }
+}

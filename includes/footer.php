@@ -4,10 +4,10 @@
     <div class="container text-center text-md-start">
         <div class="row">
             <div class="col-md-3 col-lg-4 col-xl-3 mx-auto mb-4">
-                <h6 class="text-uppercase fw-bold">Eflex</h6>
-                <hr class="mb-4 mt-0 d-inline-block mx-auto" style="width: 60px; background-color: #7c4dff; height: 2px"/>
+                <h6 class="text-uppercase fw-bold"><?php echo htmlspecialchars($settings['site_name'] ?? 'Eflex'); ?></h6>
+                <hr class="mb-4 mt-0 d-inline-block mx-auto" style="width: 60px; background-color: var(--woodmart-primary-color); height: 2px"/>
                 <p>
-                    Your one-stop shop for the best products at the best prices. We are committed to providing quality and value.
+                    <?php echo htmlspecialchars($settings['footer_about_us'] ?? 'Your one-stop shop for the best products at the best prices. We are committed to providing quality and value.'); ?>
                 </p>
             </div>
 

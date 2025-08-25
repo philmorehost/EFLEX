@@ -95,30 +95,67 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
     // Check input errors before inserting in database
     if(empty($username_err) && empty($email_err) && empty($password_err) && empty($confirm_password_err)){
 
-        $sql = "INSERT INTO users (username, email, password) VALUES (?, ?, ?)";
+        // Fetch OTP setting
+        $settings_result = $mysqli->query("SELECT setting_value FROM settings WHERE setting_key = 'otp_register_enabled'");
+        $otp_register_enabled = $settings_result->fetch_assoc()['setting_value'] ?? '0';
 
-        if($stmt = $mysqli->prepare($sql)){
-            $stmt->bind_param("sss", $param_username, $param_email, $param_password);
+        if ($otp_register_enabled == '1') {
+            // OTP flow: Create user as unverified and send OTP
+            $sql = "INSERT INTO users (username, email, password, is_verified) VALUES (?, ?, ?, 0)";
+            if($stmt = $mysqli->prepare($sql)){
+                $stmt->bind_param("sss", $param_username, $param_email, $param_password);
+                $param_username = $username;
+                $param_email = $email;
+                $param_password = password_hash($password, PASSWORD_DEFAULT);
 
-            $param_username = $username;
-            $param_email = $email;
-            $param_password = password_hash($password, PASSWORD_DEFAULT);
+                if($stmt->execute()){
+                    $user_id = $stmt->insert_id;
 
-            if($stmt->execute()){
-                // Send welcome email
-                $subject = "Welcome to Eflex!";
-                $body = "<h1>Welcome, " . htmlspecialchars($username) . "!</h1>"
-                      . "<p>Thank you for registering at Eflex. We're excited to have you.</p>"
-                      . "<p>You can now log in and start shopping.</p>"
-                      . "<p>Best regards,<br>The Eflex Team</p>";
-                send_email($email, $subject, $body);
+                    // Generate and send OTP
+                    $otp = rand(100000, 999999);
+                    $otp_expiry = date('Y-m-d H:i:s', strtotime('+10 minutes'));
+                    $otp_sql = "INSERT INTO otp_codes (user_id, otp_code, expires_at) VALUES (?, ?, ?)";
+                    if($otp_stmt = $mysqli->prepare($otp_sql)){
+                        $otp_stmt->bind_param("iss", $user_id, $otp, $otp_expiry);
+                        $otp_stmt->execute();
+                        $otp_stmt->close();
+                    }
 
-                header("location: login.php?registration=success");
-                exit();
-            } else{
-                echo "Oops! Something went wrong. Please try again later.";
+                    $subject = "Verify Your Email Address";
+                    $body = "<h1>Welcome to Eflex!</h1>"
+                          . "<p>Your One-Time Password (OTP) for account verification is: <strong>$otp</strong></p>"
+                          . "<p>This code will expire in 10 minutes.</p>"
+                          . "<p>Best regards,<br>The Eflex Team</p>";
+                    send_email($email, $subject, $body);
+
+                    $_SESSION['unverified_user_id'] = $user_id;
+                    header("location: verify_otp.php");
+                    exit();
+                } else {
+                    echo "Oops! Something went wrong. Please try again later.";
+                }
+                $stmt->close();
             }
-            $stmt->close();
+        } else {
+            // Standard flow: Create user as verified
+            $sql = "INSERT INTO users (username, email, password, is_verified) VALUES (?, ?, ?, 1)";
+            if($stmt = $mysqli->prepare($sql)){
+                $stmt->bind_param("sss", $param_username, $param_email, $param_password);
+                $param_username = $username;
+                $param_email = $email;
+                $param_password = password_hash($password, PASSWORD_DEFAULT);
+
+                if($stmt->execute()){
+                    $subject = "Welcome to Eflex!";
+                    $body = "<h1>Welcome, " . htmlspecialchars($username) . "!</h1><p>Thank you for registering. You can now log in.</p>";
+                    send_email($email, $subject, $body);
+                    header("location: login.php?registration=success");
+                    exit();
+                } else {
+                    echo "Oops! Something went wrong. Please try again later.";
+                }
+                $stmt->close();
+            }
         }
     }
 }

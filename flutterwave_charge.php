@@ -84,7 +84,10 @@ $response = json_decode($result, true);
 
 if (isset($response['status']) && $response['status'] == 'success') {
     // Save the tx_ref to the order for verification
-    $mysqli->query("UPDATE orders SET transaction_reference = '$tx_ref' WHERE id = $order_id");
+    $stmt_update = $mysqli->prepare("UPDATE orders SET transaction_reference = ? WHERE id = ?");
+    $stmt_update->bind_param("si", $tx_ref, $order_id);
+    $stmt_update->execute();
+    $stmt_update->close();
 
     // 4. Redirect user to Flutterwave payment page
     $auth_url = $response['data']['link'];

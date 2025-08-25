@@ -50,6 +50,7 @@ $active_page = basename($_SERVER['PHP_SELF']);
 <body>
 
 <div class="admin-wrapper">
+    <div class="sidebar-overlay"></div>
     <!-- Sidebar -->
     <nav class="admin-sidebar">
         <div class="sidebar-header">

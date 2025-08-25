@@ -74,26 +74,31 @@ $stmt_gallery->close();
                 </ol>
             </nav>
             <h2><?php echo htmlspecialchars($product['name']); ?></h2>
-            <h4 class="text-success"><?php echo htmlspecialchars($_SESSION['currency_symbol']); ?><?php echo htmlspecialchars($product['price']); ?></h4>
-            <p class="lead"><?php echo nl2br(htmlspecialchars($product['description'])); ?></p>
-            <hr>
+            <h4 class="text-success mb-3"><?php echo htmlspecialchars($_SESSION['currency_symbol']); ?><?php echo htmlspecialchars($product['price']); ?></h4>
+
             <form id="add-to-cart-form" class="ajax-add-to-cart-form">
                 <input type="hidden" name="product_id" value="<?php echo $product['id']; ?>">
-                <div class="row">
+                <div class="row align-items-end">
                     <div class="col-md-4">
                         <label for="quantity" class="form-label">Quantity</label>
                         <input type="number" name="quantity" id="quantity" class="form-control" value="1" min="1">
                     </div>
+                    <div class="col-md-8">
+                         <button type="submit" class="btn btn-primary btn-lg">Add to Cart</button>
+                    </div>
                 </div>
-                <button type="submit" class="btn btn-primary btn-lg mt-3">Add to Cart</button>
             </form>
-            <hr class="my-4">
-            <div class="product-share">
-                <h5>Share this product</h5>
-                <a href="https://www.facebook.com/sharer/sharer.php?u=<?php echo urlencode('http://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI']); ?>" class="btn btn-outline-primary" target="_blank"><i class="fab fa-facebook-f"></i> Facebook</a>
-                <a href="https://twitter.com/intent/tweet?url=<?php echo urlencode('http://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI']); ?>&text=<?php echo urlencode('Check out this product: ' . $product['name']); ?>" class="btn btn-outline-info" target="_blank"><i class="fab fa-twitter"></i> Twitter</a>
-                <a href="https://pinterest.com/pin/create/button/?url=<?php echo urlencode('http://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI']); ?>&media=<?php echo urlencode('http://' . $_SERVER['HTTP_HOST'] . '/uploads/' . $product['image']); ?>&description=<?php echo urlencode($product['name']); ?>" class="btn btn-outline-danger" target="_blank"><i class="fab fa-pinterest"></i> Pinterest</a>
+
+            <div class="product-share mt-4">
+                <span class="me-2">Share:</span>
+                <a href="https://www.facebook.com/sharer/sharer.php?u=<?php echo urlencode('http://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI']); ?>" class="btn btn-sm btn-outline-secondary" target="_blank"><i class="fab fa-facebook-f"></i></a>
+                <a href="https://twitter.com/intent/tweet?url=<?php echo urlencode('http://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI']); ?>&text=<?php echo urlencode('Check out this product: ' . $product['name']); ?>" class="btn btn-sm btn-outline-secondary" target="_blank"><i class="fab fa-twitter"></i></a>
+                <a href="https://pinterest.com/pin/create/button/?url=<?php echo urlencode('http://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI']); ?>&media=<?php echo urlencode('http://' . $_SERVER['HTTP_HOST'] . '/uploads/' . $product['image']); ?>&description=<?php echo urlencode($product['name']); ?>" class="btn btn-sm btn-outline-secondary" target="_blank"><i class="fab fa-pinterest"></i></a>
             </div>
+
+            <hr class="my-4">
+
+            <p class="lead"><?php echo nl2br(htmlspecialchars($product['description'])); ?></p>
         </div>
     </div>
 </div>

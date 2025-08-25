@@ -41,6 +41,11 @@ $category_sql = "SELECT * FROM categories ORDER BY name ASC";
 $category_result = $mysqli->query($category_sql);
 $nav_categories = $category_result->fetch_all(MYSQLI_ASSOC);
 
+// --- Fetch published pages for the navigation ---
+$pages_sql = "SELECT title, slug FROM pages WHERE is_published = 1 ORDER BY title ASC";
+$pages_result = $mysqli->query($pages_sql);
+$nav_pages = $pages_result->fetch_all(MYSQLI_ASSOC);
+
 // --- Calculate cart item count ---
 $cart_item_count = 0;
 if(isset($_SESSION['cart']) && is_array($_SESSION['cart'])){
@@ -162,6 +167,11 @@ if(isset($_SESSION['cart']) && is_array($_SESSION['cart'])){
                         <?php endif; ?>
                     </ul>
                 </li>
+                <?php if(count($nav_pages) > 0): ?>
+                    <?php foreach ($nav_pages as $nav_page): ?>
+                        <li><a href="page.php?slug=<?php echo $nav_page['slug']; ?>" class="nav-link"><?php echo htmlspecialchars($nav_page['title']); ?></a></li>
+                    <?php endforeach; ?>
+                <?php endif; ?>
                 <?php if(isset($_SESSION["role_id"])): ?>
                     <li><a href="admin/dashboard.php" class="nav-link">Admin Dashboard</a></li>
                 <?php endif; ?>

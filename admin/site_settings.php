@@ -63,6 +63,7 @@ while($row = $result->fetch_assoc()){
                     <div class="row"><div class="col-md-6"><label for="currency_code" class="form-label">Currency Code</label><input type="text" name="currency_code" class="form-control" id="currency_code" value="<?php echo htmlspecialchars($settings['currency_code'] ?? 'USD'); ?>"></div><div class="col-md-6"><label for="currency_symbol" class="form-label">Currency Symbol</label><input type="text" name="currency_symbol" class="form-control" id="currency_symbol" value="<?php echo htmlspecialchars($settings['currency_symbol'] ?? '$'); ?>"></div></div>
                     <div class="row mt-3"><div class="col-md-6"><label for="language" class="form-label">Site Language</label><select name="language" id="language" class="form-select"><option value="en" <?php if(($settings['language'] ?? 'en') == 'en') echo 'selected'; ?>>English</option><option value="es" <?php if(($settings['language'] ?? '') == 'es') echo 'selected'; ?>>Español</option><option value="fr" <?php if(($settings['language'] ?? '') == 'fr') echo 'selected'; ?>>Français</option></select></div></div>
                     <div class="mt-3"><label for="copyright_text" class="form-label">Copyright Text (HTML allowed)</label><textarea name="copyright_text" class="form-control" id="copyright_text" rows="3"><?php echo htmlspecialchars($settings['copyright_text'] ?? '© ' . date('Y') . ' Eflex E-commerce. All Rights Reserved.'); ?></textarea></div>
+                     <div class="mt-3"><label for="footer_about_us" class="form-label">Footer About Us Text</label><textarea name="footer_about_us" class="form-control" id="footer_about_us" rows="4"><?php echo htmlspecialchars($settings['footer_about_us'] ?? 'Your one-stop shop for the best products at the best prices. We are committed to providing quality and value.'); ?></textarea></div>
                 </div>
             </div>
             <!-- Company Details -->
@@ -71,6 +72,21 @@ while($row = $result->fetch_assoc()){
             <div class="card shadow mb-4"><div class="card-header">SEO Settings</div><div class="card-body"><div class="mb-3"><label for="meta_title" class="form-label">Meta Title</label><input type="text" name="meta_title" class="form-control" id="meta_title" value="<?php echo htmlspecialchars($settings['meta_title'] ?? ''); ?>"></div><div class="mb-3"><label for="meta_description" class="form-label">Meta Description</label><textarea name="meta_description" class="form-control" id="meta_description" rows="3"><?php echo htmlspecialchars($settings['meta_description'] ?? ''); ?></textarea></div><div class="mb-3"><label for="meta_keywords" class="form-label">Meta Keywords</label><input type="text" name="meta_keywords" class="form-control" id="meta_keywords" value="<?php echo htmlspecialchars($settings['meta_keywords'] ?? ''); ?>"><div class="form-text">Comma-separated values.</div></div></div></div>
             <!-- PWA Settings -->
             <div class="card shadow mb-4"><div class="card-header">Progressive Web App (PWA) Settings</div><div class="card-body"><div class="form-check form-switch mb-3"><input class="form-check-input" type="checkbox" name="pwa_enabled" value="1" <?php echo !empty($settings['pwa_enabled']) ? 'checked' : ''; ?>><label class="form-check-label">Enable PWA for Main Site</label></div><div class="mb-3"><label class="form-label">App Name</label><input type="text" name="pwa_app_name" class="form-control" value="<?php echo htmlspecialchars($settings['pwa_app_name'] ?? ''); ?>"></div><div class="mb-3"><label class="form-label">App Short Name</label><input type="text" name="pwa_app_short_name" class="form-control" value="<?php echo htmlspecialchars($settings['pwa_app_short_name'] ?? ''); ?>"></div><div class="mb-3"><label class="form-label">App Theme Color</label><input type="color" name="pwa_theme_color" class="form-control form-control-color" value="<?php echo htmlspecialchars($settings['pwa_theme_color'] ?? '#ffffff'); ?>"></div><div class="mb-3"><label class="form-label">App Background Color</label><input type="color" name="pwa_bg_color" class="form-control form-control-color" value="<?php echo htmlspecialchars($settings['pwa_bg_color'] ?? '#000000'); ?>"></div></div></div>
+
+            <!-- Security Settings -->
+            <div class="card shadow mb-4">
+                <div class="card-header">Security Settings</div>
+                <div class="card-body">
+                    <div class="form-check form-switch mb-3">
+                        <input class="form-check-input" type="checkbox" name="otp_login_enabled" value="1" <?php echo !empty($settings['otp_login_enabled']) ? 'checked' : ''; ?>>
+                        <label class="form-check-label" for="otp_login_enabled">Enable OTP for Admin Login</label>
+                    </div>
+                    <div class="form-check form-switch mb-3">
+                        <input class="form-check-input" type="checkbox" name="otp_register_enabled" value="1" <?php echo !empty($settings['otp_register_enabled']) ? 'checked' : ''; ?>>
+                        <label class="form-check-label" for="otp_register_enabled">Enable OTP for User Registration</label>
+                    </div>
+                </div>
+            </div>
         </div>
         <div class="col-lg-4">
             <!-- Theme & Color Settings -->

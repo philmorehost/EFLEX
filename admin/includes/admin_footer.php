@@ -12,11 +12,18 @@ document.addEventListener('DOMContentLoaded', function () {
     // Sidebar toggle functionality
     const sidebarCollapse = document.getElementById('sidebarCollapse');
     const sidebar = document.querySelector('.admin-sidebar');
+    const overlay = document.querySelector('.sidebar-overlay');
+
+    const toggleSidebar = function() {
+        sidebar.classList.toggle('active');
+        overlay.classList.toggle('active');
+    };
 
     if (sidebarCollapse) {
-        sidebarCollapse.addEventListener('click', function () {
-            sidebar.classList.toggle('active');
-        });
+        sidebarCollapse.addEventListener('click', toggleSidebar);
+    }
+    if(overlay) {
+        overlay.addEventListener('click', toggleSidebar);
     }
 
     // Prevent dropdown from closing on click inside

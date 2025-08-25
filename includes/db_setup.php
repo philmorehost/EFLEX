@@ -149,6 +149,27 @@ function setup_database_tables($mysqli) {
         `is_active` tinyint(1) NOT NULL DEFAULT '1',
         `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
         PRIMARY KEY (`id`)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;",
+
+    "otp_codes" => "CREATE TABLE `otp_codes` (
+        `id` int(11) NOT NULL AUTO_INCREMENT,
+        `user_id` int(11) NOT NULL,
+        `otp_code` varchar(10) NOT NULL,
+        `expires_at` datetime NOT NULL,
+        `is_used` tinyint(1) NOT NULL DEFAULT '0',
+        PRIMARY KEY (`id`),
+        KEY `user_id` (`user_id`)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;",
+
+    "pages" => "CREATE TABLE `pages` (
+        `id` int(11) NOT NULL AUTO_INCREMENT,
+        `title` varchar(255) NOT NULL,
+        `slug` varchar(255) NOT NULL UNIQUE,
+        `content` longtext,
+        `is_published` tinyint(1) NOT NULL DEFAULT '0',
+        `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        PRIMARY KEY (`id`)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;"
     ];
 
@@ -239,6 +260,12 @@ function setup_database_tables($mysqli) {
     $result_osid = $mysqli->query("SHOW COLUMNS FROM `users` LIKE 'onesignal_player_id'");
     if($result_osid->num_rows == 0){
         $mysqli->query("ALTER TABLE `users` ADD `onesignal_player_id` VARCHAR(255) NULL DEFAULT NULL AFTER `role_id`");
+    }
+
+    // Check for is_verified column in users table for OTP
+    $result_iv = $mysqli->query("SHOW COLUMNS FROM `users` LIKE 'is_verified'");
+    if($result_iv->num_rows == 0){
+        $mysqli->query("ALTER TABLE `users` ADD `is_verified` TINYINT(1) NOT NULL DEFAULT 1 AFTER `onesignal_player_id`");
     }
 
     // --- Seed Roles and Permissions ---

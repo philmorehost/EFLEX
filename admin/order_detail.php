@@ -36,7 +36,11 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
         $message = '<div class="alert alert-success">Payment approved and order marked as Completed.</div>';
     } elseif(isset($_POST['reject_payment'])){
         $new_status = 'Awaiting Payment';
-        $mysqli->query("UPDATE orders SET payment_proof = NULL WHERE id = $order_id");
+        // Also clear the payment proof on rejection
+        $stmt_clear_proof = $mysqli->prepare("UPDATE orders SET payment_proof = NULL WHERE id = ?");
+        $stmt_clear_proof->bind_param("i", $order_id);
+        $stmt_clear_proof->execute();
+        $stmt_clear_proof->close();
         $message = '<div class="alert alert-warning">Payment rejected. Status set to Awaiting Payment and proof has been removed.</div>';
     }
 
