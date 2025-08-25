@@ -1,6 +1,12 @@
--- Create the database if it doesn't exist
-CREATE DATABASE IF NOT EXISTS eflex_ecommerce;
-USE eflex_ecommerce;
+-- ==========================================================================================
+-- NOTE: DATABASE SETUP IS NOW HANDLED AUTOMATICALLY BY THE APPLICATION.
+--
+-- The application will automatically create these tables if they do not exist when it
+-- connects to the database. This file is now provided for reference purposes only.
+-- You do not need to manually import this file.
+-- The setup logic can be found in: `includes/db_setup.php`
+-- ==========================================================================================
+
 
 -- Table structure for table `users`
 CREATE TABLE `users` (
