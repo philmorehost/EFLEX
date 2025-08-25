@@ -214,41 +214,50 @@ function setup_database_tables($mysqli) {
         $mysqli->query("ALTER TABLE `users` ADD `onesignal_player_id` VARCHAR(255) NULL DEFAULT NULL AFTER `role_id`");
     }
 
-    // Seed Roles and Permissions and create a default Super Admin
-    $result = $mysqli->query("SELECT id FROM roles WHERE role_name = 'Super Admin'");
-    if($result->num_rows == 0){
-        // 1. Create Super Admin Role
+    // --- Seed Roles and Permissions ---
+    $super_admin_role_id = 0;
+    $role_result = $mysqli->query("SELECT id FROM roles WHERE role_name = 'Super Admin'");
+    if($role_result->num_rows == 0){
+        // Create Super Admin Role if it doesn't exist
         $mysqli->query("INSERT INTO roles (role_name) VALUES ('Super Admin')");
         $super_admin_role_id = $mysqli->insert_id;
 
-        // 2. Define and create all permissions
+        // Define and create all permissions
         $permissions = [
             'manage_products', 'manage_categories', 'manage_orders',
             'manage_users', 'manage_site_settings', 'manage_banners',
             'manage_hero_slider', 'manage_roles'
         ];
         $stmt_perm = $mysqli->prepare("INSERT INTO permissions (permission_name) VALUES (?)");
+        $stmt_rp = $mysqli->prepare("INSERT INTO role_permissions (role_id, permission_id) VALUES (?, ?)");
         foreach($permissions as $p_name){
-            $stmt_perm->bind_param("s", $p_name);
-            $stmt_perm->execute();
-            $permission_id = $mysqli->insert_id;
+            // Create permission if it doesn't exist
+            $perm_check = $mysqli->query("SELECT id FROM permissions WHERE permission_name = '$p_name'");
+            if($perm_check->num_rows == 0){
+                $stmt_perm->bind_param("s", $p_name);
+                $stmt_perm->execute();
+                $permission_id = $mysqli->insert_id;
 
-            // 3. Assign this new permission to the Super Admin role
-            $stmt_rp = $mysqli->prepare("INSERT INTO role_permissions (role_id, permission_id) VALUES (?, ?)");
-            $stmt_rp->bind_param("ii", $super_admin_role_id, $permission_id);
-            $stmt_rp->execute();
-            $stmt_rp->close();
+                // Assign new permission to the Super Admin role
+                $stmt_rp->bind_param("ii", $super_admin_role_id, $permission_id);
+                $stmt_rp->execute();
+            }
         }
         $stmt_perm->close();
+        $stmt_rp->close();
+    } else {
+        $super_admin_role_id = $role_result->fetch_assoc()['id'];
+    }
 
-        // 4. Create the default admin user and assign the Super Admin role
-        $result_admin = $mysqli->query("SELECT id FROM users WHERE username = 'admin'");
-        if($result_admin->num_rows == 0){
+    // --- Create/Update Default Admin User ---
+    if($super_admin_role_id > 0){
+        $admin_user_result = $mysqli->query("SELECT id, role_id FROM users WHERE username = 'admin'");
+        if($admin_user_result->num_rows == 0){
+            // Admin user does not exist, create it
             $username = 'admin';
             $email = 'admin@example.com';
-            $password = 'password'; // NOTE: User should change this immediately.
+            $password = 'password';
             $hashed_password = password_hash($password, PASSWORD_DEFAULT);
-
             $sql_user = "INSERT INTO users (username, email, password, role_id) VALUES (?, ?, ?, ?)";
             if($stmt_user = $mysqli->prepare($sql_user)){
                 $stmt_user->bind_param("sssi", $username, $email, $hashed_password, $super_admin_role_id);
@@ -257,14 +266,13 @@ function setup_database_tables($mysqli) {
                 }
                 $stmt_user->close();
             }
-        }
-    } else {
-        // If the Super Admin role already exists, ensure the 'admin' user has it.
-        $super_admin_role_id = $result->fetch_assoc()['id'];
-        $admin_user_result = $mysqli->query("SELECT id FROM users WHERE username = 'admin' AND role_id IS NULL");
-        if($admin_user_result->num_rows > 0){
-            $admin_user_id = $admin_user_result->fetch_assoc()['id'];
-            $mysqli->query("UPDATE users SET role_id = $super_admin_role_id WHERE id = $admin_user_id");
+        } else {
+            // Admin user exists, check if role_id is NULL and update if necessary
+            $admin_user = $admin_user_result->fetch_assoc();
+            if(is_null($admin_user['role_id'])){
+                $admin_user_id = $admin_user['id'];
+                $mysqli->query("UPDATE users SET role_id = $super_admin_role_id WHERE id = $admin_user_id");
+            }
         }
     }
 }
