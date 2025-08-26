@@ -280,7 +280,7 @@ function setup_database_tables($mysqli) {
         $permissions = [
             'manage_products', 'manage_categories', 'manage_orders',
             'manage_users', 'manage_site_settings', 'manage_banners',
-            'manage_hero_slider', 'manage_roles', 'manage_modal_ads'
+            'manage_hero_slider', 'manage_roles', 'manage_modal_ads', 'manage_pages'
         ];
         $stmt_perm = $mysqli->prepare("INSERT INTO permissions (permission_name) VALUES (?)");
         $stmt_rp = $mysqli->prepare("INSERT INTO role_permissions (role_id, permission_id) VALUES (?, ?)");

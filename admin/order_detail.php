@@ -136,8 +136,8 @@ if($stmt_items = $mysqli->prepare($sql_items)){
                                     </div>
                                 </td>
                                 <td><?php echo $item['quantity']; ?></td>
-                                <td class="text-end">$<?php echo number_format($item['price'], 2); ?></td>
-                                <td class="text-end">$<?php echo number_format($item['price'] * $item['quantity'], 2); ?></td>
+                                <td class="text-end"><?php echo htmlspecialchars($_SESSION['currency_symbol']); ?><?php echo number_format($item['price'], 2); ?></td>
+                                <td class="text-end"><?php echo htmlspecialchars($_SESSION['currency_symbol']); ?><?php echo number_format($item['price'] * $item['quantity'], 2); ?></td>
                             </tr>
                             <?php endforeach; ?>
                         </tbody>
@@ -170,7 +170,7 @@ if($stmt_items = $mysqli->prepare($sql_items)){
             <div class="card-body">
                 <p><strong>Order ID:</strong> #<?php echo $order['id']; ?></p>
                 <p><strong>Date:</strong> <?php echo $order['created_at']; ?></p>
-                <p><strong>Total:</strong> <span class="fw-bold fs-5">$<?php echo number_format($order['total_amount'], 2); ?></span></p>
+                <p><strong>Total:</strong> <span class="fw-bold fs-5"><?php echo htmlspecialchars($_SESSION['currency_symbol']); ?><?php echo number_format($order['total_amount'], 2); ?></span></p>
                 <p><strong>Payment Method:</strong> <?php echo htmlspecialchars($order['payment_method']); ?></p>
                 <p><strong>Status:</strong> <span class="badge bg-primary"><?php echo htmlspecialchars($order['status']); ?></span></p>
             </div>

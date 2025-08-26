@@ -80,7 +80,7 @@ if($stmt = $mysqli->prepare($sql)){
                                 <td><img src="../uploads/<?php echo htmlspecialchars($product['image']); ?>" alt="<?php echo htmlspecialchars($product['name']); ?>" style="width: 50px; height: 50px; object-fit: cover;"></td>
                                 <td><?php echo htmlspecialchars($product['name']); ?></td>
                                 <td><?php echo htmlspecialchars($product['category_name']); ?></td>
-                                <td>$<?php echo htmlspecialchars($product['price']); ?></td>
+                                <td><?php echo htmlspecialchars($_SESSION['currency_symbol']); ?><?php echo htmlspecialchars($product['price']); ?></td>
                                 <td class="text-end">
                                     <a href="edit_product.php?id=<?php echo $product['id']; ?>" class="btn btn-sm btn-warning">Edit</a>
                                     <a href="manage_products.php?delete=<?php echo $product['id']; ?>" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure?')">Delete</a>

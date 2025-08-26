@@ -52,7 +52,7 @@ $recent_orders = $recent_orders_result->fetch_all(MYSQLI_ASSOC);
                 <div class="row no-gutters align-items-center">
                     <div class="col mr-2">
                         <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Total Revenue</div>
-                        <div class="h5 mb-0 font-weight-bold text-gray-800">$<?php echo number_format($total_sales, 2); ?></div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800"><?php echo htmlspecialchars($_SESSION['currency_symbol']); ?><?php echo number_format($total_sales, 2); ?></div>
                     </div>
                     <div class="col-auto">
                         <div class="icon-circle bg-primary">
@@ -171,7 +171,7 @@ $recent_orders = $recent_orders_result->fetch_all(MYSQLI_ASSOC);
                             <tr>
                                 <td>#<?php echo $order['id']; ?></td>
                                 <td><?php echo htmlspecialchars($order['username']); ?></td>
-                                <td>$<?php echo number_format($order['total_amount'], 2); ?></td>
+                                <td><?php echo htmlspecialchars($_SESSION['currency_symbol']); ?><?php echo number_format($order['total_amount'], 2); ?></td>
                                 <td><span class="badge bg-primary"><?php echo htmlspecialchars($order['status']); ?></span></td>
                                 <td><?php echo date("M d, Y", strtotime($order['created_at'])); ?></td>
                                 <td>
@@ -193,13 +193,14 @@ $recent_orders = $recent_orders_result->fetch_all(MYSQLI_ASSOC);
 <script>
 // Sales Chart
 document.addEventListener('DOMContentLoaded', function() {
+    const currencySymbol = '<?php echo htmlspecialchars($_SESSION['currency_symbol']); ?>';
     var ctx = document.getElementById('salesChart').getContext('2d');
     var salesChart = new Chart(ctx, {
         type: 'line',
         data: {
             labels: <?php echo json_encode($sales_labels); ?>,
             datasets: [{
-                label: 'Sales ($)',
+                label: 'Sales (' + currencySymbol + ')',
                 data: <?php echo json_encode($sales_data_points); ?>,
                 backgroundColor: 'rgba(78, 115, 223, 0.05)',
                 borderColor: 'rgba(78, 115, 223, 1)',
@@ -221,7 +222,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     beginAtZero: true,
                     ticks: {
                         callback: function(value, index, values) {
-                            return '$' + value;
+                            return currencySymbol + value;
                         }
                     }
                 }

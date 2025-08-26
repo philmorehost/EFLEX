@@ -15,8 +15,8 @@ require_once __DIR__ . '/../../includes/db_connect.php';
 require_once __DIR__ . '/../../includes/auth_check.php';
 
 
-// Fetch site name and OneSignal App ID for the header
-$settings_sql = "SELECT setting_key, setting_value FROM settings WHERE setting_key IN ('site_name', 'onesignal_app_id')";
+// Fetch all site settings
+$settings_sql = "SELECT setting_key, setting_value FROM settings";
 $result = $mysqli->query($settings_sql);
 $settings = [];
 while($row = $result->fetch_assoc()){
@@ -24,6 +24,10 @@ while($row = $result->fetch_assoc()){
 }
 $site_name = $settings['site_name'] ?? 'Eflex';
 $oneSignalAppId = $settings['onesignal_app_id'] ?? '';
+
+// Set currency from settings into session for consistent use across the admin panel
+$_SESSION['currency_symbol'] = $settings['currency_symbol'] ?? '$';
+$_SESSION['currency_code'] = $settings['currency_code'] ?? 'USD';
 
 // Determine the active page to highlight the nav link
 $active_page = basename($_SERVER['PHP_SELF']);
@@ -75,6 +79,9 @@ $active_page = basename($_SERVER['PHP_SELF']);
             </li><?php endif; ?>
             <?php if(has_permission('manage_modal_ads')): ?><li class="<?php echo ($active_page == 'manage_modal_ads.php') ? 'active' : ''; ?>">
                 <a href="manage_modal_ads.php"><i class="fas fa-window-maximize"></i> Modal Ads</a>
+            </li><?php endif; ?>
+            <?php if(has_permission('manage_pages')): ?><li class="<?php echo ($active_page == 'manage_pages.php' || $active_page == 'edit_page.php') ? 'active' : ''; ?>">
+                <a href="manage_pages.php"><i class="fas fa-file-alt"></i> Custom Pages</a>
             </li><?php endif; ?>
             <?php if(has_permission('manage_orders')): ?><li class="<?php echo ($active_page == 'manage_orders.php' || $active_page == 'order_detail.php') ? 'active' : ''; ?>">
                 <a href="manage_orders.php"><i class="fas fa-shopping-cart"></i> Orders</a>

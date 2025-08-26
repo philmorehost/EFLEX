@@ -87,13 +87,14 @@ if($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['place_order'])){
 
         // Send confirmation emails
         if(!empty($admin_email)){
+            $currency_symbol = htmlspecialchars($_SESSION['currency_symbol']);
             // To User
             $user_email = $_SESSION['email'];
             $user_subject = "Your Order Confirmation from " . $site_name;
             $user_body = "<h1>Thank You for Your Order!</h1>"
                        . "<p>Hi " . $_SESSION['username'] . ",</p>"
                        . "<p>We've received your order (#" . $order_id . ") and are getting it ready.</p>"
-                       . "<p><strong>Total:</strong> $" . number_format($total_price, 2) . "</p>"
+                       . "<p><strong>Total:</strong> " . $currency_symbol . number_format($total_price, 2) . "</p>"
                        . "<p><strong>Payment Method:</strong> " . ucfirst($payment_method) . "</p>"
                        . "<p>You can view your order details here: <a href='http://".$_SERVER['HTTP_HOST']."/my_orders.php'>My Orders</a></p>";
             send_email($user_email, $user_subject, $user_body);
@@ -104,7 +105,7 @@ if($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['place_order'])){
                         . "<p>A new order has been placed on your website.</p>"
                         . "<p><strong>Order ID:</strong> #" . $order_id . "</p>"
                         . "<p><strong>Customer:</strong> " . $_SESSION['username'] . "</p>"
-                        . "<p><strong>Total:</strong> $" . number_format($total_price, 2) . "</p>"
+                        . "<p><strong>Total:</strong> " . $currency_symbol . number_format($total_price, 2) . "</p>"
                         . "<p>You can view the full details in the admin panel.</p>";
             send_email($admin_email, $admin_subject, $admin_body);
         }
@@ -117,7 +118,8 @@ if($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['place_order'])){
             $player_ids[] = $row['onesignal_player_id'];
         }
         if(!empty($player_ids)){
-            $push_message = "New order (#" . $order_id . ") placed for $" . number_format($total_price, 2);
+            $currency_symbol = htmlspecialchars($_SESSION['currency_symbol']);
+            $push_message = "New order (#" . $order_id . ") placed for " . $currency_symbol . number_format($total_price, 2);
             send_push_notification($player_ids, $push_message, "New Order Received!");
         }
 
@@ -158,12 +160,12 @@ include 'includes/header.php';
                     <div>
                         <h6 class="my-0"><?php echo htmlspecialchars($cart_items[$product_id]['name']); ?> (x<?php echo $quantity; ?>)</h6>
                     </div>
-                    <span class="text-muted">$<?php echo number_format($cart_items[$product_id]['price'] * $quantity, 2); ?></span>
+                    <span class="text-muted"><?php echo htmlspecialchars($_SESSION['currency_symbol']); ?><?php echo number_format($cart_items[$product_id]['price'] * $quantity, 2); ?></span>
                 </li>
             <?php endforeach; ?>
             <li class="list-group-item d-flex justify-content-between">
-                <span>Total (USD)</span>
-                <strong>$<?php echo number_format($total_price, 2); ?></strong>
+                <span>Total (<?php echo htmlspecialchars($_SESSION['currency_code']); ?>)</span>
+                <strong><?php echo htmlspecialchars($_SESSION['currency_symbol']); ?><?php echo number_format($total_price, 2); ?></strong>
             </li>
         </ul>
     </div>
@@ -174,7 +176,7 @@ include 'includes/header.php';
         <form action="checkout.php" method="post" id="checkout-form">
             <h5 class="mb-3">Shipping address</h5>
             <div class="row g-3">
-                 <div class="col-12"><label for="email" class="form-label">Email</label><input type="email" class="form-control" name="email" value="<?php echo $_SESSION['email']; ?>" required></div>
+                 <div class="col-12"><label for="email" class="form-label">Email</label><input type="email" class="form-control" name="email" value="<?php echo htmlspecialchars($_SESSION['email'] ?? ''); ?>" required></div>
             </div>
             <hr class="my-4">
 
