@@ -21,7 +21,11 @@ if ($_SERVER["REQUEST_METHOD"] == "GET" && isset($_GET['resend'])) {
     $otp_expiry = date('Y-m-d H:i:s', strtotime('+10 minutes'));
 
     // Invalidate old OTPs for this user
-    $mysqli->query("UPDATE otp_codes SET is_used = 1 WHERE user_id = $user_id");
+    if ($stmt = $mysqli->prepare("UPDATE otp_codes SET is_used = 1 WHERE user_id = ?")) {
+        $stmt->bind_param("i", $user_id);
+        $stmt->execute();
+        $stmt->close();
+    }
 
     // Insert new OTP
     $otp_sql = "INSERT INTO otp_codes (user_id, otp_code, expires_at) VALUES (?, ?, ?)";
@@ -32,7 +36,10 @@ if ($_SERVER["REQUEST_METHOD"] == "GET" && isset($_GET['resend'])) {
     }
 
     // Fetch user's email to send the new OTP
-    $email_res = $mysqli->query("SELECT email FROM users WHERE id = $user_id");
+    $stmt = $mysqli->prepare("SELECT email FROM users WHERE id = ?");
+    $stmt->bind_param("i", $user_id);
+    $stmt->execute();
+    $email_res = $stmt->get_result();
     if($email_res->num_rows == 1) {
         $user_email = $email_res->fetch_assoc()['email'];
         require_once "includes/send_email.php";
@@ -78,7 +85,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                             }
 
                             // Mark OTP as used
-                            $mysqli->query("UPDATE otp_codes SET is_used = 1 WHERE user_id = $user_id");
+                            if ($update_stmt_used = $mysqli->prepare("UPDATE otp_codes SET is_used = 1 WHERE user_id = ?")) {
+                                $update_stmt_used->bind_param("i", $user_id);
+                                $update_stmt_used->execute();
+                                $update_stmt_used->close();
+                            }
 
                             // Log the user in
                             $user_sql = "SELECT id, username FROM users WHERE id = ?";

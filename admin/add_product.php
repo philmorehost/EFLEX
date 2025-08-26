@@ -33,21 +33,44 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
         // Handle file uploads
         if(isset($_FILES['images']['name']) && is_array($_FILES['images']['name'])) {
             $image_count = count($_FILES['images']['name']);
-            for($i = 0; $i < $image_count; $i++) {
-                if($_FILES['images']['error'][$i] == 0) {
-                    $filename = $_FILES['images']['name'][$i];
-                    $ext = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
-                    $allowed = ['jpg', 'jpeg', 'png', 'gif'];
+            $max_file_size = 2 * 1024 * 1024; // 2MB
+            $allowed_ext = ['jpg', 'jpeg', 'png', 'gif'];
+            $allowed_mime = ['image/jpeg', 'image/png', 'image/gif'];
 
-                    if(in_array($ext, $allowed)) {
-                        $new_filename = "prod_" . uniqid() . "." . $ext;
-                        if(move_uploaded_file($_FILES['images']['tmp_name'][$i], "../uploads/" . $new_filename)){
-                            if($i === 0) {
-                                $main_image_filename = $new_filename;
-                            } else {
-                                $gallery_images[] = $new_filename;
-                            }
+            for($i = 0; $i < $image_count; $i++) {
+                if($_FILES['images']['error'][$i] === UPLOAD_ERR_OK) {
+                    // Check file size
+                    if ($_FILES['images']['size'][$i] > $max_file_size) {
+                        $message .= '<div class="alert alert-danger">File ' . htmlspecialchars($_FILES['images']['name'][$i]) . ' is too large. Max size is 2MB.</div>';
+                        continue;
+                    }
+
+                    // Check MIME type
+                    $finfo = finfo_open(FILEINFO_MIME_TYPE);
+                    $mime_type = finfo_file($finfo, $_FILES['images']['tmp_name'][$i]);
+                    finfo_close($finfo);
+                    if (!in_array($mime_type, $allowed_mime)) {
+                        $message .= '<div class="alert alert-danger">File ' . htmlspecialchars($_FILES['images']['name'][$i]) . ' has an invalid type.</div>';
+                        continue;
+                    }
+
+                    // Check extension
+                    $ext = strtolower(pathinfo($_FILES['images']['name'][$i], PATHINFO_EXTENSION));
+                    if (!in_array($ext, $allowed_ext)) {
+                         $message .= '<div class="alert alert-danger">File ' . htmlspecialchars($_FILES['images']['name'][$i]) . ' has an invalid extension.</div>';
+                        continue;
+                    }
+
+                    // Create unique filename and move
+                    $new_filename = "prod_" . uniqid() . "." . $ext;
+                    if(move_uploaded_file($_FILES['images']['tmp_name'][$i], "../uploads/" . $new_filename)){
+                        if($i === 0) {
+                            $main_image_filename = $new_filename;
+                        } else {
+                            $gallery_images[] = $new_filename;
                         }
+                    } else {
+                        $message .= '<div class="alert alert-danger">Failed to move uploaded file.</div>';
                     }
                 }
             }

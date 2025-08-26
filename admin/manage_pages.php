@@ -1,6 +1,7 @@
 <?php
 // Includes
 include 'includes/admin_header.php';
+require_permission('manage_pages');
 require_once '../includes/db_connect.php';
 
 // Handle Delete Action

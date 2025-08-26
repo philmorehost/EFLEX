@@ -127,8 +127,8 @@ if($stmt = $mysqli->prepare($sql)){
                 <?php if(count($orders) > 0): ?>
                     <?php foreach($orders as $order): ?>
                     <tr>
-                        <td>#<?php echo $order['id']; ?></td>
-                        <td><?php echo $order['created_at']; ?></td>
+                        <td>#<?php echo htmlspecialchars($order['id']); ?></td>
+                        <td><?php echo htmlspecialchars($order['created_at']); ?></td>
                         <td><?php echo htmlspecialchars($_SESSION['currency_symbol']); ?><?php echo number_format($order['total_amount'], 2); ?></td>
                         <td><span class="badge bg-primary"><?php echo htmlspecialchars($order['status']); ?></span></td>
                         <td>

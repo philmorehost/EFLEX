@@ -50,16 +50,28 @@ if($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['update_product'])){
     // Handle main image upload
     $new_main_image = $current_image;
     if(isset($_FILES["main_image"]) && $_FILES["main_image"]["error"] == 0){
-        $filename = $_FILES["main_image"]["name"];
-        $ext = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
-        $allowed = ['jpg', 'jpeg', 'png', 'gif'];
-        if(in_array($ext, $allowed)){
-            $new_filename = "prod_" . uniqid() . '.' . $ext;
-            if(move_uploaded_file($_FILES["main_image"]["tmp_name"], "../uploads/" . $new_filename)){
-                $new_main_image = $new_filename;
-                if($current_image != 'default.jpg' && file_exists("../uploads/" . $current_image)){
-                    unlink("../uploads/" . $current_image);
+        $max_file_size = 2 * 1024 * 1024; // 2MB
+        $allowed_ext = ['jpg', 'jpeg', 'png', 'gif'];
+        $allowed_mime = ['image/jpeg', 'image/png', 'image/gif'];
+
+        if ($_FILES['main_image']['size'] > $max_file_size) {
+            $message .= '<div class="alert alert-danger">Main image is too large. Max size is 2MB.</div>';
+        } else {
+            $finfo = finfo_open(FILEINFO_MIME_TYPE);
+            $mime_type = finfo_file($finfo, $_FILES['main_image']['tmp_name']);
+            finfo_close($finfo);
+            $ext = strtolower(pathinfo($_FILES['main_image']['name'], PATHINFO_EXTENSION));
+
+            if (in_array($mime_type, $allowed_mime) && in_array($ext, $allowed_ext)) {
+                $new_filename = "prod_" . uniqid() . '.' . $ext;
+                if(move_uploaded_file($_FILES["main_image"]["tmp_name"], "../uploads/" . $new_filename)){
+                    $new_main_image = $new_filename;
+                    if($current_image != 'default.jpg' && file_exists("../uploads/" . $current_image)){
+                        unlink("../uploads/" . $current_image);
+                    }
                 }
+            } else {
+                $message .= '<div class="alert alert-danger">Invalid file type or extension for main image.</div>';
             }
         }
     }
@@ -73,19 +85,34 @@ if($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['update_product'])){
 
     // Handle new gallery image uploads
     if(isset($_FILES['gallery_images']['name']) && is_array($_FILES['gallery_images']['name'])) {
+        $max_file_size = 2 * 1024 * 1024; // 2MB
+        $allowed_ext = ['jpg', 'jpeg', 'png', 'gif'];
+        $allowed_mime = ['image/jpeg', 'image/png', 'image/gif'];
+
         $sql_gallery = "INSERT INTO product_images (product_id, image_url) VALUES (?, ?)";
         $stmt_gallery = $mysqli->prepare($sql_gallery);
+
         $image_count = count($_FILES['gallery_images']['name']);
         for($i = 0; $i < $image_count; $i++) {
-            if($_FILES['gallery_images']['error'][$i] == 0) {
-                $filename = $_FILES['gallery_images']['name'][$i];
-                $ext = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
-                if(in_array($ext, $allowed)){
+            if($_FILES['gallery_images']['error'][$i] === UPLOAD_ERR_OK) {
+                if ($_FILES['gallery_images']['size'][$i] > $max_file_size) {
+                    $message .= '<div class="alert alert-danger">Gallery image ' . htmlspecialchars($_FILES['gallery_images']['name'][$i]) . ' is too large.</div>';
+                    continue;
+                }
+
+                $finfo = finfo_open(FILEINFO_MIME_TYPE);
+                $mime_type = finfo_file($finfo, $_FILES['gallery_images']['tmp_name'][$i]);
+                finfo_close($finfo);
+                $ext = strtolower(pathinfo($_FILES['gallery_images']['name'][$i], PATHINFO_EXTENSION));
+
+                if (in_array($mime_type, $allowed_mime) && in_array($ext, $allowed_ext)) {
                     $new_gallery_filename = "prod_gallery_" . uniqid() . "." . $ext;
                     if(move_uploaded_file($_FILES['gallery_images']['tmp_name'][$i], "../uploads/" . $new_gallery_filename)){
                         $stmt_gallery->bind_param("is", $product_id, $new_gallery_filename);
                         $stmt_gallery->execute();
                     }
+                } else {
+                     $message .= '<div class="alert alert-danger">Invalid file type for gallery image ' . htmlspecialchars($_FILES['gallery_images']['name'][$i]) . '.</div>';
                 }
             }
         }
