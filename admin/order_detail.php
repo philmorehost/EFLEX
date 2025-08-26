@@ -1,5 +1,4 @@
 <?php
-<?php
 // Include the new admin header
 include 'includes/admin_header.php';
 require_permission('manage_orders');
