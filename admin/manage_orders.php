@@ -1,19 +1,18 @@
 <?php
-// Initialize the session
-session_start();
+// Include admin header
+include 'includes/header.php';
+require_once '../includes/db_connect.php';
 
-// Check if the user is logged in and is an admin.
-if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true || !isset($_SESSION["role"]) || $_SESSION["role"] !== 'admin'){
-    header("location: ../index.php");
-    exit;
+$message = "";
+if(isset($_SESSION['order_update_message'])){
+    $message = '<div class="alert alert-success">'.$_SESSION['order_update_message'].'</div>';
+    unset($_SESSION['order_update_message']);
 }
 
-// Include database connection file
-require_once "../includes/db_connect.php";
 
 // Pagination variables
 $page = isset($_GET['page']) && is_numeric($_GET['page']) ? (int)$_GET['page'] : 1;
-$records_per_page = 10;
+$records_per_page = 15;
 $offset = ($page - 1) * $records_per_page;
 
 // Get total number of orders
@@ -35,78 +34,92 @@ if($stmt = $mysqli->prepare($sql)){
     $stmt->close();
 } else {
     $orders = [];
+    $message .= '<div class="alert alert-danger">Error fetching orders.</div>';
 }
+
+// Function to get badge color based on status
+function get_status_badge($status) {
+    switch (strtolower($status)) {
+        case 'pending':
+            return 'badge bg-warning text-dark';
+        case 'processing':
+            return 'badge bg-info text-dark';
+        case 'shipped':
+            return 'badge bg-primary';
+        case 'delivered':
+            return 'badge bg-success';
+        case 'cancelled':
+            return 'badge bg-danger';
+        default:
+            return 'badge bg-secondary';
+    }
+}
+
 ?>
 
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Manage Orders</title>
-    <link href="../css/bootstrap.min.css" rel="stylesheet">
-</head>
-<body>
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h1>Manage Orders</h1>
+</div>
 
-<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-    <!-- Navbar -->
-    <div class="container-fluid">
-        <a class="navbar-brand" href="dashboard.php">Admin Panel</a>
-        <div class="collapse navbar-collapse">
-             <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-                <li class="nav-item"><a class="nav-link" href="dashboard.php">Dashboard</a></li>
-                <li class="nav-item"><a class="nav-link" href="manage_products.php">Products</a></li>
-                <li class="nav-item"><a class="nav-link" href="manage_categories.php">Categories</a></li>
-                <li class="nav-item"><a class="nav-link active" href="manage_orders.php">Orders</a></li>
-            </ul>
-            <ul class="navbar-nav ms-auto"><li class="nav-item"><a class="nav-link" href="../logout.php">Logout</a></li></ul>
-        </div>
+<?php echo $message; ?>
+
+<div class="card">
+    <div class="card-header">
+        <i class="fas fa-receipt"></i> All Customer Orders
     </div>
-</nav>
-
-<div class="container mt-4">
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <h2>Manage Orders</h2>
-    </div>
-
-    <div class="card">
-        <div class="card-header">All Orders</div>
-        <div class="card-body">
-            <table class="table table-striped">
-                <!-- Table header -->
-                <thead><tr><th>Order ID</th><th>Customer</th><th>Date</th><th>Total</th><th>Status</th><th class="text-end">Actions</th></tr></thead>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-striped table-hover">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Order ID</th>
+                        <th>Customer</th>
+                        <th>Date</th>
+                        <th>Total</th>
+                        <th>Status</th>
+                        <th class="text-end">Actions</th>
+                    </tr>
+                </thead>
                 <tbody>
                     <?php if(count($orders) > 0): ?>
                         <?php foreach ($orders as $order): ?>
                         <tr>
                             <td>#<?php echo $order['id']; ?></td>
                             <td><?php echo htmlspecialchars($order['username']); ?></td>
-                            <td><?php echo $order['created_at']; ?></td>
+                            <td><?php echo date("M j, Y, g:i a", strtotime($order['created_at'])); ?></td>
                             <td>$<?php echo number_format($order['total_amount'], 2); ?></td>
-                            <td><span class="badge bg-primary"><?php echo htmlspecialchars($order['status']); ?></span></td>
+                            <td><span class="<?php echo get_status_badge($order['status']); ?>"><?php echo htmlspecialchars(ucfirst($order['status'])); ?></span></td>
                             <td class="text-end">
-                                <a href="order_detail.php?id=<?php echo $order['id']; ?>" class="btn btn-sm btn-info">View Details</a>
+                                <a href="order_detail.php?id=<?php echo $order['id']; ?>" class="btn btn-sm btn-info"><i class="fas fa-eye"></i> View Details</a>
                             </td>
                         </tr>
                         <?php endforeach; ?>
                     <?php else: ?>
-                        <tr><td colspan="6">No orders found.</td></tr>
+                        <tr><td colspan="6" class="text-center">No orders found.</td></tr>
                     <?php endif; ?>
                 </tbody>
             </table>
         </div>
     </div>
-
-    <!-- Pagination -->
-    <nav aria-label="Page navigation">
-      <ul class="pagination justify-content-center mt-4">
-        <?php if($page > 1): ?><li class="page-item"><a class="page-link" href="manage_orders.php?page=<?php echo $page-1; ?>">Previous</a></li><?php endif; ?>
-        <?php for($i = 1; $i <= $total_pages; $i++): ?><li class="page-item <?php if($page == $i) echo 'active'; ?>"><a class="page-link" href="manage_orders.php?page=<?php echo $i; ?>"><?php echo $i; ?></a></li><?php endfor; ?>
-        <?php if($page < $total_pages): ?><li class="page-item"><a class="page-link" href="manage_orders.php?page=<?php echo $page+1; ?>">Next</a></li><?php endif; ?>
-      </ul>
-    </nav>
+    <div class="card-footer">
+        <!-- Pagination -->
+        <nav aria-label="Page navigation">
+            <ul class="pagination justify-content-center mb-0">
+                <?php if($page > 1): ?>
+                    <li class="page-item"><a class="page-link" href="manage_orders.php?page=<?php echo $page-1; ?>">Previous</a></li>
+                <?php endif; ?>
+                <?php for($i = 1; $i <= $total_pages; $i++): ?>
+                    <li class="page-item <?php if($page == $i) echo 'active'; ?>"><a class="page-link" href="manage_orders.php?page=<?php echo $i; ?>"><?php echo $i; ?></a></li>
+                <?php endfor; ?>
+                <?php if($page < $total_pages): ?>
+                    <li class="page-item"><a class="page-link" href="manage_orders.php?page=<?php echo $page+1; ?>">Next</a></li>
+                <?php endif; ?>
+            </ul>
+        </nav>
+    </div>
 </div>
 
-<script src="../js/bootstrap.bundle.min.js"></script>
-</body>
-</html>
+<?php
+// Include admin footer
+include 'includes/footer.php';
+?>

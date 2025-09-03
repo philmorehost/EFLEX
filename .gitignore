@@ -1,0 +1,11 @@
+# Composer dependencies
+/vendor/
+
+# Credentials
+/admin/secure/gdrive.dat
+google_drive_credentials.json
+
+# Local development files
+composer.lock
+.env
+.DS_Store

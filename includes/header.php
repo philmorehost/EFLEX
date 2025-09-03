@@ -97,6 +97,9 @@ if(isset($_SESSION['cart']) && is_array($_SESSION['cart'])){
                         <?php endif; ?>
                     </ul>
                 </li>
+                <?php if(isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true): ?>
+                    <li><a href="lesson_notes.php" class="nav-link">Lesson Notes</a></li>
+                <?php endif; ?>
                 <?php if(isset($_SESSION["role"]) && $_SESSION["role"] === 'admin'): ?>
                     <li><a href="admin/dashboard.php" class="nav-link">Admin Dashboard</a></li>
                 <?php endif; ?>

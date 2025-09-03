@@ -1,21 +1,14 @@
 <?php
-// Initialize the session
-session_start();
-
-// Check if the user is logged in and is an admin.
-if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true || !isset($_SESSION["role"]) || $_SESSION["role"] !== 'admin'){
-    header("location: ../index.php");
-    exit;
-}
-
-// Include database connection file
-require_once "../includes/db_connect.php";
+// Include admin header
+include 'includes/header.php';
+require_once '../includes/db_connect.php';
 
 $message = "";
 
 // Handle Delete Product
 if(isset($_GET['delete'])){
     $id = $_GET['delete'];
+    // First, get the image filename to delete it from the server
     $sql_img = "SELECT image FROM products WHERE id = ?";
     if($stmt_img = $mysqli->prepare($sql_img)){
         $stmt_img->bind_param("i", $id);
@@ -23,26 +16,44 @@ if(isset($_GET['delete'])){
         $stmt_img->bind_result($image_filename);
         $stmt_img->fetch();
         $stmt_img->close();
+
+        // Delete the image file if it's not the default one
         if($image_filename && $image_filename != 'default.jpg' && file_exists("../uploads/" . $image_filename)){
             unlink("../uploads/" . $image_filename);
         }
     }
+
+    // Now, delete the product record from the database
     $sql = "DELETE FROM products WHERE id = ?";
     if($stmt = $mysqli->prepare($sql)){
         $stmt->bind_param("i", $id);
         if($stmt->execute()){
-             header("location: manage_products.php");
+             // Redirect to avoid re-deleting on refresh
+             header("location: manage_products.php?delete_success=1");
              exit();
         } else {
-            $message = '<div class="alert alert-danger">Error deleting product.</div>';
+            $message = '<div class="alert alert-danger">Error deleting product. Please try again.</div>';
         }
         $stmt->close();
     }
 }
 
+if(isset($_GET['delete_success'])){
+    $message = '<div class="alert alert-success">Product deleted successfully.</div>';
+}
+if(isset($_SESSION['product_added'])){
+    $message = '<div class="alert alert-success">'.$_SESSION['product_added'].'</div>';
+    unset($_SESSION['product_added']);
+}
+if(isset($_SESSION['product_updated'])){
+    $message = '<div class="alert alert-success">'.$_SESSION['product_updated'].'</div>';
+    unset($_SESSION['product_updated']);
+}
+
+
 // Pagination variables
 $page = isset($_GET['page']) && is_numeric($_GET['page']) ? (int)$_GET['page'] : 1;
-$records_per_page = 10; // Show 10 products per page for admin
+$records_per_page = 10;
 $offset = ($page - 1) * $records_per_page;
 
 // Get total number of products
@@ -64,82 +75,75 @@ if($stmt = $mysqli->prepare($sql)){
     $products = $result->fetch_all(MYSQLI_ASSOC);
     $stmt->close();
 } else {
+    // Handle error
     $products = [];
+    $message .= '<div class="alert alert-danger">Error fetching products.</div>';
 }
 ?>
 
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Manage Products</title>
-    <link href="../css/bootstrap.min.css" rel="stylesheet">
-</head>
-<body>
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h1>Manage Products</h1>
+    <a href="add_product.php" class="btn btn-success"><i class="fas fa-plus"></i> Add New Product</a>
+</div>
 
-<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-    <!-- Navbar -->
-    <div class="container-fluid">
-        <a class="navbar-brand" href="dashboard.php">Admin Panel</a>
-        <div class="collapse navbar-collapse">
-             <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-                <li class="nav-item"><a class="nav-link" href="dashboard.php">Dashboard</a></li>
-                <li class="nav-item"><a class="nav-link active" href="manage_products.php">Products</a></li>
-                <li class="nav-item"><a class="nav-link" href="manage_categories.php">Categories</a></li>
-                <li class="nav-item"><a class="nav-link" href="manage_orders.php">Orders</a></li>
-            </ul>
-            <ul class="navbar-nav ms-auto"><li class="nav-item"><a class="nav-link" href="../logout.php">Logout</a></li></ul>
-        </div>
+<?php echo $message; ?>
+
+<div class="card">
+    <div class="card-header">
+        <i class="fas fa-box"></i> Existing Products
     </div>
-</nav>
-
-<div class="container mt-4">
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <h2>Manage Products</h2>
-        <a href="add_product.php" class="btn btn-success">Add New Product</a>
-    </div>
-
-    <?php echo $message; ?>
-
-    <div class="card">
-        <div class="card-header">Existing Products</div>
-        <div class="card-body">
-            <table class="table table-striped">
-                <!-- Table header -->
-                <thead><tr><th>Image</th><th>Name</th><th>Category</th><th>Price</th><th class="text-end">Actions</th></tr></thead>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-striped table-hover">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Image</th>
+                        <th>Name</th>
+                        <th>Category</th>
+                        <th>Price</th>
+                        <th class="text-end">Actions</th>
+                    </tr>
+                </thead>
                 <tbody>
                     <?php if(count($products) > 0): ?>
                         <?php foreach ($products as $product): ?>
                         <tr>
-                            <td><img src="../uploads/<?php echo htmlspecialchars($product['image']); ?>" alt="<?php echo htmlspecialchars($product['name']); ?>" style="width: 50px; height: 50px; object-fit: cover;"></td>
+                            <td><img src="../uploads/<?php echo htmlspecialchars($product['image']); ?>" alt="<?php echo htmlspecialchars($product['name']); ?>" style="width: 50px; height: 50px; object-fit: cover; border-radius: 5px;"></td>
                             <td><?php echo htmlspecialchars($product['name']); ?></td>
-                            <td><?php echo htmlspecialchars($product['category_name']); ?></td>
-                            <td>$<?php echo htmlspecialchars($product['price']); ?></td>
+                            <td><?php echo htmlspecialchars($product['category_name'] ?? 'N/A'); ?></td>
+                            <td>$<?php echo number_format($product['price'], 2); ?></td>
                             <td class="text-end">
-                                <a href="edit_product.php?id=<?php echo $product['id']; ?>" class="btn btn-sm btn-warning">Edit</a>
-                                <a href="manage_products.php?delete=<?php echo $product['id']; ?>" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure?')">Delete</a>
+                                <a href="edit_product.php?id=<?php echo $product['id']; ?>" class="btn btn-sm btn-warning"><i class="fas fa-edit"></i> Edit</a>
+                                <a href="manage_products.php?delete=<?php echo $product['id']; ?>" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure you want to delete this product? This action cannot be undone.')"><i class="fas fa-trash"></i> Delete</a>
                             </td>
                         </tr>
                         <?php endforeach; ?>
                     <?php else: ?>
-                        <tr><td colspan="5">No products found.</td></tr>
+                        <tr><td colspan="5" class="text-center">No products found. <a href="add_product.php">Add one now</a>.</td></tr>
                     <?php endif; ?>
                 </tbody>
             </table>
         </div>
     </div>
-
-    <!-- Pagination -->
-    <nav aria-label="Page navigation">
-      <ul class="pagination justify-content-center mt-4">
-        <?php if($page > 1): ?><li class="page-item"><a class="page-link" href="manage_products.php?page=<?php echo $page-1; ?>">Previous</a></li><?php endif; ?>
-        <?php for($i = 1; $i <= $total_pages; $i++): ?><li class="page-item <?php if($page == $i) echo 'active'; ?>"><a class="page-link" href="manage_products.php?page=<?php echo $i; ?>"><?php echo $i; ?></a></li><?php endfor; ?>
-        <?php if($page < $total_pages): ?><li class="page-item"><a class="page-link" href="manage_products.php?page=<?php echo $page+1; ?>">Next</a></li><?php endif; ?>
-      </ul>
-    </nav>
+    <div class="card-footer">
+        <!-- Pagination -->
+        <nav aria-label="Page navigation">
+          <ul class="pagination justify-content-center mb-0">
+            <?php if($page > 1): ?>
+                <li class="page-item"><a class="page-link" href="manage_products.php?page=<?php echo $page-1; ?>">Previous</a></li>
+            <?php endif; ?>
+            <?php for($i = 1; $i <= $total_pages; $i++): ?>
+                <li class="page-item <?php if($page == $i) echo 'active'; ?>"><a class="page-link" href="manage_products.php?page=<?php echo $i; ?>"><?php echo $i; ?></a></li>
+            <?php endfor; ?>
+            <?php if($page < $total_pages): ?>
+                <li class="page-item"><a class="page-link" href="manage_products.php?page=<?php echo $page+1; ?>">Next</a></li>
+            <?php endif; ?>
+          </ul>
+        </nav>
+    </div>
 </div>
 
-<script src="../js/bootstrap.bundle.min.js"></script>
-</body>
-</html>
+<?php
+// Include admin footer
+include 'includes/footer.php';
+?>

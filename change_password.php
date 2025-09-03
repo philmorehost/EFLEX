@@ -14,7 +14,7 @@ if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true){
 require_once 'includes/db_connect.php';
 
 $current_password_err = $new_password_err = $confirm_new_password_err = "";
-$success_message = "";
+$message = "";
 
 // Processing form data when form is submitted
 if($_SERVER["REQUEST_METHOD"] == "POST"){
@@ -46,7 +46,6 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
 
     // Check input errors before proceeding
     if(empty($current_password_err) && empty($new_password_err) && empty($confirm_new_password_err)){
-        // Get the current user's hashed password from the database
         $sql = "SELECT password FROM users WHERE id = ?";
         if($stmt = $mysqli->prepare($sql)){
             $stmt->bind_param("i", $_SESSION["id"]);
@@ -55,19 +54,15 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
                 if($stmt->num_rows == 1){
                     $stmt->bind_result($hashed_password);
                     $stmt->fetch();
-
                     if(password_verify($current_password, $hashed_password)){
-                        // Current password is correct. Hash the new password.
                         $new_hashed_password = password_hash($new_password, PASSWORD_DEFAULT);
-
-                        // Update the password in the database
                         $sql_update = "UPDATE users SET password = ? WHERE id = ?";
                         if($stmt_update = $mysqli->prepare($sql_update)){
                             $stmt_update->bind_param("si", $new_hashed_password, $_SESSION["id"]);
                             if($stmt_update->execute()){
-                                $success_message = "Your password has been updated successfully.";
+                                $message = '<div class="alert alert-success">Your password has been updated successfully.</div>';
                             } else {
-                                $current_password_err = "Oops! Something went wrong. Please try again later.";
+                                $message = '<div class="alert alert-danger">Oops! Something went wrong. Please try again later.</div>';
                             }
                             $stmt_update->close();
                         }
@@ -85,26 +80,19 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
 include 'includes/header.php';
 ?>
 
-<div class="container mt-5">
+<div class="container my-5">
     <div class="row">
-        <div class="col-md-4">
-            <div class="list-group">
-                <a href="account.php" class="list-group-item list-group-item-action">My Account</a>
-                <a href="my_orders.php" class="list-group-item list-group-item-action">My Orders</a>
-                <a href="change_password.php" class="list-group-item list-group-item-action active" aria-current="true">Change Password</a>
-                <a href="logout.php" class="list-group-item list-group-item-action">Logout</a>
-            </div>
+        <div class="col-md-3">
+            <?php include 'includes/account_nav.php'; ?>
         </div>
-        <div class="col-md-8">
-            <h2>Change Password</h2>
+        <div class="col-md-9">
+            <h3>Change Password</h3>
             <p>Use the form below to change the password for your account.</p>
+            <hr>
             <div class="card">
+                <div class="card-header">Update Your Password</div>
                 <div class="card-body">
-                    <?php
-                    if(!empty($success_message)){
-                        echo '<div class="alert alert-success">' . $success_message . '</div>';
-                    }
-                    ?>
+                    <?php echo $message; ?>
                     <form action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>" method="post">
                         <div class="mb-3">
                             <label for="current_password" class="form-label">Current Password</label>

@@ -69,7 +69,24 @@ function setup_database_tables($mysqli) {
       `setting_key` varchar(255) NOT NULL,
       `setting_value` text,
       PRIMARY KEY (`setting_key`)
-        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;"
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;",
+
+    "user_subscriptions" => "CREATE TABLE `user_subscriptions` (
+        `id` int(11) NOT NULL AUTO_INCREMENT,
+        `user_id` int(11) NOT NULL,
+        `product_id` int(11) NOT NULL,
+        `order_id` int(11) NOT NULL,
+        `status` enum('active','expired') NOT NULL DEFAULT 'active',
+        `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
+        `expires_at` datetime DEFAULT NULL,
+        PRIMARY KEY (`id`),
+        KEY `user_id` (`user_id`),
+        KEY `product_id` (`product_id`),
+        KEY `order_id` (`order_id`),
+        CONSTRAINT `user_subscriptions_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
+        CONSTRAINT `user_subscriptions_ibfk_2` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`) ON DELETE CASCADE,
+        CONSTRAINT `user_subscriptions_ibfk_3` FOREIGN KEY (`order_id`) REFERENCES `orders` (`id`) ON DELETE CASCADE
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;"
     ];
 
     // The foreign key constraints require the tables to be created in a specific order.
@@ -116,6 +133,28 @@ function setup_database_tables($mysqli) {
     if($result_pp->num_rows == 0){
         $mysqli->query("ALTER TABLE `orders` ADD `payment_proof` VARCHAR(255) DEFAULT NULL AFTER `payment_method`");
     }
+
+    // Check for subscription_status column in users table
+    $result_ss = $mysqli->query("SHOW COLUMNS FROM `users` LIKE 'subscription_status'");
+    if($result_ss->num_rows == 0){
+        $mysqli->query("ALTER TABLE `users` ADD `subscription_status` ENUM('active','inactive') NOT NULL DEFAULT 'inactive' AFTER `role`");
+    }
+
+    // Check for subscription_expiry column in users table
+    $result_se = $mysqli->query("SHOW COLUMNS FROM `users` LIKE 'subscription_expiry'");
+    if($result_se->num_rows == 0){
+        $mysqli->query("ALTER TABLE `users` ADD `subscription_expiry` DATE DEFAULT NULL AFTER `subscription_status`");
+    }
+
+    // Check for google_drive_folder_id column in products table
+    $result_gdfi = $mysqli->query("SHOW COLUMNS FROM `products` LIKE 'google_drive_folder_id'");
+    if($result_gdfi->num_rows == 0){
+        $mysqli->query("ALTER TABLE `products` ADD `google_drive_folder_id` VARCHAR(255) DEFAULT NULL AFTER `image`");
+    }
+
+    // Since settings are key-value, we don't need to alter the table.
+    // We just need to ensure the keys are handled in the admin panel.
+    // I will add the UI for these in site_settings.php next.
 
     // Check if an admin user exists, if not, create a default one.
     $result = $mysqli->query("SELECT id FROM users WHERE role = 'admin' LIMIT 1");

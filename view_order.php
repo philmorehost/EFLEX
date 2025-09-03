@@ -16,7 +16,7 @@ require_once 'includes/db_connect.php';
 
 // Check if Order ID is provided
 if(!isset($_GET['id']) || empty($_GET['id'])){
-    header("location: profile.php");
+    header("location: my_orders.php");
     exit;
 }
 $order_id = $_GET['id'];
@@ -32,16 +32,15 @@ if($stmt_order = $mysqli->prepare($sql_order)){
     if($result_order->num_rows == 1){
         $order = $result_order->fetch_assoc();
     } else {
-        // Order not found or doesn't belong to the user
-        echo "<div class='alert alert-danger'>Order not found or you do not have permission to view it.</div>";
-        include 'includes/footer.php';
+        $_SESSION['error_message'] = "Order not found or you do not have permission to view it.";
+        header("location: my_orders.php");
         exit;
     }
     $stmt_order->close();
 }
 
 // Fetch Order Items
-$sql_items = "SELECT oi.*, p.name as product_name FROM order_items oi JOIN products p ON oi.product_id = p.id WHERE oi.order_id = ?";
+$sql_items = "SELECT oi.*, p.name as product_name, p.image as product_image FROM order_items oi JOIN products p ON oi.product_id = p.id WHERE oi.order_id = ?";
 $order_items = [];
 if($stmt_items = $mysqli->prepare($sql_items)){
     $stmt_items->bind_param("i", $order_id);
@@ -52,46 +51,63 @@ if($stmt_items = $mysqli->prepare($sql_items)){
 }
 ?>
 
-<div class="container mt-5">
-    <h2>Order Details</h2>
-    <a href="profile.php" class="btn btn-secondary mb-3">Back to My Orders</a>
-
-    <div class="card">
-        <div class="card-header">
-            Order #<?php echo $order['id']; ?> - Placed on <?php echo $order['created_at']; ?>
+<div class="container my-5">
+    <div class="row">
+        <div class="col-md-3">
+            <?php include 'includes/account_nav.php'; ?>
         </div>
-        <div class="card-body">
-             <div class="table-responsive">
-                <table class="table">
-                    <thead>
-                        <tr>
-                            <th>Product</th>
-                            <th>Quantity</th>
-                            <th>Price</th>
-                            <th class="text-end">Subtotal</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <?php foreach($order_items as $item): ?>
-                        <tr>
-                            <td><?php echo htmlspecialchars($item['product_name']); ?></td>
-                            <td><?php echo $item['quantity']; ?></td>
-                            <td>$<?php echo number_format($item['price'], 2); ?></td>
-                            <td class="text-end">$<?php echo number_format($item['price'] * $item['quantity'], 2); ?></td>
-                        </tr>
-                        <?php endforeach; ?>
-                    </tbody>
-                    <tfoot>
-                        <tr>
-                            <td colspan="3" class="text-end"><strong>Total</strong></td>
-                            <td class="text-end"><strong>$<?php echo number_format($order['total_amount'], 2); ?></strong></td>
-                        </tr>
-                        <tr>
-                            <td colspan="3" class="text-end"><strong>Status</strong></td>
-                            <td class="text-end"><span class="badge bg-primary"><?php echo htmlspecialchars($order['status']); ?></span></td>
-                        </tr>
-                    </tfoot>
-                </table>
+        <div class="col-md-9">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h3>Order Details</h3>
+                <a href="my_orders.php" class="btn btn-secondary btn-sm"><i class="fas fa-arrow-left"></i> Back to Orders</a>
+            </div>
+            <hr>
+            <div class="card">
+                <div class="card-header d-flex justify-content-between">
+                    <span>Order #<?php echo $order['id']; ?></span>
+                    <span>Placed on: <?php echo date("F j, Y", strtotime($order['created_at'])); ?></span>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Product</th>
+                                    <th class="text-center">Quantity</th>
+                                    <th class="text-end">Price</th>
+                                    <th class="text-end">Subtotal</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php foreach($order_items as $item): ?>
+                                <tr>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <img src="uploads/<?php echo htmlspecialchars($item['product_image']); ?>" class="me-3" style="width: 60px; height: 60px; object-fit: cover; border-radius: 5px;" alt="<?php echo htmlspecialchars($item['product_name']); ?>">
+                                            <?php echo htmlspecialchars($item['product_name']); ?>
+                                        </div>
+                                    </td>
+                                    <td class="text-center"><?php echo $item['quantity']; ?></td>
+                                    <td class="text-end">$<?php echo number_format($item['price'], 2); ?></td>
+                                    <td class="text-end">$<?php echo number_format($item['price'] * $item['quantity'], 2); ?></td>
+                                </tr>
+                                <?php endforeach; ?>
+                            </tbody>
+                        </table>
+                    </div>
+                    <hr>
+                    <div class="row justify-content-end">
+                        <div class="col-md-6">
+                             <p class="text-end"><strong>Subtotal:</strong> $<?php echo number_format($order['total_amount'], 2); ?></p>
+                             <p class="text-end"><strong>Shipping:</strong> $0.00</p>
+                             <h4 class="text-end"><strong>Total:</strong> $<?php echo number_format($order['total_amount'], 2); ?></h4>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <strong>Shipping Address:</strong><br>
+                    <?php echo nl2br(htmlspecialchars($order['shipping_address'])); ?>
+                </div>
             </div>
         </div>
     </div>

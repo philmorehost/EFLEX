@@ -1,71 +1,60 @@
 /*
  * Custom Stylesheet for Eflex E-commerce
  *
- * This file will be used to override and extend Bootstrap styles
- * to match the look and feel of the Woodmart theme.
+ * This file is used to override and extend Bootstrap styles.
  */
 
 /* 1. Theme Colors & Typography */
 :root {
-    --woodmart-font: 'Lato', sans-serif;
-    --woodmart-primary-color: #ae8e6a;
-    --woodmart-text-color: #333333;
-    --woodmart-background-color: #f7f7f7;
-    --woodmart-light-gray: #f2f2f2;
+    --eflex-font: 'Lato', sans-serif;
+    --eflex-primary-color: #0d6efd; /* Bootstrap Primary Blue */
+    --eflex-secondary-color: #6c757d; /* Bootstrap Secondary Gray */
+    --eflex-text-color: #212529; /* Bootstrap Dark */
+    --eflex-background-color: #f8f9fa; /* Bootstrap Light Gray */
+    --eflex-white: #fff;
+    --eflex-border-color: #dee2e6;
 }
 
 body {
-    font-family: var(--woodmart-font);
-    background-color: var(--woodmart-background-color);
-    color: var(--woodmart-text-color);
+    font-family: var(--eflex-font);
+    background-color: var(--eflex-white);
+    color: var(--eflex-text-color);
 }
 
 a {
-    color: var(--woodmart-primary-color);
+    color: var(--eflex-primary-color);
     text-decoration: none;
 }
 
 a:hover {
-    color: #8e7354; /* A darker shade for hover */
+    color: #0b5ed7; /* Darker blue */
 }
 
 h1, h2, h3, h4, h5, h6 {
-    font-family: var(--woodmart-font);
+    font-family: var(--eflex-font);
     font-weight: 700;
 }
 
-/* 2. Header Redesign */
+/* 2. Header */
 .site-header {
     box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    background-color: var(--eflex-white);
 }
 
 .header-main {
-    padding: 20px 0;
-    background-color: #212529; /* Dark mode background */
-    color: #fff;
+    padding: 15px 0;
 }
 
 .header-logo .navbar-brand {
     font-size: 2rem;
     font-weight: 700;
-    color: #fff; /* White logo text */
+    color: var(--eflex-text-color);
 }
 
 .header-search {
     flex-grow: 1;
-    max-width: 500px;
-    margin: 0 40px;
-}
-
-.header-search .form-control {
-    border-right: 0;
-    border-radius: 20px 0 0 20px;
-}
-.header-search .btn {
-    border-radius: 0 20px 20px 0;
-    background-color: var(--woodmart-primary-color);
-    border-color: var(--woodmart-primary-color);
-    color: #fff;
+    max-width: 600px;
+    margin: 0 30px;
 }
 
 .header-actions {
@@ -73,43 +62,35 @@ h1, h2, h3, h4, h5, h6 {
     align-items: center;
 }
 
-.header-search .form-control {
-    background-color: #495057;
-    color: #fff;
-    border-color: #495057;
-}
-
-.header-search .form-control::placeholder {
-    color: #ced4da;
-}
-
 .header-action-btn {
     display: flex;
     align-items: center;
-    color: #fff; /* White icon/text */
+    color: var(--eflex-text-color);
     text-decoration: none;
-    margin-left: 20px;
+    margin-left: 25px;
     position: relative;
+    font-size: 0.9rem;
 }
 
 .header-action-btn:hover {
-    color: var(--woodmart-primary-color);
+    color: var(--eflex-primary-color);
 }
 
 .header-action-btn i {
-    font-size: 1.5rem;
+    font-size: 1.4rem;
     margin-right: 8px;
 }
 
 .cart-badge {
     position: absolute;
-    top: -5px;
-    right: -10px;
-    font-size: 0.7rem;
+    top: -8px;
+    right: -12px;
 }
 
 .header-nav {
-    background-color: #fff;
+    background-color: var(--eflex-background-color);
+    border-top: 1px solid var(--eflex-border-color);
+    border-bottom: 1px solid var(--eflex-border-color);
 }
 
 .nav-list {
@@ -121,16 +102,11 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .nav-list > li > a.nav-link {
-    padding: 15px 20px;
+    padding: 10px 20px;
     text-transform: uppercase;
     font-weight: 700;
     font-size: 0.9rem;
-    color: var(--woodmart-text-color);
-    position: relative;
-}
-
-.nav-list > li > a.nav-link:hover {
-    color: var(--woodmart-primary-color);
+    color: var(--eflex-text-color);
 }
 
 /* Custom Dropdown */
@@ -143,13 +119,14 @@ h1, h2, h3, h4, h5, h6 {
     position: absolute;
     top: 100%;
     left: 0;
-    background-color: #fff;
+    background-color: var(--eflex-white);
     box-shadow: 0 4px 8px rgba(0,0,0,0.1);
     list-style: none;
     padding: 10px 0;
     margin: 0;
     min-width: 200px;
     z-index: 1000;
+    border: 1px solid var(--eflex-border-color);
 }
 
 .nav-item-dropdown:hover .dropdown-menu-custom {
@@ -159,147 +136,149 @@ h1, h2, h3, h4, h5, h6 {
 .dropdown-menu-custom li a {
     display: block;
     padding: 8px 20px;
-    color: var(--woodmart-text-color);
-    text-decoration: none;
+    color: var(--eflex-text-color);
 }
 
 .dropdown-menu-custom li a:hover {
-    background-color: var(--woodmart-light-gray);
-    color: var(--woodmart-primary-color);
+    background-color: var(--eflex-background-color);
+    color: var(--eflex-primary-color);
 }
 
 .dropdown-menu-custom .divider {
     height: 1px;
-    background-color: var(--woodmart-light-gray);
+    background-color: var(--eflex-border-color);
     margin: 5px 0;
 }
 
-/* 3. Product Card Redesign */
-.card {
-    border: 1px solid #e9e9e9;
-    transition: all 0.3s ease-in-out;
-    text-align: center;
-}
 
-.card:hover {
-    box-shadow: 0 10px 20px rgba(0,0,0,0.08);
-    transform: translateY(-5px);
+/* 3. Product Card */
+.card .product-img-wrapper {
+    overflow: hidden;
+    position: relative;
 }
 
 .card .card-img-top {
-    border-radius: 0;
+    transition: transform 0.3s ease;
+}
+
+.card:hover .card-img-top {
+    transform: scale(1.05);
 }
 
 .card .card-body {
     padding: 20px;
+    text-align: center;
+}
+
+.card .card-title {
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
 }
 
 .card .card-title a {
-    font-size: 1rem;
-    font-weight: 700;
-    color: var(--woodmart-text-color);
+    color: var(--eflex-text-color);
 }
+
 .card .card-title a:hover {
-    color: var(--woodmart-primary-color);
+    color: var(--eflex-primary-color);
 }
 
 .card .card-text.text-muted {
     font-size: 1.1rem;
     font-weight: 700;
-    color: var(--woodmart-primary-color) !important;
-    margin-bottom: 15px;
+    color: var(--eflex-primary-color) !important;
+    margin-bottom: 1rem;
 }
 
-.card .btn {
-    opacity: 0;
-    transform: translateY(10px);
-    transition: all 0.3s ease-in-out;
-    background-color: var(--woodmart-primary-color);
-    border-color: var(--woodmart-primary-color);
-    text-transform: uppercase;
-    font-weight: 700;
-    font-size: 0.8rem;
-    padding: 10px;
-}
-
-.card:hover .btn {
-    opacity: 1;
-    transform: translateY(0);
-}
-
-/* 4. Standardize Component Styles */
-
-/* Buttons */
-.btn-primary {
-    background-color: var(--woodmart-primary-color);
-    border-color: var(--woodmart-primary-color);
-    text-transform: uppercase;
-    font-weight: 700;
-    padding: 10px 25px;
-    border-radius: 2px;
-}
-
-.btn-primary:hover {
-    background-color: #8e7354;
-    border-color: #8e7354;
-}
-
-.btn-secondary {
-    background-color: #f2f2f2;
-    border-color: #e9e9e9;
-    color: var(--woodmart-text-color);
-    text-transform: uppercase;
-    font-weight: 700;
-    padding: 10px 25px;
-    border-radius: 2px;
-}
-
-.btn-secondary:hover {
-    background-color: #e9e9e9;
-    border-color: #e0e0e0;
-}
-
-
-/* Forms */
-.form-control, .form-select {
-    border-radius: 2px;
-    border-color: #e9e9e9;
-}
-
-.form-control:focus, .form-select:focus {
-    border-color: var(--woodmart-primary-color);
-    box-shadow: 0 0 0 0.25rem rgba(174, 142, 106, 0.25);
-}
-
-
-/* Tables */
-.table {
-    border-color: #e9e9e9;
-}
-
-.table > :not(caption) > * > * {
-    background-color: #fff; /* Override Bootstrap's transparent background for rows */
-}
-
-.table-striped > tbody > tr:nth-of-type(odd) > * {
-    --bs-table-accent-bg: var(--woodmart-background-color); /* Use our light gray for striping */
-}
-
-/* Hero Section on Homepage */
+/* 4. Homepage Styles */
 .hero-section {
-    background-color: var(--woodmart-light-gray);
-    padding: 60px 0;
+    padding: 80px 0;
+    background-color: #212529;
+    color: var(--eflex-white);
 }
 
-/* "How It Works" Section */
-.how-it-works-step .step-icon i {
-    font-size: 3rem;
-    color: var(--woodmart-primary-color);
-    margin-bottom: 20px;
+.hero-section h1 {
+    font-size: 3.5rem;
 }
 
-.how-it-works-step h5 {
-    margin-bottom: 10px;
-    font-size: 1.1rem;
-    text-transform: uppercase;
+.hero-section .lead {
+    font-size: 1.25rem;
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
+    margin-bottom: 2rem;
+}
+
+.hero-search-form {
+    max-width: 700px;
+    margin: 30px auto 0;
+}
+
+.hero-search-form .form-control {
+    border-right: 0;
+    border-radius: 30px 0 0 30px;
+    padding: 10px 25px;
+}
+
+.hero-search-form .btn {
+    border-radius: 0 30px 30px 0;
+    padding: 10px 25px;
+}
+
+.how-it-works-step {
+    padding: 20px;
+    transition: all 0.3s ease-in-out;
+}
+
+.how-it-works-step .step-icon {
+    font-size: 40px;
+    margin-bottom: 15px;
+    color: var(--eflex-primary-color);
+    background-color: var(--eflex-background-color);
+    width: 80px;
+    height: 80px;
+    line-height: 80px;
+    border-radius: 50%;
+    display: inline-block;
+    transition: all 0.3s ease-in-out;
+}
+
+.how-it-works-step:hover .step-icon {
+    background-color: var(--eflex-primary-color);
+    color: var(--eflex-white);
+}
+
+/* Make carousel controls darker to be visible on white background */
+.carousel-control-prev-icon,
+.carousel-control-next-icon {
+    background-color: #000;
+    border-radius: 50%;
+    padding: 20px;
+}
+
+/* Account pages nav */
+.list-group-item.active {
+    background-color: var(--eflex-primary-color);
+    border-color: var(--eflex-primary-color);
+}
+
+/* Footer */
+.footer {
+    background-color: #212529;
+    color: var(--eflex-white);
+    padding: 40px 0;
+    margin-top: 40px;
+}
+
+.footer h5 {
+    color: var(--eflex-white);
+}
+
+.footer a {
+    color: #ced4da;
+}
+
+.footer a:hover {
+    color: var(--eflex-white);
 }

@@ -12,91 +12,72 @@ if(isset($_SESSION['admin_created']) && $_SESSION['admin_created'] === true){
     unset($_SESSION['admin_created']);
 }
 
-// Fetch products for the tabs
-// New Products
+// Fetch products for the carousels
 $new_products_sql = "SELECT * FROM products ORDER BY created_at DESC LIMIT 8";
 $new_products_result = $mysqli->query($new_products_sql);
 $new_products = $new_products_result->fetch_all(MYSQLI_ASSOC);
 
-// Featured Products
 $featured_products_sql = "SELECT * FROM products WHERE is_featured = 1 ORDER BY created_at DESC LIMIT 8";
 $featured_products_result = $mysqli->query($featured_products_sql);
 $featured_products = $featured_products_result->fetch_all(MYSQLI_ASSOC);
 
-// Top Sellers
-$top_sellers_sql = "SELECT * FROM products WHERE is_top_seller = 1 ORDER BY created_at DESC LIMIT 8";
-$top_sellers_result = $mysqli->query($top_sellers_sql);
-$top_sellers = $top_sellers_result->fetch_all(MYSQLI_ASSOC);
-
 ?>
 
 <!-- Hero Section -->
-<div class="hero-section text-center">
+<div class="hero-section bg-dark text-white text-center">
     <div class="container">
-        <h1>Welcome to Eflex</h1>
-        <p class="lead">Your one-stop shop for everything you need. We offer the best products at the best prices.</p>
-        <a class="btn btn-primary btn-lg" href="products.php" role="button">Shop Now</a>
-    </div>
-</div>
-
-<!-- Product Tabs Section -->
-<div class="container my-5">
-    <div class="product-tabs">
-        <ul class="nav nav-tabs justify-content-center" id="productTab" role="tablist">
-            <li class="nav-item" role="presentation">
-                <button class="nav-link active" id="new-tab" data-bs-toggle="tab" data-bs-target="#new" type="button" role="tab" aria-controls="new" aria-selected="true">New Arrivals</button>
-            </li>
-            <li class="nav-item" role="presentation">
-                <button class="nav-link" id="featured-tab" data-bs-toggle="tab" data-bs-target="#featured" type="button" role="tab" aria-controls="featured" aria-selected="false">Featured</button>
-            </li>
-            <li class="nav-item" role="presentation">
-                <button class="nav-link" id="topsellers-tab" data-bs-toggle="tab" data-bs-target="#topsellers" type="button" role="tab" aria-controls="topsellers" aria-selected="false">Top Sellers</button>
-            </li>
-        </ul>
-        <div class="tab-content mt-4" id="productTabContent">
-            <!-- New Arrivals Pane -->
-            <div class="tab-pane fade show active" id="new" role="tabpanel" aria-labelledby="new-tab">
-                <div class="row">
-                    <?php foreach($new_products as $product): ?>
-                        <div class="col-md-4 col-lg-3 mb-4">
-                            <?php include 'includes/product_card.php'; ?>
-                        </div>
-                    <?php endforeach; ?>
-                </div>
-            </div>
-            <!-- Featured Pane -->
-            <div class="tab-pane fade" id="featured" role="tabpanel" aria-labelledby="featured-tab">
-                <div class="row">
-                    <?php foreach($featured_products as $product): ?>
-                        <div class="col-md-4 col-lg-3 mb-4">
-                            <?php include 'includes/product_card.php'; ?>
-                        </div>
-                    <?php endforeach; ?>
-                </div>
-            </div>
-            <!-- Top Sellers Pane -->
-            <div class="tab-pane fade" id="topsellers" role="tabpanel" aria-labelledby="topsellers-tab">
-                <div class="row">
-                     <?php foreach($top_sellers as $product): ?>
-                        <div class="col-md-4 col-lg-3 mb-4">
-                           <?php include 'includes/product_card.php'; ?>
-                        </div>
-                    <?php endforeach; ?>
-                </div>
-            </div>
+        <h1 class="display-4">Search for Lesson Notes</h1>
+        <div class="hero-search-form">
+            <form action="search.php" method="get" class="d-flex">
+                <input class="form-control form-control-lg" type="search" name="query" placeholder="Enter keywords, subject, or class..." aria-label="Search">
+                <button class="btn btn-primary btn-lg" type="submit"><i class="fas fa-search"></i></button>
+            </form>
         </div>
     </div>
 </div>
 
-
-<!-- This is the old featured section. The user wants this removed and replaced by a slider. -->
-<!-- For now, I will comment it out. It will be removed completely when the slider is built. -->
-<!--
-<h2>Featured Products</h2>
-<div class="row">
-    ...
+<!-- New Arrivals Section -->
+<div class="container my-5">
+    <h2 class="text-center mb-4">New Arrivals</h2>
+    <div id="newArrivalsCarousel" class="carousel slide" data-bs-ride="carousel">
+        <div class="carousel-inner">
+            <?php
+            $chunks = array_chunk($new_products, 4);
+            foreach($chunks as $index => $chunk):
+            ?>
+            <div class="carousel-item <?php if($index == 0) echo 'active'; ?>">
+                <div class="row">
+                    <?php foreach($chunk as $product): ?>
+                        <div class="col-md-3 mb-4">
+                            <?php include 'includes/product_card.php'; ?>
+                        </div>
+                    <?php endforeach; ?>
+                </div>
+            </div>
+            <?php endforeach; ?>
+        </div>
+        <button class="carousel-control-prev" type="button" data-bs-target="#newArrivalsCarousel" data-bs-slide="prev">
+            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+            <span class="visually-hidden">Previous</span>
+        </button>
+        <button class="carousel-control-next" type="button" data-bs-target="#newArrivalsCarousel" data-bs-slide="next">
+            <span class="carousel-control-next-icon" aria-hidden="true"></span>
+            <span class="visually-hidden">Next</span>
+        </button>
+    </div>
 </div>
--->
+
+<!-- Featured Products Section -->
+<div class="container my-5">
+    <h2 class="text-center mb-4">Featured Products</h2>
+    <div class="row">
+        <?php foreach($featured_products as $product): ?>
+            <div class="col-md-3 mb-4">
+                <?php include 'includes/product_card.php'; ?>
+            </div>
+        <?php endforeach; ?>
+    </div>
+</div>
 
 <!-- How It Works Section -->
 <div class="container my-5">

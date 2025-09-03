@@ -10,26 +10,43 @@ if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true){
     exit;
 }
 
+require_once 'includes/db_connect.php';
+
+// Fetch user details
+$user_id = $_SESSION['id'];
+$sql = "SELECT username, email, created_at FROM users WHERE id = ?";
+$user = null;
+if($stmt = $mysqli->prepare($sql)){
+    $stmt->bind_param("i", $user_id);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $user = $result->fetch_assoc();
+    $stmt->close();
+}
+
 // Include the header
 include 'includes/header.php';
 ?>
 
-<div class="container mt-5">
+<div class="container my-5">
     <div class="row">
-        <div class="col-md-4">
-            <div class="list-group">
-                <a href="account.php" class="list-group-item list-group-item-action active" aria-current="true">
-                    My Account
-                </a>
-                <a href="my_orders.php" class="list-group-item list-group-item-action">My Orders</a>
-                <a href="change_password.php" class="list-group-item list-group-item-action">Change Password</a>
-                <a href="logout.php" class="list-group-item list-group-item-action">Logout</a>
-            </div>
+        <div class="col-md-3">
+            <?php include 'includes/account_nav.php'; ?>
         </div>
-        <div class="col-md-8">
-            <h2>My Account</h2>
-            <p>Welcome, <strong><?php echo htmlspecialchars($_SESSION["username"]); ?></strong>!</p>
-            <p>From your account dashboard you can view your recent orders and edit your password and account details.</p>
+        <div class="col-md-9">
+            <h3>My Account</h3>
+            <p>From your account dashboard you can view your recent orders, manage your shipping addresses and edit your password and account details.</p>
+            <hr>
+            <div class="card">
+                <div class="card-header">
+                    Account Information
+                </div>
+                <div class="card-body">
+                    <p><strong>Username:</strong> <?php echo htmlspecialchars($user['username']); ?></p>
+                    <p><strong>Email Address:</strong> <?php echo htmlspecialchars($user['email']); ?></p>
+                    <p><strong>Account Registered:</strong> <?php echo date("F j, Y", strtotime($user['created_at'])); ?></p>
+                </div>
+            </div>
         </div>
     </div>
 </div>

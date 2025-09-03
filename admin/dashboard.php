@@ -1,54 +1,66 @@
 <?php
-// Initialize the session
-session_start();
+// Include the admin header
+include 'includes/header.php';
 
-// Check if the user is logged in and is an admin. If not, redirect them to the homepage.
-if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true || !isset($_SESSION["role"]) || $_SESSION["role"] !== 'admin'){
-    header("location: ../index.php");
-    exit;
-}
+// --- Dashboard Specific Content ---
+
+// Example: Fetch some stats for the dashboard
+// For demonstration, let's count total products, users, and orders.
+require_once '../includes/db_connect.php'; // Ensure database connection
+
+// Count Products
+$product_count_sql = "SELECT COUNT(*) as total FROM products";
+$product_count_result = $mysqli->query($product_count_sql);
+$product_count = $product_count_result->fetch_assoc()['total'];
+
+// Count Users
+$user_count_sql = "SELECT COUNT(*) as total FROM users";
+$user_count_result = $mysqli->query($user_count_sql);
+$user_count = $user_count_result->fetch_assoc()['total'];
+
+// Count Orders
+$order_count_sql = "SELECT COUNT(*) as total FROM orders";
+$order_count_result = $mysqli->query($order_count_sql);
+$order_count = $order_count_result->fetch_assoc()['total'];
+
 ?>
 
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Dashboard</title>
-    <!-- Bootstrap CSS -->
-    <link href="../css/bootstrap.min.css" rel="stylesheet">
-</head>
-<body>
+<h1>Admin Dashboard</h1>
+<p class="lead">Welcome back, <b><?php echo htmlspecialchars($_SESSION["username"]); ?></b>. Here's a snapshot of your store.</p>
 
-<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-    <div class="container-fluid">
-        <a class="navbar-brand" href="#">Admin Panel</a>
-        <div class="collapse navbar-collapse">
-            <ul class="navbar-nav ms-auto">
-                <li class="nav-item">
-                    <a class="nav-link" href="../logout.php">Logout</a>
-                </li>
-            </ul>
+<div class="row">
+    <div class="col-md-4">
+        <div class="card text-white bg-primary mb-3">
+            <div class="card-header">Total Products</div>
+            <div class="card-body">
+                <h5 class="card-title"><?php echo $product_count; ?></h5>
+                <a href="manage_products.php" class="text-white">View Products &rarr;</a>
+            </div>
         </div>
     </div>
-</nav>
-
-<div class="container mt-4">
-    <h1>Admin Dashboard</h1>
-    <p>Welcome, <b><?php echo htmlspecialchars($_SESSION["username"]); ?></b>. You are logged in as an admin.</p>
-    <p>Here you can manage products, orders, and users.</p>
-
-    <div class="list-group">
-      <a href="manage_products.php" class="list-group-item list-group-item-action">Manage Products</a>
-      <a href="manage_categories.php" class="list-group-item list-group-item-action">Manage Categories</a>
-      <a href="manage_orders.php" class="list-group-item list-group-item-action">Manage Orders</a>
-      <a href="manage_users.php" class="list-group-item list-group-item-action">Manage Users</a>
+    <div class="col-md-4">
+        <div class="card text-white bg-success mb-3">
+            <div class="card-header">Total Users</div>
+            <div class="card-body">
+                <h5 class="card-title"><?php echo $user_count; ?></h5>
+                <a href="manage_users.php" class="text-white">View Users &rarr;</a>
+            </div>
+        </div>
     </div>
-
+    <div class="col-md-4">
+        <div class="card text-white bg-info mb-3">
+            <div class="card-header">Total Orders</div>
+            <div class="card-body">
+                <h5 class="card-title"><?php echo $order_count; ?></h5>
+                <a href="manage_orders.php" class="text-white">View Orders &rarr;</a>
+            </div>
+        </div>
+    </div>
 </div>
 
-<!-- Bootstrap JS Bundle with Popper -->
-<script src="../js/bootstrap.bundle.min.js"></script>
+<!-- You can add more dashboard widgets here -->
 
-</body>
-</html>
+<?php
+// Include the admin footer
+include 'includes/footer.php';
+?>
