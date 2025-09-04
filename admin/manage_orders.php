@@ -2,6 +2,7 @@
 // Include admin header
 include 'includes/header.php';
 require_once '../includes/db_connect.php';
+require_once '../includes/helpers.php'; // For format_price() and finalize_successful_order()
 
 $message = "";
 
