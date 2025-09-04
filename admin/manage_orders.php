@@ -87,7 +87,7 @@ function get_status_badge($status) {
                             <td>#<?php echo $order['id']; ?></td>
                             <td><?php echo htmlspecialchars($order['username']); ?></td>
                             <td><?php echo date("M j, Y, g:i a", strtotime($order['created_at'])); ?></td>
-                            <td>$<?php echo number_format($order['total_amount'], 2); ?></td>
+                            <td><?php echo format_price($order['total_amount']); ?></td>
                             <td><span class="<?php echo get_status_badge($order['status']); ?>"><?php echo htmlspecialchars(ucfirst($order['status'])); ?></span></td>
                             <td class="text-end">
                                 <a href="order_detail.php?id=<?php echo $order['id']; ?>" class="btn btn-sm btn-info"><i class="fas fa-eye"></i> View Details</a>
