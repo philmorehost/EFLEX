@@ -160,6 +160,12 @@ function setup_database_tables($mysqli) {
         $mysqli->query("ALTER TABLE `users` ADD `subscription_expiry` DATE DEFAULT NULL AFTER `subscription_status`");
     }
 
+    // Check for status column in users table
+    $result_status = $mysqli->query("SHOW COLUMNS FROM `users` LIKE 'status'");
+    if($result_status->num_rows == 0){
+        $mysqli->query("ALTER TABLE `users` ADD `status` ENUM('active','suspended') NOT NULL DEFAULT 'active' AFTER `role`");
+    }
+
     // Migration: Check for google_drive_folder_id column in products table and remove it if it exists
     if ($mysqli->query("SHOW COLUMNS FROM `products` LIKE 'google_drive_folder_id'")->num_rows > 0) {
         $mysqli->query("ALTER TABLE `products` DROP COLUMN `google_drive_folder_id`");

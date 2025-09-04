@@ -31,7 +31,7 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
     }
 
     if(empty($username_err) && empty($password_err)){
-        $sql = "SELECT id, username, password, role FROM users WHERE username = ?";
+        $sql = "SELECT id, username, password, role, status FROM users WHERE username = ?";
 
         if($stmt = $mysqli->prepare($sql)){
             $stmt->bind_param("s", $param_username);
@@ -41,11 +41,13 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
                 $stmt->store_result();
 
                 if($stmt->num_rows == 1){
-                    $stmt->bind_result($id, $username, $hashed_password, $role);
+                    $stmt->bind_result($id, $username, $hashed_password, $role, $status);
                     if($stmt->fetch()){
                         if(password_verify($password, $hashed_password)){
-                            // Password is correct, now check the role
-                            if($role === 'admin'){
+                            // Check if account is suspended
+                            if($status === 'suspended'){
+                                $login_err = "Your account has been suspended. Please contact support.";
+                            } elseif($role === 'admin'){
                                 // If user is an admin, deny login from this form
                                 $login_err = 'Administrators must use the <a href="admin/">admin login page</a>.';
                             } else {
