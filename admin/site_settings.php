@@ -66,6 +66,27 @@ function get_setting($key, $default = '') {
     </div>
 
     <div class="card mb-4">
+        <div class="card-header"><i class="fas fa-chart-line"></i> SEO & Analytics</div>
+        <div class="card-body">
+            <div class="mb-3">
+                <label for="seo_meta_description" class="form-label">Meta Description</label>
+                <textarea name="seo_meta_description" class="form-control" id="seo_meta_description" rows="2"><?php echo get_setting('seo_meta_description'); ?></textarea>
+                <div class="form-text">A short description of your site for search engines. (Approx. 160 characters)</div>
+            </div>
+            <div class="mb-3">
+                <label for="seo_meta_keywords" class="form-label">Meta Keywords</label>
+                <input type="text" name="seo_meta_keywords" class="form-control" id="seo_meta_keywords" value="<?php echo get_setting('seo_meta_keywords'); ?>">
+                <div class="form-text">Comma-separated keywords for search engines.</div>
+            </div>
+            <div class="mb-3">
+                <label for="google_analytics_id" class="form-label">Google Analytics Tracking ID</label>
+                <input type="text" name="google_analytics_id" class="form-control" id="google_analytics_id" value="<?php echo get_setting('google_analytics_id'); ?>">
+                <div class="form-text">e.g., G-XXXXXXXXXX</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card mb-4">
         <div class="card-header"><i class="fas fa-address-book"></i> Contact & Social Media</div>
         <div class="card-body">
             <div class="row">
