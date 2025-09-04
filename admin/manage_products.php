@@ -2,6 +2,7 @@
 // Include admin header
 include 'includes/header.php';
 require_once '../includes/db_connect.php';
+require_once '../includes/helpers.php';
 
 $message = "";
 

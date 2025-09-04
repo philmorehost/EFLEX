@@ -60,10 +60,9 @@ if(isset($_SESSION['cart']) && is_array($_SESSION['cart'])){
                 <div class="header-logo">
                     <a class="navbar-brand" href="index.php">Eflex</a>
                 </div>
-                <div class="header-search">
-                    <form class="d-flex" action="search.php" method="get">
-                        <input class="form-control me-2" type="search" name="query" placeholder="Search Products" aria-label="Search">
-                        <button class="btn btn-outline-success" type="submit"><i class="fas fa-search"></i></button>
+                <div class="header-search flex-grow-1 mx-3">
+                    <form action="search.php" method="get">
+                        <input class="form-control" type="search" name="query" placeholder="Search Products..." aria-label="Search">
                     </form>
                 </div>
                 <div class="header-actions">
