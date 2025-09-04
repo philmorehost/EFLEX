@@ -100,6 +100,54 @@ function set_file_uncoppyable($file_id) {
     return json_decode($response, true);
 }
 
+function grant_file_permission($file_id, $user_email) {
+    $access_token_response = get_google_drive_access_token();
+    if (is_array($access_token_response) && isset($access_token_response['error'])) {
+        return ['error' => ['message' => 'Failed to get access token for granting permission: ' . $access_token_response['error']]];
+    }
+    $access_token = $access_token_response;
+
+    $api_url = 'https://www.googleapis.com/drive/v3/files/' . $file_id . '/permissions?supportsAllDrives=true';
+
+    $permission_data = json_encode([
+        'type' => 'user',
+        'role' => 'reader',
+        'emailAddress' => $user_email
+    ]);
+
+    $ch = curl_init();
+    curl_setopt($ch, CURLOPT_URL, $api_url);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_POST, true);
+    curl_setopt($ch, CURLOPT_POSTFIELDS, $permission_data);
+    curl_setopt($ch, CURLOPT_HTTPHEADER, [
+        'Authorization: Bearer ' . $access_token,
+        'Content-Type: application/json'
+    ]);
+
+    $response = curl_exec($ch);
+    if (curl_errno($ch)) {
+        $error_msg = 'cURL Error (granting permission): ' . curl_error($ch);
+        curl_close($ch);
+        return ['error' => ['message' => $error_msg]];
+    }
+    curl_close($ch);
+
+    $result = json_decode($response, true);
+
+    // Check for API errors
+    if (isset($result['error'])) {
+        // Specifically check for existing permission error to avoid unnecessary failures
+        if (isset($result['error']['errors'][0]['reason']) && $result['error']['errors'][0]['reason'] === 'duplicate') {
+            // This is not a critical error, the user already has permission.
+            return ['status' => 'success', 'message' => 'User already has permission.'];
+        }
+        return ['error' => ['message' => 'Google API Error (granting permission): ' . ($result['error']['message'] ?? json_encode($result['error']))]];
+    }
+
+    return $result;
+}
+
 function get_file_details($file_id) {
     // First, ensure the file is not copyable
     set_file_uncoppyable($file_id);

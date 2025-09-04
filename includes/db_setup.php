@@ -86,6 +86,15 @@ function setup_database_tables($mysqli) {
         CONSTRAINT `user_subscriptions_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
         CONSTRAINT `user_subscriptions_ibfk_2` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`) ON DELETE CASCADE,
         CONSTRAINT `user_subscriptions_ibfk_3` FOREIGN KEY (`order_id`) REFERENCES `orders` (`id`) ON DELETE CASCADE
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;",
+
+    "product_google_drive_files" => "CREATE TABLE `product_google_drive_files` (
+        `id` int(11) NOT NULL AUTO_INCREMENT,
+        `product_id` int(11) NOT NULL,
+        `google_drive_file_id` varchar(255) NOT NULL,
+        PRIMARY KEY (`id`),
+        KEY `product_id` (`product_id`),
+        CONSTRAINT `product_google_drive_files_ibfk_1` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`) ON DELETE CASCADE
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;"
     ];
 
@@ -146,10 +155,10 @@ function setup_database_tables($mysqli) {
         $mysqli->query("ALTER TABLE `users` ADD `subscription_expiry` DATE DEFAULT NULL AFTER `subscription_status`");
     }
 
-    // Check for google_drive_folder_id column in products table
+    // Check for google_drive_folder_id column in products table and remove it if it exists
     $result_gdfi = $mysqli->query("SHOW COLUMNS FROM `products` LIKE 'google_drive_folder_id'");
-    if($result_gdfi->num_rows == 0){
-        $mysqli->query("ALTER TABLE `products` ADD `google_drive_folder_id` VARCHAR(255) DEFAULT NULL AFTER `image`");
+    if($result_gdfi->num_rows > 0){
+        $mysqli->query("ALTER TABLE `products` DROP COLUMN `google_drive_folder_id`");
     }
 
     // Check for duration_days column in products table

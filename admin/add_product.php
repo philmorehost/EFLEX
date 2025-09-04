@@ -12,7 +12,8 @@ if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true || !isset($_S
 }
 
 // Define variables and initialize
-$name = $description = $price = $category_id = $google_drive_folder_id = "";
+$name = $description = $price = $category_id = "";
+$google_drive_file_ids = ""; // Changed from folder_id
 $is_featured = $is_top_seller = 0;
 $name_err = $description_err = $price_err = $category_id_err = $image_err = "";
 $message = "";
@@ -25,7 +26,8 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
     $description = trim($_POST["description"]);
     $price = trim($_POST["price"]);
     $category_id = $_POST["category_id"];
-    $google_drive_folder_id = trim($_POST['google_drive_folder_id']);
+    // Changed from google_drive_folder_id to google_drive_file_ids
+    $google_drive_file_ids = trim($_POST['google_drive_file_ids']);
     $duration_days = (int)$_POST['duration_days'];
     $is_featured = isset($_POST['is_featured']) ? 1 : 0;
     $is_top_seller = isset($_POST['is_top_seller']) ? 1 : 0;
@@ -52,14 +54,29 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
     // Check input errors before inserting in database
     if(empty($name_err) && empty($description_err) && empty($price_err) && empty($category_id_err) && empty($image_err)){
 
-        $sql = "INSERT INTO products (name, description, price, duration_days, category_id, image, google_drive_folder_id, is_featured, is_top_seller) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        // Removed google_drive_folder_id from the insert
+        $sql = "INSERT INTO products (name, description, price, duration_days, category_id, image, is_featured, is_top_seller) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
 
         if($stmt = $mysqli->prepare($sql)){
-            $stmt->bind_param("ssdiisssi", $name, $description, $price, $duration_days, $category_id, $image_filename, $google_drive_folder_id, $is_featured, $is_top_seller);
+            $stmt->bind_param("ssdiisii", $name, $description, $price, $duration_days, $category_id, $image_filename, $is_featured, $is_top_seller);
 
             if($stmt->execute()){
+                $product_id = $stmt->insert_id;
+
+                // Now, handle the Google Drive files
+                if(!empty($google_drive_file_ids)) {
+                    $file_ids = explode(',', $google_drive_file_ids);
+                    $sql_drive = "INSERT INTO product_google_drive_files (product_id, google_drive_file_id) VALUES (?, ?)";
+                    if($stmt_drive = $mysqli->prepare($sql_drive)) {
+                        foreach($file_ids as $file_id) {
+                            $stmt_drive->bind_param("is", $product_id, $file_id);
+                            $stmt_drive->execute();
+                        }
+                        $stmt_drive->close();
+                    }
+                }
+
                 $_SESSION['product_added'] = "Product successfully added.";
-                // This redirect will now work correctly
                 header("location: manage_products.php");
                 exit();
             } else{
@@ -138,12 +155,13 @@ $categories = $result_categories->fetch_all(MYSQLI_ASSOC);
                         </div>
                     </div>
                      <div class="mb-3">
-                        <label for="google_drive_folder_id" class="form-label">Google Drive Folder ID</label>
+                        <label for="google_drive_files" class="form-label">Google Drive Files</label>
+                        <input type="hidden" name="google_drive_file_ids" id="google_drive_file_ids" value="<?php echo htmlspecialchars($google_drive_file_ids); ?>">
                         <div class="input-group">
-                            <input type="text" name="google_drive_folder_id" id="google_drive_folder_id" class="form-control" value="<?php echo $google_drive_folder_id; ?>">
+                            <input type="text" id="google_drive_files_display" class="form-control" placeholder="No files selected" readonly>
                             <button class="btn btn-outline-secondary" type="button" data-bs-toggle="modal" data-bs-target="#driveBrowserModal">Browse Drive</button>
                         </div>
-                        <div class="form-text">Link this package to a Google Drive folder.</div>
+                        <div class="form-text">Link this package to specific Google Drive files.</div>
                     </div>
                 </div>
                 <div class="col-md-4">
@@ -185,7 +203,8 @@ $categories = $result_categories->fetch_all(MYSQLI_ASSOC);
         <p>Loading...</p>
       </div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-primary" id="saveDriveSelection">Save Selection</button>
       </div>
     </div>
   </div>
@@ -200,16 +219,36 @@ include 'includes/footer.php';
 document.addEventListener('DOMContentLoaded', function() {
     const modal = document.getElementById('driveBrowserModal');
     const modalBody = document.getElementById('drive-browser-content');
+    const fileIdsInput = document.getElementById('google_drive_file_ids');
+    const fileDisplayInput = document.getElementById('google_drive_files_display');
+    const saveButton = document.getElementById('saveDriveSelection');
+    const modalInstance = bootstrap.Modal.getOrCreateInstance(modal);
+
+    // Keep track of selected files in the modal to handle pagination/browsing without losing selections
+    let selectedFilesInModal = [];
+
+    function updateDisplay() {
+        const fileIds = fileIdsInput.value.split(',').filter(id => id.trim() !== '');
+        if (fileIds.length > 0) {
+            fileDisplayInput.value = `${fileIds.length} file(s) selected`;
+        } else {
+            fileDisplayInput.value = 'No files selected';
+        }
+    }
 
     function loadDriveBrowser(folderId = 'root') {
         modalBody.innerHTML = '<p>Loading...</p>';
-        fetch(`ajax_drive_browser.php?folder=${folderId}`)
+        // Pass currently saved file IDs to pre-check boxes
+        const selectedFiles = fileIdsInput.value;
+        fetch(`ajax_drive_browser.php?folder=${folderId}&selected_files=${selectedFiles}`)
             .then(response => response.text())
             .then(html => {
                 modalBody.innerHTML = html;
+                // Sync the modal's selection state with the main page's state
+                selectedFilesInModal = fileIdsInput.value.split(',').filter(id => id.trim() !== '');
             })
             .catch(error => {
-                modalBody.innerHTML = '<p class="text-danger">Failed to load folders.</p>';
+                modalBody.innerHTML = '<p class="text-danger">Failed to load content.</p>';
                 console.error('Error:', error);
             });
     }
@@ -219,26 +258,36 @@ document.addEventListener('DOMContentLoaded', function() {
         loadDriveBrowser();
     });
 
-    // Handle clicks inside the modal for navigation and selection
+    // Handle clicks inside the modal for navigation and live selection changes
     modalBody.addEventListener('click', function(event) {
         const target = event.target;
 
-        // Handle folder browsing
         if (target.classList.contains('drive-browse-btn')) {
             event.preventDefault();
             const folderId = target.dataset.folderId;
             loadDriveBrowser(folderId);
         }
 
-        // Handle folder selection
-        if (target.classList.contains('select-folder-btn')) {
-            const folderId = target.dataset.folderId;
-            document.getElementById('google_drive_folder_id').value = folderId;
-
-            // Hide the modal using Bootstrap's API
-            const modalInstance = bootstrap.Modal.getInstance(modal);
-            modalInstance.hide();
+        if (target.classList.contains('drive-file-checkbox')) {
+            const fileId = target.value;
+            if (target.checked) {
+                if (!selectedFilesInModal.includes(fileId)) {
+                    selectedFilesInModal.push(fileId);
+                }
+            } else {
+                selectedFilesInModal = selectedFilesInModal.filter(id => id !== fileId);
+            }
         }
     });
+
+    // Handle Save Selection button click
+    saveButton.addEventListener('click', function() {
+        fileIdsInput.value = selectedFilesInModal.join(',');
+        updateDisplay();
+        modalInstance.hide();
+    });
+
+    // Initial display update on page load
+    updateDisplay();
 });
 </script>
