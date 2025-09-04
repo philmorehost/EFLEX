@@ -26,7 +26,6 @@ if (!is_dir($protected_dir)) {
 // 2. Include and run database setup/migration
 require_once 'db_connect.php';
 require_once 'helpers.php';
-load_app_settings(); // Explicitly load settings
 
 // Fetch categories for the navigation dropdown
 $category_sql = "SELECT * FROM categories ORDER BY name ASC";
@@ -44,21 +43,7 @@ if(isset($_SESSION['cart']) && is_array($_SESSION['cart'])){
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?php echo htmlspecialchars(get_app_setting('site_title', 'Eflex E-commerce')); ?></title>
-    <meta name="description" content="<?php echo htmlspecialchars(get_app_setting('seo_meta_description', '')); ?>">
-    <meta name="keywords" content="<?php echo htmlspecialchars(get_app_setting('seo_meta_keywords', '')); ?>">
-
-    <!-- Google Analytics -->
-    <?php $ga_id = get_app_setting('google_analytics_id'); if (!empty($ga_id)): ?>
-    <script async src="https://www.googletagmanager.com/gtag/js?id=<?php echo htmlspecialchars($ga_id); ?>"></script>
-    <script>
-      window.dataLayer = window.dataLayer || [];
-      function gtag(){dataLayer.push(arguments);}
-      gtag('js', new Date());
-      gtag('config', '<?php echo htmlspecialchars($ga_id); ?>');
-    </script>
-    <?php endif; ?>
-
+    <title>Eflex E-commerce</title>
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>

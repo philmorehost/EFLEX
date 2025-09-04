@@ -50,75 +50,6 @@ function get_setting($key, $default = '') {
 
 <form action="site_settings.php" method="post">
     <div class="card mb-4">
-        <div class="card-header"><i class="fas fa-info-circle"></i> Site Information</div>
-        <div class="card-body">
-            <div class="mb-3">
-                <label for="site_title" class="form-label">Site Title</label>
-                <input type="text" name="site_title" class="form-control" id="site_title" value="<?php echo get_setting('site_title', 'Eflex E-commerce'); ?>">
-                <div class="form-text">The title displayed in the browser tab.</div>
-            </div>
-            <div class="mb-3">
-                <label for="site_info" class="form-label">Site Information (About Us)</label>
-                <textarea name="site_info" class="form-control" id="site_info" rows="4"><?php echo get_setting('site_info', 'Your default about us text here.'); ?></textarea>
-                <div class="form-text">A short description of your site for the footer.</div>
-            </div>
-        </div>
-    </div>
-
-    <div class="card mb-4">
-        <div class="card-header"><i class="fas fa-chart-line"></i> SEO & Analytics</div>
-        <div class="card-body">
-            <div class="mb-3">
-                <label for="seo_meta_description" class="form-label">Meta Description</label>
-                <textarea name="seo_meta_description" class="form-control" id="seo_meta_description" rows="2"><?php echo get_setting('seo_meta_description'); ?></textarea>
-                <div class="form-text">A short description of your site for search engines. (Approx. 160 characters)</div>
-            </div>
-            <div class="mb-3">
-                <label for="seo_meta_keywords" class="form-label">Meta Keywords</label>
-                <input type="text" name="seo_meta_keywords" class="form-control" id="seo_meta_keywords" value="<?php echo get_setting('seo_meta_keywords'); ?>">
-                <div class="form-text">Comma-separated keywords for search engines.</div>
-            </div>
-            <div class="mb-3">
-                <label for="google_analytics_id" class="form-label">Google Analytics Tracking ID</label>
-                <input type="text" name="google_analytics_id" class="form-control" id="google_analytics_id" value="<?php echo get_setting('google_analytics_id'); ?>">
-                <div class="form-text">e.g., G-XXXXXXXXXX</div>
-            </div>
-        </div>
-    </div>
-
-    <div class="card mb-4">
-        <div class="card-header"><i class="fas fa-address-book"></i> Contact & Social Media</div>
-        <div class="card-body">
-            <div class="row">
-                <div class="col-md-6 mb-3">
-                    <label for="contact_email" class="form-label">Contact Email</label>
-                    <input type="email" name="contact_email" class="form-control" id="contact_email" value="<?php echo get_setting('contact_email'); ?>">
-                </div>
-                <div class="col-md-6 mb-3">
-                    <label for="contact_phone" class="form-label">Contact Phone</label>
-                    <input type="text" name="contact_phone" class="form-control" id="contact_phone" value="<?php echo get_setting('contact_phone'); ?>">
-                </div>
-                <div class="col-md-6 mb-3">
-                    <label for="social_facebook" class="form-label">Facebook URL</label>
-                    <input type="url" name="social_facebook" class="form-control" id="social_facebook" value="<?php echo get_setting('social_facebook'); ?>">
-                </div>
-                <div class="col-md-6 mb-3">
-                    <label for="social_twitter" class="form-label">Twitter URL</label>
-                    <input type="url" name="social_twitter" class="form-control" id="social_twitter" value="<?php echo get_setting('social_twitter'); ?>">
-                </div>
-                <div class="col-md-6 mb-3">
-                    <label for="social_instagram" class="form-label">Instagram URL</label>
-                    <input type="url" name="social_instagram" class="form-control" id="social_instagram" value="<?php echo get_setting('social_instagram'); ?>">
-                </div>
-                <div class="col-md-6 mb-3">
-                    <label for="social_linkedin" class="form-label">LinkedIn URL</label>
-                    <input type="url" name="social_linkedin" class="form-control" id="social_linkedin" value="<?php echo get_setting('social_linkedin'); ?>">
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="card mb-4">
         <div class="card-header"><i class="fas fa-money-bill-wave"></i> Currency Settings</div>
         <div class="card-body">
             <div class="row">
@@ -214,17 +145,6 @@ function get_setting($key, $default = '') {
                     <input type="text" name="paystack_public_key" class="form-control" id="paystack_public_key" value="<?php echo get_setting('paystack_public_key'); ?>">
                 </div>
             </div>
-        </div>
-    </div>
-
-    <div class="card mb-4">
-        <div class="card-header"><i class="fas fa-clock"></i> Cron Job Setup</div>
-        <div class="card-body">
-            <p>To automatically handle expired subscriptions, you need to set up a cron job on your server.</p>
-            <p>A cron job is a scheduled task that the server runs at a specified time or interval. You should configure it to run the following script periodically (e.g., once every day).</p>
-            <p>Log in to your cPanel or hosting control panel, find the "Cron Jobs" section, and add a new cron job with the following command:</p>
-            <pre class="bg-light p-3 rounded"><code>* * * * * /usr/bin/php <?php echo realpath(__DIR__ . '/../cron/expire_subscriptions.php'); ?></code></pre>
-            <p><small class="text-muted"><strong>Note:</strong> The exact path to PHP (`/usr/bin/php`) may vary depending on your server configuration. The schedule (`* * * * *`) means it runs every minute. You may want to change this to run less frequently, for example, once a day (`0 0 * * *`). Contact your hosting provider for assistance if you are unsure.</small></p>
         </div>
     </div>
 

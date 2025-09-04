@@ -6,7 +6,7 @@ require_once '../includes/db_connect.php';
 $message = "";
 
 // Fetch users for dropdown
-$users_result = $mysqli->query("SELECT id, username, email FROM users WHERE role = 'customer' ORDER BY username ASC");
+$users_result = $mysqli->query("SELECT id, username FROM users WHERE role = 'customer' ORDER BY username ASC");
 $users = $users_result->fetch_all(MYSQLI_ASSOC);
 
 // Fetch all products for dropdown
@@ -50,14 +50,14 @@ if($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['add_subscription'])){
 <div class="card">
     <div class="card-header"><i class="fas fa-plus-circle"></i> Create a New Subscription</div>
     <div class="card-body">
-        <p>Manually grant a user access to a subscription product. This is useful for activating subscriptions after a manual payment like a bank transfer.</p>
+        <p>Manually grant a user access to a subscription product.</p>
         <form action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>" method="post">
             <div class="mb-3">
                 <label for="user_id" class="form-label">Select User</label>
                 <select name="user_id" id="user_id" class="form-select" required>
                     <option value="">Choose a user...</option>
                     <?php foreach($users as $user): ?>
-                        <option value="<?php echo $user['id']; ?>"><?php echo htmlspecialchars($user['username']); ?> (<?php echo htmlspecialchars($user['email']); ?>)</option>
+                        <option value="<?php echo $user['id']; ?>"><?php echo htmlspecialchars($user['username']); ?></option>
                     <?php endforeach; ?>
                 </select>
             </div>

@@ -4,17 +4,10 @@ include 'includes/header.php';
 require_once '../includes/db_connect.php';
 
 $message = "";
-if(isset($_SESSION['sub_update_message'])){
-    $message = '<div class="alert alert-success">'.$_SESSION['sub_update_message'].'</div>';
-    unset($_SESSION['sub_update_message']);
-}
 
 // Handle Delete Subscription
 if(isset($_GET['action']) && $_GET['action'] == 'delete' && isset($_GET['id'])){
     $sub_id_to_delete = $_GET['id'];
-
-    // With local files, we just delete the subscription record.
-    // The files themselves belong to the product and are not deleted.
     $sql_delete = "DELETE FROM user_subscriptions WHERE id = ?";
     if($stmt_delete = $mysqli->prepare($sql_delete)){
         $stmt_delete->bind_param("i", $sub_id_to_delete);
@@ -78,8 +71,8 @@ $subscriptions = $result->fetch_all(MYSQLI_ASSOC);
                             <td><?php echo $sub['expires_at'] ? date("M j, Y", strtotime($sub['expires_at'])) : 'Never'; ?></td>
                             <td><?php echo date("M j, Y", strtotime($sub['created_at'])); ?></td>
                             <td class="text-end">
-                                <a href="edit_subscription.php?id=<?php echo $sub['id']; ?>" class="btn btn-sm btn-warning"><i class="fas fa-edit"></i> Edit</a>
-                                <a href="manage_subscriptions.php?action=delete&id=<?php echo $sub['id']; ?>" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure you want to delete this subscription? This will revoke the user\'s access but will not delete the product files.')"><i class="fas fa-trash"></i> Delete</a>
+                                <!-- Edit functionality can be added here later -->
+                                <a href="manage_subscriptions.php?action=delete&id=<?php echo $sub['id']; ?>" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure you want to delete this subscription?')"><i class="fas fa-trash"></i> Delete</a>
                             </td>
                         </tr>
                         <?php endforeach; ?>

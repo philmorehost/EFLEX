@@ -38,30 +38,33 @@ $product_id = $file_info['product_id'];
 
 // --- Check User Subscription ---
 $has_access = false;
-$sql_sub = "SELECT id FROM user_subscriptions
-            WHERE user_id = ?
-            AND product_id = ?
-            AND status = 'active'
-            AND (expires_at IS NULL OR expires_at >= CURDATE())";
-$stmt_sub = $mysqli->prepare($sql_sub);
-$stmt_sub->bind_param("ii", $user_id, $product_id);
-$stmt_sub->execute();
-$stmt_sub->store_result();
-if ($stmt_sub->num_rows > 0) {
+// Admins have access to all files
+if (isset($_SESSION['role']) && $_SESSION['role'] === 'admin') {
     $has_access = true;
+} else {
+    $sql_sub = "SELECT id FROM user_subscriptions
+                WHERE user_id = ?
+                AND product_id = ?
+                AND status = 'active'
+                AND (expires_at IS NULL OR expires_at >= CURDATE())";
+    $stmt_sub = $mysqli->prepare($sql_sub);
+    $stmt_sub->bind_param("ii", $user_id, $product_id);
+    $stmt_sub->execute();
+    $stmt_sub->store_result();
+    if ($stmt_sub->num_rows > 0) {
+        $has_access = true;
+    }
+    $stmt_sub->close();
 }
-$stmt_sub->close();
 
 // --- Stream File if Access is Granted ---
 if ($has_access) {
     $file_path = __DIR__ . '/' . $file_info['filepath'];
     if (file_exists($file_path)) {
         header('Content-Type: ' . $file_info['mimetype']);
-        // Use 'inline' to suggest viewing in browser, 'attachment' to force download
-        header('Content-Disposition: inline; filename="' . $file_info['original_filename'] . '"');
+        header('Content-Disposition: inline; filename="' . basename($file_info['original_filename']) . '"');
         header('Content-Length: ' . filesize($file_path));
 
-        // Clear output buffer
         ob_clean();
         flush();
 

@@ -32,14 +32,30 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
 
     if(empty($name)) $name_err = "Please enter a product name.";
     if(empty($description)) $description_err = "Please enter a description.";
-    // Price can be 0 for freemium, so we check if it's set
     if(!isset($price) || $price === "") $price_err = "Please enter a price.";
     if(empty($category_id)) $category_id_err = "Please select a category.";
 
-    // --- Start File Upload Logic ---
+    // --- Handle Product Image Upload ---
+    $image_filename = "default.jpg";
+    if (isset($_FILES["image"]) && $_FILES["image"]["error"] == 0) {
+        $allowed = ["jpg" => "image/jpeg", "jpeg" => "image/jpeg", "gif" => "image/gif", "png" => "image/png"];
+        $filename = $_FILES["image"]["name"];
+        $ext = pathinfo($filename, PATHINFO_EXTENSION);
+        if (array_key_exists($ext, $allowed)) {
+            $new_filename = uniqid('img_', true) . "." . $ext;
+            if (move_uploaded_file($_FILES["image"]["tmp_name"], __DIR__ . "/../uploads/" . $new_filename)) {
+                $image_filename = $new_filename;
+            } else {
+                $image_err = "Failed to move uploaded image.";
+            }
+        } else {
+            $image_err = "Invalid image format.";
+        }
+    }
+
+    // --- Handle Subscription Files Upload ---
     $uploaded_files = [];
     $protected_dir = __DIR__ . '/../uploads/protected_files/';
-
     if (isset($_FILES['product_files'])) {
         $file_count = count($_FILES['product_files']['name']);
         for ($i = 0; $i < $file_count; $i++) {
@@ -58,49 +74,13 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
                         'filesize' => $_FILES['product_files']['size'][$i]
                     ];
                 } else {
-                    $files_err = "Error moving uploaded file: " . $original_filename;
-                    break; // Stop on first error
+                    $files_err = "Error moving subscription file: " . $original_filename;
+                    break;
                 }
             } elseif ($_FILES['product_files']['error'][$i] !== UPLOAD_ERR_NO_FILE) {
                 $files_err = "Error uploading file: " . $_FILES['product_files']['name'][$i];
-                break; // Stop on first error
+                break;
             }
-        }
-    }
-    // --- End File Upload Logic ---
-
-
-    // Handle image upload
-    $image_filename = "default.jpg";
-    if (isset($_FILES["image"]) && $_FILES["image"]["error"] == 0) {
-        $allowed = ["jpg" => "image/jpeg", "jpeg" => "image/jpeg", "gif" => "image/gif", "png" => "image/png"];
-        $filename = $_FILES["image"]["name"];
-        $filetype = $_FILES["image"]["type"];
-        $filesize = $_FILES["image"]["size"];
-
-        // Verify file extension
-        $ext = pathinfo($filename, PATHINFO_EXTENSION);
-        if (!array_key_exists($ext, $allowed)) {
-            $image_err = "Please select a valid file format.";
-        }
-
-        // Verify file size - 5MB maximum
-        $maxsize = 5 * 1024 * 1024;
-        if ($filesize > $maxsize) {
-            $image_err = "File size is larger than the allowed limit of 5MB.";
-        }
-
-        // Verify MIME type of the file
-        if (in_array($filetype, $allowed) && empty($image_err)) {
-            // Generate a unique name for the file before saving it
-            $new_filename = uniqid('img_', true) . "." . $ext;
-            if (move_uploaded_file($_FILES["image"]["tmp_name"], __DIR__ . "/../uploads/" . $new_filename)) {
-                $image_filename = $new_filename;
-            } else {
-                $image_err = "Failed to move uploaded image.";
-            }
-        } else {
-            $image_err = $image_err ?: "There was a problem uploading your image.";
         }
     }
 
@@ -113,10 +93,9 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
             $stmt = $mysqli->prepare($sql);
             $stmt->bind_param("ssdiisii", $name, $description, $price, $duration_days, $category_id, $image_filename, $is_featured, $is_top_seller);
             $stmt->execute();
-            $product_id = $mysqli->insert_id; // Correct way to get the last insert ID
+            $product_id = $mysqli->insert_id; // Corrected this line
             $stmt->close();
 
-            // Now, handle the uploaded files
             if(!empty($uploaded_files)) {
                 $sql_files = "INSERT INTO product_local_files (product_id, filename, original_filename, filepath, mimetype, filesize) VALUES (?, ?, ?, ?, ?, ?)";
                 $stmt_files = $mysqli->prepare($sql_files);
@@ -134,17 +113,15 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
 
         } catch (mysqli_sql_exception $exception) {
             $mysqli->rollback();
-            $message = '<div class="alert alert-danger">Oops! Something went wrong. Please try again later.</div>';
+            $message = '<div class="alert alert-danger">Database error. Please try again later.</div>';
         }
     } else {
-        $message = '<div class="alert alert-danger">Please correct the errors and try again. ' . $files_err . '</div>';
+        $message = '<div class="alert alert-danger">Please correct the errors and try again. ' . $files_err . $image_err . '</div>';
     }
 }
 
-// Now that all PHP logic is done, we can start sending HTML.
 include 'includes/header.php';
 
-// Fetch categories for the dropdown
 $sql_categories = "SELECT * FROM categories ORDER BY name ASC";
 $result_categories = $mysqli->query($sql_categories);
 $categories = $result_categories->fetch_all(MYSQLI_ASSOC);
@@ -183,7 +160,6 @@ $categories = $result_categories->fetch_all(MYSQLI_ASSOC);
                                     <span class="input-group-text"><?php echo get_app_setting('currency_symbol', '$'); ?></span>
                                     <input type="number" name="price" id="price" class="form-control <?php echo (!empty($price_err)) ? 'is-invalid' : ''; ?>" value="<?php echo $price; ?>" step="0.01" min="0">
                                 </div>
-                                 <div class="form-text">Enter 0 for a Freemium package.</div>
                                 <span class="invalid-feedback"><?php echo $price_err; ?></span>
                             </div>
                         </div>
@@ -201,9 +177,8 @@ $categories = $result_categories->fetch_all(MYSQLI_ASSOC);
                         </div>
                         <div class="col-md-2">
                             <div class="mb-3">
-                                <label for="duration_days" class="form-label">Duration</label>
+                                <label for="duration_days" class="form-label">Duration (days)</label>
                                 <input type="number" name="duration_days" id="duration_days" class="form-control" value="365">
-                                <div class="form-text">In days.</div>
                             </div>
                         </div>
                     </div>
@@ -211,7 +186,7 @@ $categories = $result_categories->fetch_all(MYSQLI_ASSOC);
                         <label for="product_files" class="form-label">Subscription Files</label>
                         <input type="file" name="product_files[]" id="product_files" class="form-control" multiple>
                         <div class="form-text">Upload one or more files for this package.</div>
-                         <span class="text-danger"><?php echo $files_err; ?></span>
+                        <span class="text-danger"><?php echo $files_err; ?></span>
                     </div>
                 </div>
                 <div class="col-md-4">
@@ -219,7 +194,6 @@ $categories = $result_categories->fetch_all(MYSQLI_ASSOC);
                         <label for="image" class="form-label">Product Image</label>
                         <input type="file" name="image" id="image" class="form-control <?php echo (!empty($image_err)) ? 'is-invalid' : ''; ?>">
                         <span class="invalid-feedback"><?php echo $image_err; ?></span>
-                        <div class="form-text">Max file size: 5MB. Allowed formats: JPG, JPEG, PNG, GIF.</div>
                     </div>
                     <div class="mb-3 form-check">
                         <input type="checkbox" name="is_featured" class="form-check-input" id="is_featured" value="1" <?php echo ($is_featured) ? 'checked' : ''; ?>>
@@ -240,7 +214,4 @@ $categories = $result_categories->fetch_all(MYSQLI_ASSOC);
     </div>
 </div>
 
-<?php
-// Include admin footer
-include 'includes/footer.php';
-?>
+<?php include 'includes/footer.php'; ?>
