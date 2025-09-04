@@ -75,33 +75,14 @@ if ($product_id) {
     }
 }
 
-// 3. If a file is being viewed, construct its preview link
-$view_file_id = isset($_GET['view']) ? $_GET['view'] : null;
-$file_embed_link = null;
-$file_name = null;
-
-if ($view_file_id) {
-    // A more robust security check would verify that this file_id belongs to a product the user is subscribed to.
-    // For now, we assume the links are generated correctly and not tampered with.
-    $file_details = get_file_details($view_file_id);
-    if (isset($file_details['name'])) {
-        $file_name = $file_details['name'];
-        $file_embed_link = "https://drive.google.com/file/d/{$view_file_id}/embed";
-    }
-}
 // --- End New Logic ---
 
 
 // Include the header
 include 'includes/header.php';
 ?>
-<style>
-    /* Basic content protection */
-    .secure-viewer { -webkit-user-select: none; user-select: none; }
-    @media print { body * { display: none !important; } }
-</style>
 
-<div class="container my-5 secure-viewer">
+<div class="container my-5">
     <div class="row">
         <div class="col-md-4">
             <h4>My Subscriptions</h4>
@@ -115,28 +96,22 @@ include 'includes/header.php';
                     </a>
                 <?php endforeach; ?>
             </div>
-
-            <?php if ($product_id) : // Only show file list if a product is selected ?>
-                <h4 class="mt-4">Files for <?php echo htmlspecialchars($product_name); ?></h4>
+        </div>
+        <div class="col-md-8">
+            <?php if ($product_id) : ?>
+                <h4>Files for <?php echo htmlspecialchars($product_name); ?></h4>
                 <div class="list-group">
                     <?php if (count($files_for_product) > 0) : ?>
                         <?php foreach ($files_for_product as $file) : ?>
-                            <a href="lesson_notes.php?product_id=<?php echo $product_id; ?>&view=<?php echo $file['id']; ?>" class="list-group-item list-group-item-action <?php echo ($view_file_id == $file['id']) ? 'active' : ''; ?>">
+                            <a href="<?php echo htmlspecialchars($file['webViewLink']); ?>" target="_blank" class="list-group-item list-group-item-action">
                                 <i class="fas fa-file-alt me-2"></i>
                                 <?php echo htmlspecialchars($file['name']); ?>
+                                <i class="fas fa-external-link-alt float-end mt-1"></i>
                             </a>
                         <?php endforeach; ?>
                     <?php else : ?>
                         <div class="list-group-item">No files found for this product.</div>
                     <?php endif; ?>
-                </div>
-            <?php endif; ?>
-        </div>
-        <div class="col-md-8">
-            <?php if ($file_embed_link) : ?>
-                <h4>Viewing: <?php echo htmlspecialchars($file_name ?? 'Document'); ?></h4>
-                <div class="embed-responsive" style="height: 80vh; border: 1px solid #ddd;">
-                    <iframe class="embed-responsive-item w-100 h-100" src="<?php echo $file_embed_link; ?>" allow="fullscreen"></iframe>
                 </div>
             <?php else : ?>
                 <div class="text-center p-5 border rounded d-flex flex-column justify-content-center align-items-center" style="height: 100%;">
@@ -148,11 +123,6 @@ include 'includes/header.php';
         </div>
     </div>
 </div>
-
-<script>
-    // Disable right-click
-    document.addEventListener('contextmenu', event => event.preventDefault());
-</script>
 
 <?php
 // Include the footer
