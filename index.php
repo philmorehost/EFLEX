@@ -40,7 +40,7 @@ $featured_products = $featured_products_result->fetch_all(MYSQLI_ASSOC);
 
 <!-- New Arrivals Section -->
 <div class="container my-5">
-    <h2 class="text-center mb-4">New Arrivals</h2>
+    <h2 class="text-center mb-4">Freemium Packages</h2>
     <div id="newArrivalsCarousel" class="carousel slide" data-bs-ride="carousel">
         <div class="carousel-inner">
             <?php
@@ -71,7 +71,7 @@ $featured_products = $featured_products_result->fetch_all(MYSQLI_ASSOC);
 
 <!-- Featured Products Section -->
 <div class="container my-5">
-    <h2 class="text-center mb-4">Featured Products</h2>
+    <h2 class="text-center mb-4">Premium Packages</h2>
     <div class="row">
         <?php foreach($featured_products as $product): ?>
             <div class="col-md-3 mb-4">

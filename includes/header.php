@@ -11,16 +11,12 @@ if (session_status() === PHP_SESSION_NONE) {
 $base_path = __DIR__ . '/../';
 $uploads_dir = $base_path . 'uploads';
 $proofs_dir = $uploads_dir . '/payment_proofs';
-$protected_dir = $uploads_dir . '/protected_files';
 
 if (!is_dir($uploads_dir)) {
     mkdir($uploads_dir, 0777, true);
 }
 if (!is_dir($proofs_dir)) {
     mkdir($proofs_dir, 0777, true);
-}
-if (!is_dir($protected_dir)) {
-    mkdir($protected_dir, 0777, true);
 }
 
 // 2. Include and run database setup/migration

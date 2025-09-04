@@ -12,6 +12,16 @@ if(!isset($_SESSION['cart'])){
     $_SESSION['cart'] = array();
 }
 
+// Handle "Subscribe Now" action (add single item and go to checkout)
+if(isset($_GET['action']) && $_GET['action'] == 'add' && isset($_GET['id']) && isset($_GET['single'])){
+    $product_id = $_GET['id'];
+    // Clear cart and add only this item
+    $_SESSION['cart'] = [];
+    $_SESSION['cart'][$product_id] = 1;
+    header('location: checkout.php');
+    exit();
+}
+
 // Handle Add to Cart action
 if(isset($_GET['action']) && $_GET['action'] == 'add' && isset($_GET['id'])){
     $product_id = $_GET['id'];

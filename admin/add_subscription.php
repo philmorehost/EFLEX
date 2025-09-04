@@ -9,8 +9,8 @@ $message = "";
 $users_result = $mysqli->query("SELECT id, username FROM users WHERE role = 'customer' ORDER BY username ASC");
 $users = $users_result->fetch_all(MYSQLI_ASSOC);
 
-// Fetch all products for dropdown
-$products_result = $mysqli->query("SELECT id, name FROM products ORDER BY name ASC");
+// Fetch subscription products for dropdown
+$products_result = $mysqli->query("SELECT id, name FROM products WHERE google_drive_folder_id IS NOT NULL AND google_drive_folder_id != '' ORDER BY name ASC");
 $products = $products_result->fetch_all(MYSQLI_ASSOC);
 
 
@@ -24,6 +24,7 @@ if($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['add_subscription'])){
         $message = '<div class="alert alert-danger">Please select a user and a product.</div>';
     } else {
         // For simplicity, we assume order_id 0 for manually added subscriptions.
+        // A more robust system might create a dummy order.
         $order_id = 0;
         $sql = "INSERT INTO user_subscriptions (user_id, product_id, order_id, status, expires_at) VALUES (?, ?, ?, 'active', ?)";
 
@@ -50,7 +51,7 @@ if($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['add_subscription'])){
 <div class="card">
     <div class="card-header"><i class="fas fa-plus-circle"></i> Create a New Subscription</div>
     <div class="card-body">
-        <p>Manually grant a user access to a subscription product.</p>
+        <p>Manually grant a user access to a subscription product. This is useful for activating subscriptions after a manual payment like a bank transfer.</p>
         <form action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>" method="post">
             <div class="mb-3">
                 <label for="user_id" class="form-label">Select User</label>
@@ -69,6 +70,7 @@ if($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['add_subscription'])){
                         <option value="<?php echo $product['id']; ?>"><?php echo htmlspecialchars($product['name']); ?></option>
                     <?php endforeach; ?>
                 </select>
+                <div class="form-text">Only products that have a Google Drive Folder ID linked to them are shown here.</div>
             </div>
             <div class="mb-3">
                 <label for="expires_at" class="form-label">Expiry Date</label>
