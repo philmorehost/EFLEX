@@ -167,4 +167,61 @@ function get_file_details($file_id) {
     curl_close($ch);
     return json_decode($response, true);
 }
+
+function get_permission_id_for_user($file_id, $user_email) {
+    $access_token_response = get_google_drive_access_token();
+    if (is_array($access_token_response) && isset($access_token_response['error'])) {
+        return $access_token_response;
+    }
+    $access_token = $access_token_response;
+
+    $api_url = "https://www.googleapis.com/drive/v3/files/{$file_id}/permissions?fields=permissions(id,emailAddress)";
+
+    $ch = curl_init();
+    curl_setopt($ch, CURLOPT_URL, $api_url);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_HTTPHEADER, ['Authorization: Bearer ' . $access_token]);
+    $response = curl_exec($ch);
+    curl_close($ch);
+
+    $permissions = json_decode($response, true);
+
+    if (isset($permissions['permissions'])) {
+        foreach ($permissions['permissions'] as $permission) {
+            if (isset($permission['emailAddress']) && $permission['emailAddress'] === $user_email) {
+                return $permission['id'];
+            }
+        }
+    }
+    return null; // Not found
+}
+
+function revoke_file_permission($file_id, $permission_id) {
+    if ($permission_id === null) {
+        return ['status' => 'success', 'message' => 'Permission not found or already revoked.'];
+    }
+    $access_token_response = get_google_drive_access_token();
+    if (is_array($access_token_response) && isset($access_token_response['error'])) {
+        return $access_token_response;
+    }
+    $access_token = $access_token_response;
+
+    $api_url = "https://www.googleapis.com/drive/v3/files/{$file_id}/permissions/{$permission_id}";
+
+    $ch = curl_init();
+    curl_setopt($ch, CURLOPT_URL, $api_url);
+    curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "DELETE");
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_HTTPHEADER, ['Authorization: Bearer ' . $access_token]);
+
+    curl_exec($ch);
+    $http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    curl_close($ch);
+
+    if ($http_code == 204) {
+        return ['status' => 'success'];
+    } else {
+        return ['error' => ['message' => "Failed to revoke permission, HTTP status code: $http_code"]];
+    }
+}
 ?>

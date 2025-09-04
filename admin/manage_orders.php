@@ -4,6 +4,29 @@ include 'includes/header.php';
 require_once '../includes/db_connect.php';
 
 $message = "";
+
+// Handle manual order approval
+if($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['approve_order'])){
+    $order_id_to_approve = $_POST['order_id'];
+    $user_id_to_approve = $_POST['user_id'];
+
+    if(!empty($order_id_to_approve) && !empty($user_id_to_approve)) {
+        // Use the centralized function to finalize the order
+        $result = finalize_successful_order($order_id_to_approve, $user_id_to_approve);
+        if($result['status'] === 'success') {
+            $_SESSION['order_update_message'] = "Order #$order_id_to_approve has been approved and subscription activated.";
+        } else {
+            $_SESSION['order_update_message'] = "Error approving order #$order_id_to_approve: " . $result['message'];
+        }
+    } else {
+        $_SESSION['order_update_message'] = "Could not approve order due to missing information.";
+    }
+    // Redirect to the same page to prevent form resubmission
+    header("Location: manage_orders.php?page=" . ($_GET['page'] ?? 1));
+    exit;
+}
+
+
 if(isset($_SESSION['order_update_message'])){
     $message = '<div class="alert alert-success">'.$_SESSION['order_update_message'].'</div>';
     unset($_SESSION['order_update_message']);
@@ -21,7 +44,7 @@ $total_records = $total_records_result->fetch_row()[0];
 $total_pages = ceil($total_records / $records_per_page);
 
 // Fetch orders for the current page
-$sql = "SELECT o.id, u.username, o.total_amount, o.status, o.created_at
+$sql = "SELECT o.id, o.user_id, u.username, o.total_amount, o.status, o.created_at, o.payment_method
         FROM orders o
         JOIN users u ON o.user_id = u.id
         ORDER BY o.created_at DESC
@@ -42,11 +65,7 @@ function get_status_badge($status) {
     switch (strtolower($status)) {
         case 'pending':
             return 'badge bg-warning text-dark';
-        case 'processing':
-            return 'badge bg-info text-dark';
-        case 'shipped':
-            return 'badge bg-primary';
-        case 'delivered':
+        case 'completed':
             return 'badge bg-success';
         case 'cancelled':
             return 'badge bg-danger';
@@ -76,6 +95,7 @@ function get_status_badge($status) {
                         <th>Customer</th>
                         <th>Date</th>
                         <th>Total</th>
+                        <th>Payment Method</th>
                         <th>Status</th>
                         <th class="text-end">Actions</th>
                     </tr>
@@ -87,15 +107,25 @@ function get_status_badge($status) {
                             <td>#<?php echo $order['id']; ?></td>
                             <td><?php echo htmlspecialchars($order['username']); ?></td>
                             <td><?php echo date("M j, Y, g:i a", strtotime($order['created_at'])); ?></td>
-                            <td>$<?php echo number_format($order['total_amount'], 2); ?></td>
+                            <td><?php echo format_price($order['total_amount']); ?></td>
+                            <td><?php echo htmlspecialchars(ucwords(str_replace('_', ' ', $order['payment_method'] ?? 'N/A'))); ?></td>
                             <td><span class="<?php echo get_status_badge($order['status']); ?>"><?php echo htmlspecialchars(ucfirst($order['status'])); ?></span></td>
                             <td class="text-end">
-                                <a href="order_detail.php?id=<?php echo $order['id']; ?>" class="btn btn-sm btn-info"><i class="fas fa-eye"></i> View Details</a>
+                                <a href="order_detail.php?id=<?php echo $order['id']; ?>" class="btn btn-sm btn-info"><i class="fas fa-eye"></i> View</a>
+                                <?php if(strtolower($order['status']) == 'pending'): ?>
+                                    <form action="manage_orders.php?page=<?php echo $page; ?>" method="POST" class="d-inline">
+                                        <input type="hidden" name="order_id" value="<?php echo $order['id']; ?>">
+                                        <input type="hidden" name="user_id" value="<?php echo $order['user_id']; ?>">
+                                        <button type="submit" name="approve_order" class="btn btn-sm btn-success" onclick="return confirm('Are you sure you want to approve this order and activate the subscription?');">
+                                            <i class="fas fa-check"></i> Approve
+                                        </button>
+                                    </form>
+                                <?php endif; ?>
                             </td>
                         </tr>
                         <?php endforeach; ?>
                     <?php else: ?>
-                        <tr><td colspan="6" class="text-center">No orders found.</td></tr>
+                        <tr><td colspan="7" class="text-center">No orders found.</td></tr>
                     <?php endif; ?>
                 </tbody>
             </table>

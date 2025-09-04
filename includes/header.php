@@ -22,6 +22,7 @@ if (!is_dir($proofs_dir)) {
 // 2. Include and run database setup/migration
 require_once 'db_connect.php';
 require_once 'helpers.php';
+load_app_settings(); // Explicitly load settings
 
 // Fetch categories for the navigation dropdown
 $category_sql = "SELECT * FROM categories ORDER BY name ASC";
