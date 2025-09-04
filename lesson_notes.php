@@ -86,7 +86,7 @@ if ($view_file_id) {
     $file_details = get_file_details($view_file_id);
     if (isset($file_details['name'])) {
         $file_name = $file_details['name'];
-        $file_embed_link = "https://drive.google.com/file/d/{$view_file_id}/preview";
+        $file_embed_link = "https://drive.google.com/file/d/{$view_file_id}/embed";
     }
 }
 // --- End New Logic ---
