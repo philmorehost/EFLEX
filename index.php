@@ -13,13 +13,15 @@ if(isset($_SESSION['admin_created']) && $_SESSION['admin_created'] === true){
 }
 
 // Fetch products for the carousels
-$new_products_sql = "SELECT * FROM products ORDER BY created_at DESC LIMIT 8";
-$new_products_result = $mysqli->query($new_products_sql);
-$new_products = $new_products_result->fetch_all(MYSQLI_ASSOC);
+// Freemium products are those with a price of 0
+$freemium_products_sql = "SELECT * FROM products WHERE price <= 0 ORDER BY created_at DESC LIMIT 8";
+$freemium_products_result = $mysqli->query($freemium_products_sql);
+$freemium_products = $freemium_products_result->fetch_all(MYSQLI_ASSOC);
 
-$featured_products_sql = "SELECT * FROM products WHERE is_featured = 1 ORDER BY created_at DESC LIMIT 8";
-$featured_products_result = $mysqli->query($featured_products_sql);
-$featured_products = $featured_products_result->fetch_all(MYSQLI_ASSOC);
+// Premium products are featured and have a price > 0
+$premium_products_sql = "SELECT * FROM products WHERE is_featured = 1 AND price > 0 ORDER BY created_at DESC LIMIT 8";
+$premium_products_result = $mysqli->query($premium_products_sql);
+$premium_products = $premium_products_result->fetch_all(MYSQLI_ASSOC);
 
 ?>
 
@@ -38,13 +40,14 @@ $featured_products = $featured_products_result->fetch_all(MYSQLI_ASSOC);
     </div>
 </div>
 
-<!-- New Arrivals Section -->
+<!-- Freemium Packages Section -->
+<?php if (!empty($freemium_products)): ?>
 <div class="container my-5">
     <h2 class="text-center mb-4">Freemium Packages</h2>
-    <div id="newArrivalsCarousel" class="carousel slide" data-bs-ride="carousel">
+    <div id="freemiumCarousel" class="carousel slide" data-bs-ride="carousel">
         <div class="carousel-inner">
             <?php
-            $chunks = array_chunk($new_products, 4);
+            $chunks = array_chunk($freemium_products, 4);
             foreach($chunks as $index => $chunk):
             ?>
             <div class="carousel-item <?php if($index == 0) echo 'active'; ?>">
@@ -58,28 +61,32 @@ $featured_products = $featured_products_result->fetch_all(MYSQLI_ASSOC);
             </div>
             <?php endforeach; ?>
         </div>
-        <button class="carousel-control-prev" type="button" data-bs-target="#newArrivalsCarousel" data-bs-slide="prev">
+        <button class="carousel-control-prev" type="button" data-bs-target="#freemiumCarousel" data-bs-slide="prev">
             <span class="carousel-control-prev-icon" aria-hidden="true"></span>
             <span class="visually-hidden">Previous</span>
         </button>
-        <button class="carousel-control-next" type="button" data-bs-target="#newArrivalsCarousel" data-bs-slide="next">
+        <button class="carousel-control-next" type="button" data-bs-target="#freemiumCarousel" data-bs-slide="next">
             <span class="carousel-control-next-icon" aria-hidden="true"></span>
             <span class="visually-hidden">Next</span>
         </button>
     </div>
 </div>
+<?php endif; ?>
 
-<!-- Featured Products Section -->
+<!-- Premium Packages Section -->
+<?php if (!empty($premium_products)): ?>
 <div class="container my-5">
     <h2 class="text-center mb-4">Premium Packages</h2>
     <div class="row">
-        <?php foreach($featured_products as $product): ?>
+        <?php foreach($premium_products as $product): ?>
             <div class="col-md-3 mb-4">
                 <?php include 'includes/product_card.php'; ?>
             </div>
         <?php endforeach; ?>
     </div>
 </div>
+<?php endif; ?>
+
 
 <!-- How It Works Section -->
 <div class="container my-5">

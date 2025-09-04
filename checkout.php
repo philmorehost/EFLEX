@@ -23,6 +23,7 @@ if(empty($_SESSION['cart'])){
 // Fetch cart items and calculate total price
 $cart_items = [];
 $total_price = 0;
+$product_details_for_cart = [];
 if(!empty($_SESSION['cart'])){
     $product_ids = array_keys($_SESSION['cart']);
     $placeholders = implode(',', array_fill(0, count($product_ids), '?'));
@@ -38,6 +39,7 @@ if(!empty($_SESSION['cart'])){
             $subtotal = $row['price'] * $quantity;
             $total_price += $subtotal;
             $cart_items[$product_id] = ['name' => $row['name'], 'price' => $row['price'], 'quantity' => $quantity];
+            $product_details_for_cart[$product_id] = $row;
         }
         $stmt->close();
     }
@@ -47,44 +49,85 @@ if(!empty($_SESSION['cart'])){
 // --- Order processing logic ---
 if($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['place_order'])){
     $user_id = $_SESSION['id'];
-    $payment_method = $_POST['payment_method'];
-    $status = ($payment_method === 'bank_transfer') ? 'Awaiting Payment' : 'Pending';
-    $_SESSION['total_amount'] = $total_price;
-    $_SESSION['email'] = $_SESSION['email'] ?? 'customer@example.com'; // Make sure email is in session
+    $_SESSION['email'] = $_SESSION['email'] ?? 'customer@example.com';
 
-    $mysqli->begin_transaction();
-    try {
-        // NOTE: A real app should capture and save the address. This is simplified.
-        $sql_order = "INSERT INTO orders (user_id, total_amount, payment_method, status) VALUES (?, ?, ?, ?)";
-        $stmt_order = $mysqli->prepare($sql_order);
-        $stmt_order->bind_param("idss", $user_id, $total_price, $payment_method, $status);
-        $stmt_order->execute();
-        $order_id = $mysqli->insert_id;
-        $_SESSION['latest_order_id'] = $order_id;
+    if ($total_price == 0) {
+        // --- Handle Freemium (Zero-Cost) Orders ---
+        $mysqli->begin_transaction();
+        try {
+            $sql_order = "INSERT INTO orders (user_id, total_amount, payment_method, status) VALUES (?, 0.00, 'freemium', 'Completed')";
+            $stmt_order = $mysqli->prepare($sql_order);
+            $stmt_order->bind_param("i", $user_id);
+            $stmt_order->execute();
+            $order_id = $mysqli->insert_id;
+            $stmt_order->close();
 
-        $sql_items = "INSERT INTO order_items (order_id, product_id, quantity, price) VALUES (?, ?, ?, ?)";
-        $stmt_items = $mysqli->prepare($sql_items);
-        foreach($_SESSION['cart'] as $product_id => $quantity){
-            $price = $cart_items[$product_id]['price'];
-            $stmt_items->bind_param("iiid", $order_id, $product_id, $quantity, $price);
-            $stmt_items->execute();
+            $sql_items = "INSERT INTO order_items (order_id, product_id, quantity, price) VALUES (?, ?, ?, ?)";
+            $stmt_items = $mysqli->prepare($sql_items);
+            foreach($_SESSION['cart'] as $product_id => $quantity){
+                $price = $cart_items[$product_id]['price'];
+                $stmt_items->bind_param("iiid", $order_id, $product_id, $quantity, $price);
+                $stmt_items->execute();
+            }
+            $stmt_items->close();
+
+            foreach($_SESSION['cart'] as $product_id => $quantity){
+                $duration_days = (int)$product_details_for_cart[$product_id]['duration_days'];
+                $expires_at = $duration_days > 0 ? date('Y-m-d H:i:s', strtotime("+$duration_days days")) : null;
+                $sql_insert_sub = "INSERT INTO user_subscriptions (user_id, product_id, order_id, status, expires_at) VALUES (?, ?, ?, 'active', ?)";
+                $stmt_insert = $mysqli->prepare($sql_insert_sub);
+                $stmt_insert->bind_param("iiis", $user_id, $product_id, $order_id, $expires_at);
+                $stmt_insert->execute();
+                $stmt_insert->close();
+            }
+
+            $mysqli->commit();
+            unset($_SESSION['cart']);
+            $_SESSION['freemium_success'] = true;
+            header("location: order_success.php?order_id=" . $order_id);
+            exit();
+
+        } catch (mysqli_sql_exception $exception) {
+            $mysqli->rollback();
+            die('Freemium order failed. Please try again. ' . $exception->getMessage());
         }
+    } else {
+        // --- Handle Paid Orders ---
+        $payment_method = $_POST['payment_method'];
+        $status = ($payment_method === 'bank_transfer') ? 'Awaiting Payment' : 'Pending';
+        $_SESSION['total_amount'] = $total_price;
 
-        $mysqli->commit();
-        unset($_SESSION['cart']);
+        $mysqli->begin_transaction();
+        try {
+            $sql_order = "INSERT INTO orders (user_id, total_amount, payment_method, status) VALUES (?, ?, ?, ?)";
+            $stmt_order = $mysqli->prepare($sql_order);
+            $stmt_order->bind_param("idss", $user_id, $total_price, $payment_method, $status);
+            $stmt_order->execute();
+            $order_id = $mysqli->insert_id;
+            $_SESSION['latest_order_id'] = $order_id;
 
-        if($payment_method === 'bank_transfer'){
-            header("location: order_details_bank.php");
-        } elseif ($payment_method === 'paystack') {
-            header("location: paystack_handler.php");
-        } else {
-            header("location: order_success.php");
+            $sql_items = "INSERT INTO order_items (order_id, product_id, quantity, price) VALUES (?, ?, ?, ?)";
+            $stmt_items = $mysqli->prepare($sql_items);
+            foreach($_SESSION['cart'] as $product_id => $quantity){
+                $price = $cart_items[$product_id]['price'];
+                $stmt_items->bind_param("iiid", $order_id, $product_id, $quantity, $price);
+                $stmt_items->execute();
+            }
+            $stmt_items->close();
+
+            $mysqli->commit();
+
+            if($payment_method === 'bank_transfer'){
+                header("location: order_details_bank.php");
+            } elseif ($payment_method === 'paystack') {
+                header("location: paystack_handler.php");
+            }
+            exit();
+
+        } catch (mysqli_sql_exception $exception) {
+            $mysqli->rollback();
+            die('Order failed. Please try again. ' . $exception->getMessage());
         }
-        exit();
-
-    } catch (mysqli_sql_exception $exception) {
-        $mysqli->rollback();
-        die('Order failed. Please try again. ' . $exception->getMessage());
     }
 }
 
@@ -117,32 +160,31 @@ include 'includes/header.php';
     </div>
 
     <div class="col-md-7 col-lg-8">
-        <h4 class="mb-3">Shipping & Payment</h4>
+        <h4 class="mb-3">Your Details</h4>
         <form action="checkout.php" method="post" id="checkout-form">
-            <h5 class="mb-3">Shipping address</h5>
-            <div class="row g-3">
-                <div class="col-12"><label for="fullName" class="form-label">Full name</label><input type="text" class="form-control" name="fullName" required></div>
-                <div class="col-12"><label for="address" class="form-label">Address</label><input type="text" class="form-control" name="address" required></div>
-            </div>
+            <p>Your subscription will be linked to your account: <strong><?php echo htmlspecialchars($_SESSION['username']); ?></strong></p>
             <hr class="my-4">
 
-            <h5 class="mb-3">Payment Method</h5>
-            <div class="my-3">
-                <div class="form-check">
-                    <input id="bank_transfer" name="payment_method" type="radio" class="form-check-input" value="bank_transfer" required checked>
-                    <label class="form-check-label" for="bank_transfer">Bank Transfer</label>
+            <?php if($total_price > 0): ?>
+                <h5 class="mb-3">Payment Method</h5>
+                <div class="my-3">
+                    <div class="form-check">
+                        <input id="bank_transfer" name="payment_method" type="radio" class="form-check-input" value="bank_transfer" required checked>
+                        <label class="form-check-label" for="bank_transfer">Bank Transfer</label>
+                    </div>
+                     <div class="form-check">
+                        <input class="form-check-input" type="radio" name="payment_method" id="paystack" value="paystack" required>
+                        <label class="form-check-label" for="paystack">
+                            Pay with Paystack (Credit/Debit Card)
+                        </label>
+                    </div>
                 </div>
-                 <div class="form-check">
-                    <input class="form-check-input" type="radio" name="payment_method" id="paystack" value="paystack" required>
-                    <label class="form-check-label" for="paystack">
-                        Pay with Paystack (Credit/Debit Card)
-                    </label>
-                </div>
-            </div>
-
-            <hr class="my-4">
-
-            <button class="w-100 btn btn-primary btn-lg" type="submit" name="place_order">Place Order</button>
+                <hr class="my-4">
+                <button class="w-100 btn btn-primary btn-lg" type="submit" name="place_order">Place Order</button>
+            <?php else: ?>
+                <div class="alert alert-info">This is a free subscription. No payment is required.</div>
+                <button class="w-100 btn btn-primary btn-lg" type="submit" name="place_order">Get Freemium Access</button>
+            <?php endif; ?>
         </form>
     </div>
 </div>
