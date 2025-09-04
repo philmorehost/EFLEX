@@ -6,21 +6,23 @@ if (session_status() === PHP_SESSION_NONE) {
 require_once '../includes/db_connect.php';
 require_once '../includes/helpers.php';
 
+// Check if the user is logged in and is an admin
+if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true || !isset($_SESSION["role"]) || $_SESSION["role"] !== 'admin'){
+    header("location: ../index.php");
+    exit;
+}
+
 // --- Get Product ID ---
-$product_id = 0;
-if(isset($_GET["id"]) && !empty(trim($_GET["id"]))){
-    $product_id = trim($_GET["id"]);
-} elseif(isset($_POST["id"]) && !empty(trim($_POST["id"]))) {
-    $product_id = trim($_POST["id"]);
-} else {
+$product_id = $_GET['id'] ?? 0;
+if (!$product_id) {
     header("location: manage_products.php");
     exit();
 }
 
 $message = "";
-$files_err = "";
+$name_err = $description_err = $price_err = $category_id_err = $image_err = $files_err = "";
 
-// --- Handle File Deletion ---
+// --- Handle File Deletion (GET request for simplicity) ---
 if(isset($_GET['delete_file']) && !empty($_GET['delete_file'])) {
     $file_id_to_delete = $_GET['delete_file'];
 
@@ -52,7 +54,6 @@ if(isset($_GET['delete_file']) && !empty($_GET['delete_file'])) {
 
 // --- Processing form data when form is submitted ---
 if($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['update_product'])){
-    // (Validation logic for product details remains similar to add_product.php)
     $name = trim($_POST["name"]);
     $description = trim($_POST["description"]);
     $price = trim($_POST["price"]);
@@ -62,35 +63,24 @@ if($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['update_product'])){
     $is_top_seller = isset($_POST['is_top_seller']) ? 1 : 0;
     $current_image = $_POST['current_image'];
     $new_image_filename = $current_image;
-    $image_err = '';
 
     // Handle new image upload
     if (isset($_FILES["image"]) && $_FILES["image"]["error"] == 0) {
         $allowed = ["jpg" => "image/jpeg", "jpeg" => "image/jpeg", "gif" => "image/gif", "png" => "image/png"];
         $filename = $_FILES["image"]["name"];
-        $filetype = $_FILES["image"]["type"];
-        $filesize = $_FILES["image"]["size"];
-
         $ext = pathinfo($filename, PATHINFO_EXTENSION);
-        if (!array_key_exists($ext, $allowed)) $image_err = "Invalid file format.";
-        $maxsize = 5 * 1024 * 1024;
-        if ($filesize > $maxsize) $image_err = "File size is too large (max 5MB).";
-
-        if (in_array($filetype, $allowed) && empty($image_err)) {
+        if (array_key_exists($ext, $allowed)) {
             $new_filename = uniqid('img_', true) . "." . $ext;
             if (move_uploaded_file($_FILES["image"]["tmp_name"], __DIR__ . "/../uploads/" . $new_filename)) {
-                // New image uploaded successfully, old one can be deleted if not default
                 if ($current_image && $current_image != 'default.jpg' && file_exists(__DIR__ . "/../uploads/" . $current_image)) {
                     unlink(__DIR__ . "/../uploads/" . $current_image);
                 }
-            } else {
-                $image_err = "Failed to move uploaded image.";
-                $new_image_filename = $current_image; // Revert to old image on failure
+                $new_image_filename = $new_filename;
             }
         }
     }
 
-    // --- Start File Upload Logic for Subscription Files ---
+    // Handle new subscription file uploads
     $uploaded_files = [];
     $protected_dir = __DIR__ . '/../uploads/protected_files/';
     if (isset($_FILES['product_files'])) {
@@ -101,57 +91,40 @@ if($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['update_product'])){
                 $file_extension = pathinfo($original_filename, PATHINFO_EXTENSION);
                 $safe_filename = uniqid('prod_', true) . '.' . $file_extension;
                 $destination = $protected_dir . $safe_filename;
-
                 if (move_uploaded_file($_FILES['product_files']['tmp_name'][$i], $destination)) {
                     $uploaded_files[] = [
-                        'filename' => $safe_filename,
-                        'original_filename' => $original_filename,
-                        'filepath' => 'uploads/protected_files/' . $safe_filename,
-                        'mimetype' => $_FILES['product_files']['type'][$i],
-                        'filesize' => $_FILES['product_files']['size'][$i]
+                        'filename' => $safe_filename, 'original_filename' => $original_filename, 'filepath' => 'uploads/protected_files/' . $safe_filename, 'mimetype' => $_FILES['product_files']['type'][$i], 'filesize' => $_FILES['product_files']['size'][$i]
                     ];
-                } else {
-                    $files_err = "Error moving uploaded file: " . $original_filename;
-                    break;
                 }
-            } elseif ($_FILES['product_files']['error'][$i] !== UPLOAD_ERR_NO_FILE) {
-                $files_err = "Error uploading file: " . $_FILES['product_files']['name'][$i];
-                break;
             }
         }
     }
-    // --- End File Upload Logic ---
 
-    if(empty($files_err) && empty($image_err)) {
-        // Update product details
-        $sql = "UPDATE products SET name=?, description=?, price=?, duration_days=?, category_id=?, image=?, is_featured=?, is_top_seller=? WHERE id=?";
-        $stmt = $mysqli->prepare($sql);
-        $stmt->bind_param("ssdiisiii", $name, $description, $price, $duration_days, $category_id, $new_image_filename, $is_featured, $is_top_seller, $product_id);
-        $stmt->execute();
-        $stmt->close();
+    // Update product details in the database
+    $sql = "UPDATE products SET name=?, description=?, price=?, duration_days=?, category_id=?, image=?, is_featured=?, is_top_seller=? WHERE id=?";
+    $stmt = $mysqli->prepare($sql);
+    $stmt->bind_param("ssdiisiii", $name, $description, $price, $duration_days, $category_id, $new_image_filename, $is_featured, $is_top_seller, $product_id);
+    $stmt->execute();
+    $stmt->close();
 
-        // Add new files to the database
-        if(!empty($uploaded_files)) {
-            $sql_files = "INSERT INTO product_local_files (product_id, filename, original_filename, filepath, mimetype, filesize) VALUES (?, ?, ?, ?, ?, ?)";
-            $stmt_files = $mysqli->prepare($sql_files);
-            foreach($uploaded_files as $file) {
-                $stmt_files->bind_param("issssi", $product_id, $file['filename'], $file['original_filename'], $file['filepath'], $file['mimetype'], $file['filesize']);
-                $stmt_files->execute();
-            }
-            $stmt_files->close();
+    // Add new file records to the database
+    if(!empty($uploaded_files)) {
+        $sql_files = "INSERT INTO product_local_files (product_id, filename, original_filename, filepath, mimetype, filesize) VALUES (?, ?, ?, ?, ?, ?)";
+        $stmt_files = $mysqli->prepare($sql_files);
+        foreach($uploaded_files as $file) {
+            $stmt_files->bind_param("issssi", $product_id, $file['filename'], $file['original_filename'], $file['filepath'], $file['mimetype'], $file['filesize']);
+            $stmt_files->execute();
         }
-
-        $_SESSION['product_updated'] = "Package details updated successfully.";
-        header("location: manage_products.php");
-        exit();
-    } else {
-        $message = '<div class="alert alert-danger">Error updating product. ' . $image_err . ' ' . $files_err . '</div>';
+        $stmt_files->close();
     }
+
+    $_SESSION['product_updated'] = "Package details updated successfully.";
+    header("location: manage_products.php");
+    exit();
 }
 
-
-// --- Fetch current data for the form (GET Request Logic) ---
-$sql_fetch = "SELECT name, description, price, duration_days, category_id, image, is_featured, is_top_seller FROM products WHERE id = ?";
+// --- Fetch current data for the form (for GET request) ---
+$sql_fetch = "SELECT * FROM products WHERE id = ?";
 $stmt_fetch = $mysqli->prepare($sql_fetch);
 $stmt_fetch->bind_param("i", $product_id);
 $stmt_fetch->execute();
@@ -203,7 +176,6 @@ include 'includes/header.php';
 
             <div class="row">
                 <div class="col-md-8">
-                    <!-- Form fields for product details -->
                     <div class="mb-3">
                         <label for="name" class="form-label">Product Name</label>
                         <input type="text" name="name" id="name" class="form-control" value="<?php echo htmlspecialchars($product['name']); ?>">
@@ -236,14 +208,13 @@ include 'includes/header.php';
                         </div>
                     </div>
 
-                    <!-- File Management -->
                     <div class="mb-3">
                         <label class="form-label">Existing Files</label>
                         <?php if(count($existing_files) > 0): ?>
                             <ul class="list-group">
                                 <?php foreach($existing_files as $file): ?>
                                     <li class="list-group-item d-flex justify-content-between align-items-center">
-                                        <?php echo htmlspecialchars($file['original_filename']); ?>
+                                        <?php echo htmlspecialchars($file['original_filename']); ?> (<?php echo round($file['filesize'] / 1024); ?> KB)
                                         <a href="edit_product.php?id=<?php echo $product_id; ?>&delete_file=<?php echo $file['id']; ?>" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure you want to delete this file?');"><i class="fas fa-trash"></i></a>
                                     </li>
                                 <?php endforeach; ?>
@@ -256,13 +227,11 @@ include 'includes/header.php';
                      <div class="mb-3">
                         <label for="product_files" class="form-label">Upload New Files</label>
                         <input type="file" name="product_files[]" id="product_files" class="form-control" multiple>
-                        <div class="form-text">You can upload additional files here.</div>
-                         <span class="text-danger"><?php echo $files_err; ?></span>
+                        <div class="form-text">You can upload additional files here to add to the package.</div>
                     </div>
 
                 </div>
                 <div class="col-md-4">
-                    <!-- Image and flags -->
                      <div class="mb-3">
                         <label class="form-label">Current Image</label>
                         <img src="../uploads/<?php echo htmlspecialchars($product['image']); ?>" alt="Current Image" class="img-thumbnail mb-2" style="max-width: 150px;">

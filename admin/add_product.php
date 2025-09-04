@@ -113,7 +113,7 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
             $stmt = $mysqli->prepare($sql);
             $stmt->bind_param("ssdiisii", $name, $description, $price, $duration_days, $category_id, $image_filename, $is_featured, $is_top_seller);
             $stmt->execute();
-            $product_id = $stmt->insert_id;
+            $product_id = $mysqli->insert_id; // Correct way to get the last insert ID
             $stmt->close();
 
             // Now, handle the uploaded files
