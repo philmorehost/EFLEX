@@ -2,7 +2,6 @@
 // Include admin header
 include 'includes/header.php';
 require_once '../includes/db_connect.php';
-require_once '../includes/google_drive_api.php'; // Include the Google Drive API functions
 
 $message = "";
 
@@ -10,9 +9,8 @@ $message = "";
 $users_result = $mysqli->query("SELECT id, username, email FROM users WHERE role = 'customer' ORDER BY username ASC");
 $users = $users_result->fetch_all(MYSQLI_ASSOC);
 
-// Fetch subscription products for dropdown
-// Only show products that have at least one Google Drive file linked
-$products_result = $mysqli->query("SELECT p.id, p.name FROM products p JOIN product_google_drive_files pgdf ON p.id = pgdf.product_id GROUP BY p.id ORDER BY p.name ASC");
+// Fetch all products for dropdown
+$products_result = $mysqli->query("SELECT id, name FROM products ORDER BY name ASC");
 $products = $products_result->fetch_all(MYSQLI_ASSOC);
 
 
@@ -32,51 +30,7 @@ if($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['add_subscription'])){
         if($stmt = $mysqli->prepare($sql)){
             $stmt->bind_param("iiis", $user_id, $product_id, $order_id, $expires_at);
             if($stmt->execute()){
-                // --- Grant Google Drive Permissions ---
-                // 1. Get user's email
-                $user_email = '';
-                $sql_user = "SELECT email FROM users WHERE id = ?";
-                if($stmt_user = $mysqli->prepare($sql_user)){
-                    $stmt_user->bind_param("i", $user_id);
-                    $stmt_user->execute();
-                    $stmt_user->bind_result($user_email);
-                    $stmt_user->fetch();
-                    $stmt_user->close();
-                }
-
-                // 2. Get file IDs for the product
-                $file_ids = [];
-                $sql_files = "SELECT google_drive_file_id FROM product_google_drive_files WHERE product_id = ?";
-                if($stmt_files = $mysqli->prepare($sql_files)){
-                    $stmt_files->bind_param("i", $product_id);
-                    $stmt_files->execute();
-                    $result_files = $stmt_files->get_result();
-                    while($row = $result_files->fetch_assoc()){
-                        $file_ids[] = $row['google_drive_file_id'];
-                    }
-                    $stmt_files->close();
-                }
-
-                // 3. Grant permission for each file
-                if(!empty($user_email) && !empty($file_ids)){
-                    $permissions_granted = true;
-                    $permission_errors = [];
-                    foreach($file_ids as $file_id){
-                        $result = grant_file_permission($file_id, $user_email);
-                        if(isset($result['error'])){
-                            $permissions_granted = false;
-                            $permission_errors[] = "File ID $file_id: " . $result['error']['message'];
-                        }
-                    }
-                    if($permissions_granted){
-                        $message = '<div class="alert alert-success">Subscription added successfully and Google Drive access granted!</div>';
-                    } else {
-                        $message = '<div class="alert alert-warning">Subscription added, but failed to grant Google Drive access for some files. Please check manually. Errors: ' . implode(", ", $permission_errors) . '</div>';
-                    }
-                } else {
-                     $message = '<div class="alert alert-success">Subscription added successfully. No Google Drive files were associated with this product.</div>';
-                }
-
+                $message = '<div class="alert alert-success">Subscription added successfully!</div>';
             } else {
                 $message = '<div class="alert alert-danger">Error adding subscription. The user might already be subscribed to this product.</div>';
             }
@@ -115,7 +69,6 @@ if($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['add_subscription'])){
                         <option value="<?php echo $product['id']; ?>"><?php echo htmlspecialchars($product['name']); ?></option>
                     <?php endforeach; ?>
                 </select>
-                <div class="form-text">Only products that have Google Drive files linked to them are shown here.</div>
             </div>
             <div class="mb-3">
                 <label for="expires_at" class="form-label">Expiry Date</label>

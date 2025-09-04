@@ -1,23 +1,13 @@
 <?php
-// Include admin header
-include 'includes/header.php';
+// Initialize session and connect to DB
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
 require_once '../includes/db_connect.php';
 require_once '../includes/helpers.php';
 
-// Fetch categories for the dropdown
-$sql_categories = "SELECT * FROM categories ORDER BY name ASC";
-$result_categories = $mysqli->query($sql_categories);
-$categories = $result_categories->fetch_all(MYSQLI_ASSOC);
-
-// Define variables
-$name = $description = $price = $category_id = $current_image = "";
-$google_drive_file_ids = "";
-$is_featured = $is_top_seller = 0;
-$name_err = $description_err = $price_err = $category_id_err = $image_err = "";
-$message = "";
+// --- Get Product ID ---
 $product_id = 0;
-
-// Check if ID is provided for editing
 if(isset($_GET["id"]) && !empty(trim($_GET["id"]))){
     $product_id = trim($_GET["id"]);
 } elseif(isset($_POST["id"]) && !empty(trim($_POST["id"]))) {
@@ -27,96 +17,174 @@ if(isset($_GET["id"]) && !empty(trim($_GET["id"]))){
     exit();
 }
 
-// Processing form data when form is submitted
-if($_SERVER["REQUEST_METHOD"] == "POST"){
-    // Validate form fields
+$message = "";
+$files_err = "";
+
+// --- Handle File Deletion ---
+if(isset($_GET['delete_file']) && !empty($_GET['delete_file'])) {
+    $file_id_to_delete = $_GET['delete_file'];
+
+    // Get file path to delete from server
+    $sql_file = "SELECT filepath FROM product_local_files WHERE id = ? AND product_id = ?";
+    $stmt_file = $mysqli->prepare($sql_file);
+    $stmt_file->bind_param("ii", $file_id_to_delete, $product_id);
+    $stmt_file->execute();
+    $stmt_file->bind_result($filepath);
+    $stmt_file->fetch();
+    $stmt_file->close();
+
+    if ($filepath && file_exists(__DIR__ . '/../' . $filepath)) {
+        unlink(__DIR__ . '/../' . $filepath);
+    }
+
+    // Delete the record from the database
+    $sql_delete = "DELETE FROM product_local_files WHERE id = ?";
+    $stmt_delete = $mysqli->prepare($sql_delete);
+    $stmt_delete->bind_param("i", $file_id_to_delete);
+    $stmt_delete->execute();
+    $stmt_delete->close();
+
+    $_SESSION['product_updated'] = "File deleted successfully.";
+    header("location: edit_product.php?id=" . $product_id);
+    exit();
+}
+
+
+// --- Processing form data when form is submitted ---
+if($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['update_product'])){
+    // (Validation logic for product details remains similar to add_product.php)
     $name = trim($_POST["name"]);
     $description = trim($_POST["description"]);
     $price = trim($_POST["price"]);
     $category_id = $_POST["category_id"];
-    $google_drive_file_ids = trim($_POST['google_drive_file_ids']);
     $duration_days = (int)$_POST['duration_days'];
     $is_featured = isset($_POST['is_featured']) ? 1 : 0;
     $is_top_seller = isset($_POST['is_top_seller']) ? 1 : 0;
     $current_image = $_POST['current_image'];
-
-    // (Validation logic here...)
-
     $new_image_filename = $current_image;
-    // ... (image upload logic) ...
+    $image_err = '';
 
-    // Check input errors before updating database
-    if(empty($name_err) && empty($description_err) && empty($price_err) && empty($category_id_err) && empty($image_err)){
-        $sql = "UPDATE products SET name=?, description=?, price=?, duration_days=?, category_id=?, image=?, is_featured=?, is_top_seller=? WHERE id=?";
-        if($stmt = $mysqli->prepare($sql)){
-            $stmt->bind_param("ssdiisiii", $name, $description, $price, $duration_days, $category_id, $new_image_filename, $is_featured, $is_top_seller, $product_id);
-            if($stmt->execute()){
-                // Handle Google Drive files
-                // First, remove existing file associations
-                $sql_delete_files = "DELETE FROM product_google_drive_files WHERE product_id = ?";
-                if($stmt_delete = $mysqli->prepare($sql_delete_files)) {
-                    $stmt_delete->bind_param("i", $product_id);
-                    $stmt_delete->execute();
-                    $stmt_delete->close();
+    // Handle new image upload
+    if (isset($_FILES["image"]) && $_FILES["image"]["error"] == 0) {
+        $allowed = ["jpg" => "image/jpeg", "jpeg" => "image/jpeg", "gif" => "image/gif", "png" => "image/png"];
+        $filename = $_FILES["image"]["name"];
+        $filetype = $_FILES["image"]["type"];
+        $filesize = $_FILES["image"]["size"];
+
+        $ext = pathinfo($filename, PATHINFO_EXTENSION);
+        if (!array_key_exists($ext, $allowed)) $image_err = "Invalid file format.";
+        $maxsize = 5 * 1024 * 1024;
+        if ($filesize > $maxsize) $image_err = "File size is too large (max 5MB).";
+
+        if (in_array($filetype, $allowed) && empty($image_err)) {
+            $new_filename = uniqid('img_', true) . "." . $ext;
+            if (move_uploaded_file($_FILES["image"]["tmp_name"], __DIR__ . "/../uploads/" . $new_filename)) {
+                // New image uploaded successfully, old one can be deleted if not default
+                if ($current_image && $current_image != 'default.jpg' && file_exists(__DIR__ . "/../uploads/" . $current_image)) {
+                    unlink(__DIR__ . "/../uploads/" . $current_image);
                 }
-
-                // Now, add the new file associations
-                if(!empty($google_drive_file_ids)) {
-                    $file_ids = explode(',', $google_drive_file_ids);
-                    $sql_drive = "INSERT INTO product_google_drive_files (product_id, google_drive_file_id) VALUES (?, ?)";
-                    if($stmt_drive = $mysqli->prepare($sql_drive)) {
-                        foreach($file_ids as $file_id) {
-                            $stmt_drive->bind_param("is", $product_id, $file_id);
-                            $stmt_drive->execute();
-                        }
-                        $stmt_drive->close();
-                    }
-                }
-
-                $_SESSION['product_updated'] = "Package details updated successfully.";
-                header("location: manage_products.php");
-                exit();
             } else {
-                $message = '<div class="alert alert-danger">Update failed. Please try again.</div>';
+                $image_err = "Failed to move uploaded image.";
+                $new_image_filename = $current_image; // Revert to old image on failure
             }
-            $stmt->close();
         }
-    } else {
-        $message = '<div class="alert alert-danger">Please correct the errors and try again.</div>';
     }
-} else {
-    // Fetch current data for the form
-    $sql_fetch = "SELECT name, description, price, duration_days, category_id, image, is_featured, is_top_seller FROM products WHERE id = ?";
-    if($stmt_fetch = $mysqli->prepare($sql_fetch)){
-        $stmt_fetch->bind_param("i", $product_id);
-        if($stmt_fetch->execute()){
-            $stmt_fetch->store_result();
-            if($stmt_fetch->num_rows == 1){
-                $stmt_fetch->bind_result($name, $description, $price, $duration_days, $category_id, $current_image, $is_featured, $is_top_seller);
-                $stmt_fetch->fetch();
 
-                // Fetch associated Google Drive files
-                $sql_files = "SELECT google_drive_file_id FROM product_google_drive_files WHERE product_id = ?";
-                if($stmt_files = $mysqli->prepare($sql_files)) {
-                    $stmt_files->bind_param("i", $product_id);
-                    $stmt_files->execute();
-                    $result_files = $stmt_files->get_result();
-                    $file_ids = [];
-                    while($row = $result_files->fetch_assoc()) {
-                        $file_ids[] = $row['google_drive_file_id'];
-                    }
-                    $google_drive_file_ids = implode(',', $file_ids);
-                    $stmt_files->close();
+    // --- Start File Upload Logic for Subscription Files ---
+    $uploaded_files = [];
+    $protected_dir = __DIR__ . '/../uploads/protected_files/';
+    if (isset($_FILES['product_files'])) {
+        $file_count = count($_FILES['product_files']['name']);
+        for ($i = 0; $i < $file_count; $i++) {
+            if ($_FILES['product_files']['error'][$i] === UPLOAD_ERR_OK) {
+                $original_filename = basename($_FILES['product_files']['name'][$i]);
+                $file_extension = pathinfo($original_filename, PATHINFO_EXTENSION);
+                $safe_filename = uniqid('prod_', true) . '.' . $file_extension;
+                $destination = $protected_dir . $safe_filename;
+
+                if (move_uploaded_file($_FILES['product_files']['tmp_name'][$i], $destination)) {
+                    $uploaded_files[] = [
+                        'filename' => $safe_filename,
+                        'original_filename' => $original_filename,
+                        'filepath' => 'uploads/protected_files/' . $safe_filename,
+                        'mimetype' => $_FILES['product_files']['type'][$i],
+                        'filesize' => $_FILES['product_files']['size'][$i]
+                    ];
+                } else {
+                    $files_err = "Error moving uploaded file: " . $original_filename;
+                    break;
                 }
-
-            } else {
-                header("location: manage_products.php");
-                exit();
+            } elseif ($_FILES['product_files']['error'][$i] !== UPLOAD_ERR_NO_FILE) {
+                $files_err = "Error uploading file: " . $_FILES['product_files']['name'][$i];
+                break;
             }
         }
-        $stmt_fetch->close();
+    }
+    // --- End File Upload Logic ---
+
+    if(empty($files_err) && empty($image_err)) {
+        // Update product details
+        $sql = "UPDATE products SET name=?, description=?, price=?, duration_days=?, category_id=?, image=?, is_featured=?, is_top_seller=? WHERE id=?";
+        $stmt = $mysqli->prepare($sql);
+        $stmt->bind_param("ssdiisiii", $name, $description, $price, $duration_days, $category_id, $new_image_filename, $is_featured, $is_top_seller, $product_id);
+        $stmt->execute();
+        $stmt->close();
+
+        // Add new files to the database
+        if(!empty($uploaded_files)) {
+            $sql_files = "INSERT INTO product_local_files (product_id, filename, original_filename, filepath, mimetype, filesize) VALUES (?, ?, ?, ?, ?, ?)";
+            $stmt_files = $mysqli->prepare($sql_files);
+            foreach($uploaded_files as $file) {
+                $stmt_files->bind_param("issssi", $product_id, $file['filename'], $file['original_filename'], $file['filepath'], $file['mimetype'], $file['filesize']);
+                $stmt_files->execute();
+            }
+            $stmt_files->close();
+        }
+
+        $_SESSION['product_updated'] = "Package details updated successfully.";
+        header("location: manage_products.php");
+        exit();
+    } else {
+        $message = '<div class="alert alert-danger">Error updating product. ' . $image_err . ' ' . $files_err . '</div>';
     }
 }
+
+
+// --- Fetch current data for the form (GET Request Logic) ---
+$sql_fetch = "SELECT name, description, price, duration_days, category_id, image, is_featured, is_top_seller FROM products WHERE id = ?";
+$stmt_fetch = $mysqli->prepare($sql_fetch);
+$stmt_fetch->bind_param("i", $product_id);
+$stmt_fetch->execute();
+$result = $stmt_fetch->get_result();
+$product = $result->fetch_assoc();
+$stmt_fetch->close();
+
+if(!$product) {
+    header("location: manage_products.php");
+    exit();
+}
+
+// Fetch associated local files
+$sql_files = "SELECT * FROM product_local_files WHERE product_id = ?";
+$stmt_files = $mysqli->prepare($sql_files);
+$stmt_files->bind_param("i", $product_id);
+$stmt_files->execute();
+$result_files = $stmt_files->get_result();
+$existing_files = $result_files->fetch_all(MYSQLI_ASSOC);
+$stmt_files->close();
+
+// Fetch categories for the dropdown
+$sql_categories = "SELECT * FROM categories ORDER BY name ASC";
+$result_categories = $mysqli->query($sql_categories);
+$categories = $result_categories->fetch_all(MYSQLI_ASSOC);
+
+if(isset($_SESSION['product_updated'])){
+    $message = '<div class="alert alert-success">'.$_SESSION['product_updated'].'</div>';
+    unset($_SESSION['product_updated']);
+}
+
+// --- Start HTML Output ---
+include 'includes/header.php';
 ?>
 
 <div class="d-flex justify-content-between align-items-center mb-3">
@@ -129,68 +197,85 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
 <div class="card">
     <div class="card-header"><i class="fas fa-edit"></i> Edit Package Details</div>
     <div class="card-body">
-        <form action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>?id=<?php echo $product_id; ?>" method="post" enctype="multipart/form-data">
+        <form action="edit_product.php?id=<?php echo $product_id; ?>" method="post" enctype="multipart/form-data">
             <input type="hidden" name="id" value="<?php echo $product_id; ?>">
-            <input type="hidden" name="current_image" value="<?php echo $current_image; ?>">
+            <input type="hidden" name="current_image" value="<?php echo htmlspecialchars($product['image']); ?>">
 
             <div class="row">
                 <div class="col-md-8">
                     <!-- Form fields for product details -->
                     <div class="mb-3">
                         <label for="name" class="form-label">Product Name</label>
-                        <input type="text" name="name" id="name" class="form-control" value="<?php echo htmlspecialchars($name); ?>">
+                        <input type="text" name="name" id="name" class="form-control" value="<?php echo htmlspecialchars($product['name']); ?>">
                     </div>
                     <div class="mb-3">
                         <label for="description" class="form-label">Description</label>
-                        <textarea name="description" id="description" class="form-control" rows="5"><?php echo htmlspecialchars($description); ?></textarea>
+                        <textarea name="description" id="description" class="form-control" rows="5"><?php echo htmlspecialchars($product['description']); ?></textarea>
                     </div>
                     <div class="row">
                         <div class="col-md-6 mb-3">
                              <label for="price" class="form-label">Price</label>
                             <div class="input-group">
                                <span class="input-group-text"><?php echo get_app_setting('currency_symbol', '$'); ?></span>
-                               <input type="number" name="price" id="price" class="form-control" value="<?php echo htmlspecialchars($price); ?>" step="0.01">
+                               <input type="number" name="price" id="price" class="form-control" value="<?php echo htmlspecialchars($product['price']); ?>" step="0.01" min="0">
                             </div>
+                             <div class="form-text">Enter 0 for a Freemium package.</div>
                         </div>
                         <div class="col-md-4 mb-3">
                             <label for="category_id" class="form-label">Category</label>
                             <select name="category_id" id="category_id" class="form-select">
                                 <?php foreach ($categories as $cat): ?>
-                                    <option value="<?php echo $cat['id']; ?>" <?php echo ($category_id == $cat['id']) ? 'selected' : ''; ?>><?php echo htmlspecialchars($cat['name']); ?></option>
+                                    <option value="<?php echo $cat['id']; ?>" <?php echo ($product['category_id'] == $cat['id']) ? 'selected' : ''; ?>><?php echo htmlspecialchars($cat['name']); ?></option>
                                 <?php endforeach; ?>
                             </select>
                         </div>
                         <div class="col-md-2 mb-3">
                             <label for="duration_days" class="form-label">Duration</label>
-                            <input type="number" name="duration_days" id="duration_days" class="form-control" value="<?php echo htmlspecialchars($duration_days ?? 365); ?>">
+                            <input type="number" name="duration_days" id="duration_days" class="form-control" value="<?php echo htmlspecialchars($product['duration_days'] ?? 365); ?>">
                             <div class="form-text">In days.</div>
                         </div>
                     </div>
-                     <div class="mb-3">
-                        <label for="google_drive_files" class="form-label">Google Drive Files</label>
-                        <input type="hidden" name="google_drive_file_ids" id="google_drive_file_ids" value="<?php echo htmlspecialchars($google_drive_file_ids); ?>">
-                        <div class="input-group">
-                            <input type="text" id="google_drive_files_display" class="form-control" placeholder="No files selected" readonly>
-                            <button class="btn btn-outline-secondary" type="button" data-bs-toggle="modal" data-bs-target="#driveBrowserModal">Browse Drive</button>
-                        </div>
-                        <div class="form-text">Link this package to specific Google Drive files.</div>
+
+                    <!-- File Management -->
+                    <div class="mb-3">
+                        <label class="form-label">Existing Files</label>
+                        <?php if(count($existing_files) > 0): ?>
+                            <ul class="list-group">
+                                <?php foreach($existing_files as $file): ?>
+                                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                                        <?php echo htmlspecialchars($file['original_filename']); ?>
+                                        <a href="edit_product.php?id=<?php echo $product_id; ?>&delete_file=<?php echo $file['id']; ?>" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure you want to delete this file?');"><i class="fas fa-trash"></i></a>
+                                    </li>
+                                <?php endforeach; ?>
+                            </ul>
+                        <?php else: ?>
+                            <p class="text-muted">No files have been uploaded for this package yet.</p>
+                        <?php endif; ?>
                     </div>
+
+                     <div class="mb-3">
+                        <label for="product_files" class="form-label">Upload New Files</label>
+                        <input type="file" name="product_files[]" id="product_files" class="form-control" multiple>
+                        <div class="form-text">You can upload additional files here.</div>
+                         <span class="text-danger"><?php echo $files_err; ?></span>
+                    </div>
+
                 </div>
                 <div class="col-md-4">
                     <!-- Image and flags -->
                      <div class="mb-3">
                         <label class="form-label">Current Image</label>
-                        <img src="../uploads/<?php echo htmlspecialchars($current_image); ?>" alt="Current Image" class="img-thumbnail mb-2" style="max-width: 150px;">
+                        <img src="../uploads/<?php echo htmlspecialchars($product['image']); ?>" alt="Current Image" class="img-thumbnail mb-2" style="max-width: 150px;">
                         <label for="image" class="form-label">Change Image</label>
                         <input type="file" name="image" id="image" class="form-control">
                         <div class="form-text">Leave blank to keep the current image.</div>
                     </div>
                     <div class="mb-3 form-check">
-                        <input type="checkbox" name="is_featured" class="form-check-input" id="is_featured" value="1" <?php echo ($is_featured) ? 'checked' : ''; ?>>
+                        <input type="checkbox" name="is_featured" class="form-check-input" id="is_featured" value="1" <?php echo ($product['is_featured']) ? 'checked' : ''; ?>>
                         <label class="form-check-label" for="is_featured">Featured Product</label>
                     </div>
                     <div class="mb-3 form-check">
-                        <input type="checkbox" name="is_top_seller" class="form-check-input" id="is_top_seller" value="1" <?php echo ($is_top_seller) ? 'checked' : ''; ?>>
+                        <input type="checkbox" name="is_top_seller" class="form-check-input" id="is_top_seller" value="1" <?php echo ($product['is_top_seller']) ? 'checked' : ''; ?>>
                         <label class="form-check-label" for="is_top_seller">Top Seller</label>
                     </div>
                 </div>
@@ -204,104 +289,7 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
     </div>
 </div>
 
-<!-- Google Drive Browser Modal -->
-<div class="modal fade" id="driveBrowserModal" tabindex="-1" aria-labelledby="driveBrowserModalLabel" aria-hidden="true">
-  <div class="modal-dialog modal-lg">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="driveBrowserModalLabel">Browse Google Drive</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-      </div>
-      <div class="modal-body" id="drive-browser-content">
-        <!-- AJAX content will be loaded here -->
-        <p>Loading...</p>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-        <button type="button" class="btn btn-primary" id="saveDriveSelection">Save Selection</button>
-      </div>
-    </div>
-  </div>
-</div>
-
 <?php
 // Include admin footer
 include 'includes/footer.php';
 ?>
-
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    const modal = document.getElementById('driveBrowserModal');
-    const modalBody = document.getElementById('drive-browser-content');
-    const fileIdsInput = document.getElementById('google_drive_file_ids');
-    const fileDisplayInput = document.getElementById('google_drive_files_display');
-    const saveButton = document.getElementById('saveDriveSelection');
-    const modalInstance = bootstrap.Modal.getOrCreateInstance(modal);
-
-    // Keep track of selected files in the modal to handle pagination/browsing without losing selections
-    let selectedFilesInModal = [];
-
-    function updateDisplay() {
-        const fileIds = fileIdsInput.value.split(',').filter(id => id.trim() !== '');
-        if (fileIds.length > 0) {
-            fileDisplayInput.value = `${fileIds.length} file(s) selected`;
-        } else {
-            fileDisplayInput.value = 'No files selected';
-        }
-    }
-
-    function loadDriveBrowser(folderId = 'root') {
-        modalBody.innerHTML = '<p>Loading...</p>';
-        // Pass currently saved file IDs to pre-check boxes
-        const selectedFiles = fileIdsInput.value;
-        fetch(`ajax_drive_browser.php?folder=${folderId}&selected_files=${selectedFiles}`)
-            .then(response => response.text())
-            .then(html => {
-                modalBody.innerHTML = html;
-                // Sync the modal's selection state with the main page's state
-                selectedFilesInModal = fileIdsInput.value.split(',').filter(id => id.trim() !== '');
-            })
-            .catch(error => {
-                modalBody.innerHTML = '<p class="text-danger">Failed to load content.</p>';
-                console.error('Error:', error);
-            });
-    }
-
-    // Load initial content when modal is shown
-    modal.addEventListener('show.bs.modal', function () {
-        loadDriveBrowser();
-    });
-
-    // Handle clicks inside the modal for navigation and live selection changes
-    modalBody.addEventListener('click', function(event) {
-        const target = event.target;
-
-        if (target.classList.contains('drive-browse-btn')) {
-            event.preventDefault();
-            const folderId = target.dataset.folderId;
-            loadDriveBrowser(folderId);
-        }
-
-        if (target.classList.contains('drive-file-checkbox')) {
-            const fileId = target.value;
-            if (target.checked) {
-                if (!selectedFilesInModal.includes(fileId)) {
-                    selectedFilesInModal.push(fileId);
-                }
-            } else {
-                selectedFilesInModal = selectedFilesInModal.filter(id => id !== fileId);
-            }
-        }
-    });
-
-    // Handle Save Selection button click
-    saveButton.addEventListener('click', function() {
-        fileIdsInput.value = selectedFilesInModal.join(',');
-        updateDisplay();
-        modalInstance.hide();
-    });
-
-    // Initial display update on page load
-    updateDisplay();
-});
-</script>

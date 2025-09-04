@@ -10,9 +10,8 @@ if (!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true) {
 
 // Include necessary files
 require_once 'includes/db_connect.php';
-require_once 'includes/google_drive_api.php';
 
-// --- New Subscription & File Logic ---
+// --- Local File Subscription Logic ---
 $user_id = $_SESSION['id'];
 $subscribed_products = [];
 $files_for_product = [];
@@ -31,12 +30,21 @@ if ($stmt_sub = $mysqli->prepare($sql_sub)) {
     $stmt_sub->execute();
     $result = $stmt_sub->get_result();
     while ($row = $result->fetch_assoc()) {
-        $subscribed_products[] = $row;
+        // Also check if the product has any local files
+        $sql_check_files = "SELECT id FROM product_local_files WHERE product_id = ? LIMIT 1";
+        $stmt_check = $mysqli->prepare($sql_check_files);
+        $stmt_check->bind_param("i", $row['id']);
+        $stmt_check->execute();
+        $stmt_check->store_result();
+        if($stmt_check->num_rows > 0) {
+            $subscribed_products[] = $row;
+        }
+        $stmt_check->close();
     }
     $stmt_sub->close();
 }
 
-// If user has no active, valid subscriptions, redirect them.
+// If user has no active, valid subscriptions with files, redirect them.
 if (empty($subscribed_products)) {
     header("location: subscribe.php");
     exit;
@@ -56,53 +64,27 @@ if ($product_id) {
     }
 
     if ($is_subscribed_to_product) {
-        $sql_files = "SELECT google_drive_file_id FROM product_google_drive_files WHERE product_id = ?";
+        $sql_files = "SELECT id, original_filename FROM product_local_files WHERE product_id = ? ORDER BY original_filename ASC";
         if($stmt_files = $mysqli->prepare($sql_files)) {
             $stmt_files->bind_param("i", $product_id);
             $stmt_files->execute();
             $result_files = $stmt_files->get_result();
-            while($file_row = $result_files->fetch_assoc()){
-                // Fetch file details from Google Drive API
-                $file_details = get_file_details($file_row['google_drive_file_id']);
-                if(!isset($file_details['error'])) {
-                    $files_for_product[] = $file_details;
-                }
-            }
+            $files_for_product = $result_files->fetch_all(MYSQLI_ASSOC);
             $stmt_files->close();
         }
     } else {
-        die("Access Denied. You are not subscribed to this product.");
+        // Don't die, just don't show any files.
+        $product_id = 0;
     }
 }
-
-// 3. If a file is being viewed, construct its preview link
-$view_file_id = isset($_GET['view']) ? $_GET['view'] : null;
-$file_embed_link = null;
-$file_name = null;
-
-if ($view_file_id) {
-    // A more robust security check would verify that this file_id belongs to a product the user is subscribed to.
-    // For now, we assume the links are generated correctly and not tampered with.
-    $file_details = get_file_details($view_file_id);
-    if (isset($file_details['name'])) {
-        $file_name = $file_details['name'];
-        // Use the /preview URL with rm=minimal to hide the pop-out button
-        $file_embed_link = "https://drive.google.com/file/d/{$view_file_id}/preview?rm=minimal";
-    }
-}
-// --- End New Logic ---
+// --- End Logic ---
 
 
 // Include the header
 include 'includes/header.php';
 ?>
-<style>
-    /* Basic content protection */
-    .secure-viewer { -webkit-user-select: none; user-select: none; }
-    @media print { body * { display: none !important; } }
-</style>
 
-<div class="container my-5 secure-viewer">
+<div class="container my-5">
     <div class="row">
         <div class="col-md-4">
             <h4>My Subscriptions</h4>
@@ -116,31 +98,25 @@ include 'includes/header.php';
                     </a>
                 <?php endforeach; ?>
             </div>
-
-            <?php if ($product_id) : // Only show file list if a product is selected ?>
-                <h4 class="mt-4">Files for <?php echo htmlspecialchars($product_name); ?></h4>
+        </div>
+        <div class="col-md-8">
+            <?php if ($product_id) : ?>
+                <h4>Files for <?php echo htmlspecialchars($product_name); ?></h4>
                 <div class="list-group">
                     <?php if (count($files_for_product) > 0) : ?>
                         <?php foreach ($files_for_product as $file) : ?>
-                            <a href="lesson_notes.php?product_id=<?php echo $product_id; ?>&view=<?php echo $file['id']; ?>" class="list-group-item list-group-item-action <?php echo ($view_file_id == $file['id']) ? 'active' : ''; ?>">
+                            <a href="view_file.php?id=<?php echo $file['id']; ?>" target="_blank" class="list-group-item list-group-item-action">
                                 <i class="fas fa-file-alt me-2"></i>
-                                <?php echo htmlspecialchars($file['name']); ?>
+                                <?php echo htmlspecialchars($file['original_filename']); ?>
+                                <i class="fas fa-external-link-alt float-end mt-1"></i>
                             </a>
                         <?php endforeach; ?>
                     <?php else : ?>
                         <div class="list-group-item">No files found for this product.</div>
                     <?php endif; ?>
                 </div>
-            <?php endif; ?>
-        </div>
-        <div class="col-md-8">
-            <?php if ($file_embed_link) : ?>
-                <h4>Viewing: <?php echo htmlspecialchars($file_name ?? 'Document'); ?></h4>
-                <div class="embed-responsive" style="height: 80vh; border: 1px solid #ddd;">
-                    <iframe class="embed-responsive-item w-100 h-100" src="<?php echo $file_embed_link; ?>" allow="fullscreen"></iframe>
-                </div>
             <?php else : ?>
-                <div class="text-center p-5 border rounded d-flex flex-column justify-content-center align-items-center" style="height: 100%;">
+                <div class="text-center p-5 border rounded d-flex flex-column justify-content-center align-items-center" style="min-height: 300px;">
                     <i class="fas fa-book-reader fa-3x text-muted mb-3"></i>
                     <h4>Welcome to your Lesson Notes</h4>
                     <p class="text-muted">Select one of your subscriptions from the list on the left to begin browsing files.</p>
@@ -149,11 +125,6 @@ include 'includes/header.php';
         </div>
     </div>
 </div>
-
-<script>
-    // Disable right-click
-    document.addEventListener('contextmenu', event => event.preventDefault());
-</script>
 
 <?php
 // Include the footer

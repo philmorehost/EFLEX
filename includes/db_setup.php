@@ -88,13 +88,18 @@ function setup_database_tables($mysqli) {
         CONSTRAINT `user_subscriptions_ibfk_3` FOREIGN KEY (`order_id`) REFERENCES `orders` (`id`) ON DELETE CASCADE
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;",
 
-    "product_google_drive_files" => "CREATE TABLE `product_google_drive_files` (
+    "product_local_files" => "CREATE TABLE `product_local_files` (
         `id` int(11) NOT NULL AUTO_INCREMENT,
         `product_id` int(11) NOT NULL,
-        `google_drive_file_id` varchar(255) NOT NULL,
+        `filename` varchar(255) NOT NULL,
+        `original_filename` varchar(255) NOT NULL,
+        `filepath` varchar(255) NOT NULL,
+        `mimetype` varchar(100) NOT NULL,
+        `filesize` int(11) NOT NULL,
+        `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
         PRIMARY KEY (`id`),
         KEY `product_id` (`product_id`),
-        CONSTRAINT `product_google_drive_files_ibfk_1` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`) ON DELETE CASCADE
+        CONSTRAINT `product_local_files_ibfk_1` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`) ON DELETE CASCADE
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;"
     ];
 
@@ -155,10 +160,14 @@ function setup_database_tables($mysqli) {
         $mysqli->query("ALTER TABLE `users` ADD `subscription_expiry` DATE DEFAULT NULL AFTER `subscription_status`");
     }
 
-    // Check for google_drive_folder_id column in products table and remove it if it exists
-    $result_gdfi = $mysqli->query("SHOW COLUMNS FROM `products` LIKE 'google_drive_folder_id'");
-    if($result_gdfi->num_rows > 0){
+    // Migration: Check for google_drive_folder_id column in products table and remove it if it exists
+    if ($mysqli->query("SHOW COLUMNS FROM `products` LIKE 'google_drive_folder_id'")->num_rows > 0) {
         $mysqli->query("ALTER TABLE `products` DROP COLUMN `google_drive_folder_id`");
+    }
+
+    // Migration: Drop the old product_google_drive_files table if it exists
+    if ($mysqli->query("SHOW TABLES LIKE 'product_google_drive_files'")->num_rows > 0) {
+        $mysqli->query("DROP TABLE `product_google_drive_files`");
     }
 
     // Check for duration_days column in products table

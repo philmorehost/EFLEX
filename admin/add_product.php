@@ -14,9 +14,8 @@ if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true || !isset($_S
 
 // Define variables and initialize
 $name = $description = $price = $category_id = "";
-$google_drive_file_ids = ""; // Changed from folder_id
 $is_featured = $is_top_seller = 0;
-$name_err = $description_err = $price_err = $category_id_err = $image_err = "";
+$name_err = $description_err = $price_err = $category_id_err = $image_err = $files_err = "";
 $message = "";
 
 // Processing form data when form is submitted
@@ -27,73 +26,125 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
     $description = trim($_POST["description"]);
     $price = trim($_POST["price"]);
     $category_id = $_POST["category_id"];
-    // Changed from google_drive_folder_id to google_drive_file_ids
-    $google_drive_file_ids = trim($_POST['google_drive_file_ids']);
     $duration_days = (int)$_POST['duration_days'];
     $is_featured = isset($_POST['is_featured']) ? 1 : 0;
     $is_top_seller = isset($_POST['is_top_seller']) ? 1 : 0;
 
     if(empty($name)) $name_err = "Please enter a product name.";
     if(empty($description)) $description_err = "Please enter a description.";
-    if(empty($price)) $price_err = "Please enter a price.";
+    // Price can be 0 for freemium, so we check if it's set
+    if(!isset($price) || $price === "") $price_err = "Please enter a price.";
     if(empty($category_id)) $category_id_err = "Please select a category.";
+
+    // --- Start File Upload Logic ---
+    $uploaded_files = [];
+    $protected_dir = __DIR__ . '/../uploads/protected_files/';
+
+    if (isset($_FILES['product_files'])) {
+        $file_count = count($_FILES['product_files']['name']);
+        for ($i = 0; $i < $file_count; $i++) {
+            if ($_FILES['product_files']['error'][$i] === UPLOAD_ERR_OK) {
+                $original_filename = basename($_FILES['product_files']['name'][$i]);
+                $file_extension = pathinfo($original_filename, PATHINFO_EXTENSION);
+                $safe_filename = uniqid('prod_', true) . '.' . $file_extension;
+                $destination = $protected_dir . $safe_filename;
+
+                if (move_uploaded_file($_FILES['product_files']['tmp_name'][$i], $destination)) {
+                    $uploaded_files[] = [
+                        'filename' => $safe_filename,
+                        'original_filename' => $original_filename,
+                        'filepath' => 'uploads/protected_files/' . $safe_filename,
+                        'mimetype' => $_FILES['product_files']['type'][$i],
+                        'filesize' => $_FILES['product_files']['size'][$i]
+                    ];
+                } else {
+                    $files_err = "Error moving uploaded file: " . $original_filename;
+                    break; // Stop on first error
+                }
+            } elseif ($_FILES['product_files']['error'][$i] !== UPLOAD_ERR_NO_FILE) {
+                $files_err = "Error uploading file: " . $_FILES['product_files']['name'][$i];
+                break; // Stop on first error
+            }
+        }
+    }
+    // --- End File Upload Logic ---
+
 
     // Handle image upload
     $image_filename = "default.jpg";
-    if(isset($_FILES["image"]) && $_FILES["image"]["error"] == 0){
+    if (isset($_FILES["image"]) && $_FILES["image"]["error"] == 0) {
         $allowed = ["jpg" => "image/jpeg", "jpeg" => "image/jpeg", "gif" => "image/gif", "png" => "image/png"];
         $filename = $_FILES["image"]["name"];
+        $filetype = $_FILES["image"]["type"];
+        $filesize = $_FILES["image"]["size"];
+
+        // Verify file extension
         $ext = pathinfo($filename, PATHINFO_EXTENSION);
-        if(array_key_exists($ext, $allowed)){
-            $new_filename = uniqid() . "." . $ext;
-            if(move_uploaded_file($_FILES["image"]["tmp_name"], "../uploads/" . $new_filename)){
+        if (!array_key_exists($ext, $allowed)) {
+            $image_err = "Please select a valid file format.";
+        }
+
+        // Verify file size - 5MB maximum
+        $maxsize = 5 * 1024 * 1024;
+        if ($filesize > $maxsize) {
+            $image_err = "File size is larger than the allowed limit of 5MB.";
+        }
+
+        // Verify MIME type of the file
+        if (in_array($filetype, $allowed) && empty($image_err)) {
+            // Generate a unique name for the file before saving it
+            $new_filename = uniqid('img_', true) . "." . $ext;
+            if (move_uploaded_file($_FILES["image"]["tmp_name"], __DIR__ . "/../uploads/" . $new_filename)) {
                 $image_filename = $new_filename;
+            } else {
+                $image_err = "Failed to move uploaded image.";
             }
+        } else {
+            $image_err = $image_err ?: "There was a problem uploading your image.";
         }
     }
 
     // Check input errors before inserting in database
-    if(empty($name_err) && empty($description_err) && empty($price_err) && empty($category_id_err) && empty($image_err)){
+    if(empty($name_err) && empty($description_err) && empty($price_err) && empty($category_id_err) && empty($image_err) && empty($files_err)){
 
-        // Removed google_drive_folder_id from the insert
-        $sql = "INSERT INTO products (name, description, price, duration_days, category_id, image, is_featured, is_top_seller) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
-
-        if($stmt = $mysqli->prepare($sql)){
+        $mysqli->begin_transaction();
+        try {
+            $sql = "INSERT INTO products (name, description, price, duration_days, category_id, image, is_featured, is_top_seller) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+            $stmt = $mysqli->prepare($sql);
             $stmt->bind_param("ssdiisii", $name, $description, $price, $duration_days, $category_id, $image_filename, $is_featured, $is_top_seller);
-
-            if($stmt->execute()){
-                $product_id = $stmt->insert_id;
-
-                // Now, handle the Google Drive files
-                if(!empty($google_drive_file_ids)) {
-                    $file_ids = explode(',', $google_drive_file_ids);
-                    $sql_drive = "INSERT INTO product_google_drive_files (product_id, google_drive_file_id) VALUES (?, ?)";
-                    if($stmt_drive = $mysqli->prepare($sql_drive)) {
-                        foreach($file_ids as $file_id) {
-                            $stmt_drive->bind_param("is", $product_id, $file_id);
-                            $stmt_drive->execute();
-                        }
-                        $stmt_drive->close();
-                    }
-                }
-
-                $_SESSION['product_added'] = "Product successfully added.";
-                header("location: manage_products.php");
-                exit();
-            } else{
-                $message = '<div class="alert alert-danger">Oops! Something went wrong. Please try again later.</div>';
-            }
+            $stmt->execute();
+            $product_id = $stmt->insert_id;
             $stmt->close();
+
+            // Now, handle the uploaded files
+            if(!empty($uploaded_files)) {
+                $sql_files = "INSERT INTO product_local_files (product_id, filename, original_filename, filepath, mimetype, filesize) VALUES (?, ?, ?, ?, ?, ?)";
+                $stmt_files = $mysqli->prepare($sql_files);
+                foreach($uploaded_files as $file) {
+                    $stmt_files->bind_param("issssi", $product_id, $file['filename'], $file['original_filename'], $file['filepath'], $file['mimetype'], $file['filesize']);
+                    $stmt_files->execute();
+                }
+                $stmt_files->close();
+            }
+
+            $mysqli->commit();
+            $_SESSION['product_added'] = "Product successfully added.";
+            header("location: manage_products.php");
+            exit();
+
+        } catch (mysqli_sql_exception $exception) {
+            $mysqli->rollback();
+            $message = '<div class="alert alert-danger">Oops! Something went wrong. Please try again later.</div>';
         }
     } else {
-        $message = '<div class="alert alert-danger">Please correct the errors and try again.</div>';
+        $message = '<div class="alert alert-danger">Please correct the errors and try again. ' . $files_err . '</div>';
     }
 }
 
 // Now that all PHP logic is done, we can start sending HTML.
 include 'includes/header.php';
 
-// Fetch categories for the dropdown (needed for the form)
+// Fetch categories for the dropdown
 $sql_categories = "SELECT * FROM categories ORDER BY name ASC";
 $result_categories = $mysqli->query($sql_categories);
 $categories = $result_categories->fetch_all(MYSQLI_ASSOC);
@@ -130,9 +181,10 @@ $categories = $result_categories->fetch_all(MYSQLI_ASSOC);
                                 <label for="price" class="form-label">Price</label>
                                 <div class="input-group">
                                     <span class="input-group-text"><?php echo get_app_setting('currency_symbol', '$'); ?></span>
-                                    <input type="number" name="price" id="price" class="form-control <?php echo (!empty($price_err)) ? 'is-invalid' : ''; ?>" value="<?php echo $price; ?>" step="0.01">
-                                    <span class="invalid-feedback"><?php echo $price_err; ?></span>
+                                    <input type="number" name="price" id="price" class="form-control <?php echo (!empty($price_err)) ? 'is-invalid' : ''; ?>" value="<?php echo $price; ?>" step="0.01" min="0">
                                 </div>
+                                 <div class="form-text">Enter 0 for a Freemium package.</div>
+                                <span class="invalid-feedback"><?php echo $price_err; ?></span>
                             </div>
                         </div>
                         <div class="col-md-4">
@@ -156,13 +208,10 @@ $categories = $result_categories->fetch_all(MYSQLI_ASSOC);
                         </div>
                     </div>
                      <div class="mb-3">
-                        <label for="google_drive_files" class="form-label">Google Drive Files</label>
-                        <input type="hidden" name="google_drive_file_ids" id="google_drive_file_ids" value="<?php echo htmlspecialchars($google_drive_file_ids); ?>">
-                        <div class="input-group">
-                            <input type="text" id="google_drive_files_display" class="form-control" placeholder="No files selected" readonly>
-                            <button class="btn btn-outline-secondary" type="button" data-bs-toggle="modal" data-bs-target="#driveBrowserModal">Browse Drive</button>
-                        </div>
-                        <div class="form-text">Link this package to specific Google Drive files.</div>
+                        <label for="product_files" class="form-label">Subscription Files</label>
+                        <input type="file" name="product_files[]" id="product_files" class="form-control" multiple>
+                        <div class="form-text">Upload one or more files for this package.</div>
+                         <span class="text-danger"><?php echo $files_err; ?></span>
                     </div>
                 </div>
                 <div class="col-md-4">
@@ -191,104 +240,7 @@ $categories = $result_categories->fetch_all(MYSQLI_ASSOC);
     </div>
 </div>
 
-<!-- Google Drive Browser Modal -->
-<div class="modal fade" id="driveBrowserModal" tabindex="-1" aria-labelledby="driveBrowserModalLabel" aria-hidden="true">
-  <div class="modal-dialog modal-lg">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="driveBrowserModalLabel">Browse Google Drive</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-      </div>
-      <div class="modal-body" id="drive-browser-content">
-        <!-- AJAX content will be loaded here -->
-        <p>Loading...</p>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-        <button type="button" class="btn btn-primary" id="saveDriveSelection">Save Selection</button>
-      </div>
-    </div>
-  </div>
-</div>
-
 <?php
 // Include admin footer
 include 'includes/footer.php';
 ?>
-
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    const modal = document.getElementById('driveBrowserModal');
-    const modalBody = document.getElementById('drive-browser-content');
-    const fileIdsInput = document.getElementById('google_drive_file_ids');
-    const fileDisplayInput = document.getElementById('google_drive_files_display');
-    const saveButton = document.getElementById('saveDriveSelection');
-    const modalInstance = bootstrap.Modal.getOrCreateInstance(modal);
-
-    // Keep track of selected files in the modal to handle pagination/browsing without losing selections
-    let selectedFilesInModal = [];
-
-    function updateDisplay() {
-        const fileIds = fileIdsInput.value.split(',').filter(id => id.trim() !== '');
-        if (fileIds.length > 0) {
-            fileDisplayInput.value = `${fileIds.length} file(s) selected`;
-        } else {
-            fileDisplayInput.value = 'No files selected';
-        }
-    }
-
-    function loadDriveBrowser(folderId = 'root') {
-        modalBody.innerHTML = '<p>Loading...</p>';
-        // Pass currently saved file IDs to pre-check boxes
-        const selectedFiles = fileIdsInput.value;
-        fetch(`ajax_drive_browser.php?folder=${folderId}&selected_files=${selectedFiles}`)
-            .then(response => response.text())
-            .then(html => {
-                modalBody.innerHTML = html;
-                // Sync the modal's selection state with the main page's state
-                selectedFilesInModal = fileIdsInput.value.split(',').filter(id => id.trim() !== '');
-            })
-            .catch(error => {
-                modalBody.innerHTML = '<p class="text-danger">Failed to load content.</p>';
-                console.error('Error:', error);
-            });
-    }
-
-    // Load initial content when modal is shown
-    modal.addEventListener('show.bs.modal', function () {
-        loadDriveBrowser();
-    });
-
-    // Handle clicks inside the modal for navigation and live selection changes
-    modalBody.addEventListener('click', function(event) {
-        const target = event.target;
-
-        if (target.classList.contains('drive-browse-btn')) {
-            event.preventDefault();
-            const folderId = target.dataset.folderId;
-            loadDriveBrowser(folderId);
-        }
-
-        if (target.classList.contains('drive-file-checkbox')) {
-            const fileId = target.value;
-            if (target.checked) {
-                if (!selectedFilesInModal.includes(fileId)) {
-                    selectedFilesInModal.push(fileId);
-                }
-            } else {
-                selectedFilesInModal = selectedFilesInModal.filter(id => id !== fileId);
-            }
-        }
-    });
-
-    // Handle Save Selection button click
-    saveButton.addEventListener('click', function() {
-        fileIdsInput.value = selectedFilesInModal.join(',');
-        updateDisplay();
-        modalInstance.hide();
-    });
-
-    // Initial display update on page load
-    updateDisplay();
-});
-</script>
