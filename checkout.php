@@ -71,7 +71,6 @@ if($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['place_order'])){
         }
 
         $mysqli->commit();
-        unset($_SESSION['cart']);
 
         if($payment_method === 'bank_transfer'){
             header("location: order_details_bank.php");
