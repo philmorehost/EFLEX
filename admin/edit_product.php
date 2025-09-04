@@ -131,8 +131,11 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
                     </div>
                      <div class="mb-3">
                         <label for="google_drive_folder_id" class="form-label">Google Drive Folder ID</label>
-                        <input type="text" name="google_drive_folder_id" id="google_drive_folder_id" class="form-control" value="<?php echo htmlspecialchars($google_drive_folder_id); ?>">
-                        <div class="form-text">If this product is a subscription for lesson notes, paste the Google Drive Folder ID here.</div>
+                        <div class="input-group">
+                            <input type="text" name="google_drive_folder_id" id="google_drive_folder_id" class="form-control" value="<?php echo htmlspecialchars($google_drive_folder_id); ?>">
+                            <button class="btn btn-outline-secondary" type="button" data-bs-toggle="modal" data-bs-target="#driveBrowserModal">Browse Drive</button>
+                        </div>
+                        <div class="form-text">Link this package to a Google Drive folder.</div>
                     </div>
                 </div>
                 <div class="col-md-4">
@@ -163,7 +166,73 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
     </div>
 </div>
 
+<!-- Google Drive Browser Modal -->
+<div class="modal fade" id="driveBrowserModal" tabindex="-1" aria-labelledby="driveBrowserModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="driveBrowserModalLabel">Browse Google Drive</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body" id="drive-browser-content">
+        <!-- AJAX content will be loaded here -->
+        <p>Loading...</p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <?php
 // Include admin footer
 include 'includes/footer.php';
 ?>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const modal = document.getElementById('driveBrowserModal');
+    const modalBody = document.getElementById('drive-browser-content');
+
+    function loadDriveBrowser(folderId = 'root') {
+        modalBody.innerHTML = '<p>Loading...</p>';
+        fetch(`ajax_drive_browser.php?folder=${folderId}`)
+            .then(response => response.text())
+            .then(html => {
+                modalBody.innerHTML = html;
+            })
+            .catch(error => {
+                modalBody.innerHTML = '<p class="text-danger">Failed to load folders.</p>';
+                console.error('Error:', error);
+            });
+    }
+
+    // Load initial content when modal is shown
+    modal.addEventListener('show.bs.modal', function () {
+        loadDriveBrowser();
+    });
+
+    // Handle clicks inside the modal for navigation and selection
+    modalBody.addEventListener('click', function(event) {
+        const target = event.target;
+
+        // Handle folder browsing
+        if (target.classList.contains('drive-browse-btn')) {
+            event.preventDefault();
+            const folderId = target.dataset.folderId;
+            loadDriveBrowser(folderId);
+        }
+
+        // Handle folder selection
+        if (target.classList.contains('select-folder-btn')) {
+            const folderId = target.dataset.folderId;
+            document.getElementById('google_drive_folder_id').value = folderId;
+
+            // Hide the modal using Bootstrap's API
+            const modalInstance = bootstrap.Modal.getInstance(modal);
+            modalInstance.hide();
+        }
+    });
+});
+</script>

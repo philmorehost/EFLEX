@@ -87,30 +87,30 @@ $featured_products = $featured_products_result->fetch_all(MYSQLI_ASSOC);
     <div class="row text-center">
         <div class="col-md-3">
             <div class="how-it-works-step">
-                <div class="step-icon"><i class="fas fa-search"></i></div>
-                <h5>1. Browse Products</h5>
-                <p>Search and Click through Products</p>
+                <div class="step-icon"><i class="fas fa-th-list"></i></div>
+                <h5>1. Browse Packages</h5>
+                <p>Visit our Subscriptions page to see the available lesson note packages.</p>
             </div>
         </div>
         <div class="col-md-3">
             <div class="how-it-works-step">
                 <div class="step-icon"><i class="fas fa-shopping-cart"></i></div>
-                <h5>2. Add to Cart</h5>
-                <p>Click on ADD TO CART to Purchase</p>
+                <h5>2. Subscribe</h5>
+                <p>Add your desired package to the cart and proceed to checkout.</p>
             </div>
         </div>
         <div class="col-md-3">
             <div class="how-it-works-step">
                 <div class="step-icon"><i class="fas fa-credit-card"></i></div>
-                <h5>3. Payments</h5>
-                <p>Checkout to make Payments using any of our payment Options.</p>
+                <h5>3. Make Payment</h5>
+                <p>Complete your payment using our secure Paystack gateway or via Bank Transfer.</p>
             </div>
         </div>
         <div class="col-md-3">
             <div class="how-it-works-step">
-                <div class="step-icon"><i class="fas fa-shipping-fast"></i></div>
-                <h5>4. Shipping & Delivery</h5>
-                <p>Delivery within Lagos takes 24-72hrs. Outside Lagos takes 3-5 working days.</p>
+                <div class="step-icon"><i class="fas fa-book-reader"></i></div>
+                <h5>4. Get Instant Access</h5>
+                <p>Once payment is confirmed, you get immediate access to your subscribed lesson notes.</p>
             </div>
         </div>
     </div>

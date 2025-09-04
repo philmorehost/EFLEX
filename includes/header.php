@@ -86,6 +86,7 @@ if(isset($_SESSION['cart']) && is_array($_SESSION['cart'])){
         <div class="container">
             <ul class="nav-list">
                 <li><a href="index.php" class="nav-link">Home</a></li>
+                <li><a href="subscriptions.php" class="nav-link">Subscriptions</a></li>
                 <li class="nav-item-dropdown">
                     <a href="products.php" class="nav-link">Products <i class="fas fa-chevron-down"></i></a>
                     <ul class="dropdown-menu-custom">
