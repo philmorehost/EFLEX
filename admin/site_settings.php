@@ -50,6 +50,54 @@ function get_setting($key, $default = '') {
 
 <form action="site_settings.php" method="post">
     <div class="card mb-4">
+        <div class="card-header"><i class="fas fa-info-circle"></i> Site Information</div>
+        <div class="card-body">
+            <div class="mb-3">
+                <label for="site_title" class="form-label">Site Title</label>
+                <input type="text" name="site_title" class="form-control" id="site_title" value="<?php echo get_setting('site_title', 'Eflex E-commerce'); ?>">
+                <div class="form-text">The title displayed in the browser tab.</div>
+            </div>
+            <div class="mb-3">
+                <label for="site_info" class="form-label">Site Information (About Us)</label>
+                <textarea name="site_info" class="form-control" id="site_info" rows="4"><?php echo get_setting('site_info', 'Your default about us text here.'); ?></textarea>
+                <div class="form-text">A short description of your site for the footer.</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card mb-4">
+        <div class="card-header"><i class="fas fa-address-book"></i> Contact & Social Media</div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="contact_email" class="form-label">Contact Email</label>
+                    <input type="email" name="contact_email" class="form-control" id="contact_email" value="<?php echo get_setting('contact_email'); ?>">
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label for="contact_phone" class="form-label">Contact Phone</label>
+                    <input type="text" name="contact_phone" class="form-control" id="contact_phone" value="<?php echo get_setting('contact_phone'); ?>">
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label for="social_facebook" class="form-label">Facebook URL</label>
+                    <input type="url" name="social_facebook" class="form-control" id="social_facebook" value="<?php echo get_setting('social_facebook'); ?>">
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label for="social_twitter" class="form-label">Twitter URL</label>
+                    <input type="url" name="social_twitter" class="form-control" id="social_twitter" value="<?php echo get_setting('social_twitter'); ?>">
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label for="social_instagram" class="form-label">Instagram URL</label>
+                    <input type="url" name="social_instagram" class="form-control" id="social_instagram" value="<?php echo get_setting('social_instagram'); ?>">
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label for="social_linkedin" class="form-label">LinkedIn URL</label>
+                    <input type="url" name="social_linkedin" class="form-control" id="social_linkedin" value="<?php echo get_setting('social_linkedin'); ?>">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card mb-4">
         <div class="card-header"><i class="fas fa-money-bill-wave"></i> Currency Settings</div>
         <div class="card-body">
             <div class="row">
