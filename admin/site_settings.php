@@ -217,6 +217,17 @@ function get_setting($key, $default = '') {
         </div>
     </div>
 
+    <div class="card mb-4">
+        <div class="card-header"><i class="fas fa-clock"></i> Cron Job Setup</div>
+        <div class="card-body">
+            <p>To automatically handle expired subscriptions, you need to set up a cron job on your server.</p>
+            <p>A cron job is a scheduled task that the server runs at a specified time or interval. You should configure it to run the following script periodically (e.g., once every day).</p>
+            <p>Log in to your cPanel or hosting control panel, find the "Cron Jobs" section, and add a new cron job with the following command:</p>
+            <pre class="bg-light p-3 rounded"><code>* * * * * /usr/bin/php <?php echo realpath(__DIR__ . '/../cron/expire_subscriptions.php'); ?></code></pre>
+            <p><small class="text-muted"><strong>Note:</strong> The exact path to PHP (`/usr/bin/php`) may vary depending on your server configuration. The schedule (`* * * * *`) means it runs every minute. You may want to change this to run less frequently, for example, once a day (`0 0 * * *`). Contact your hosting provider for assistance if you are unsure.</small></p>
+        </div>
+    </div>
+
     <div class="d-flex justify-content-end">
         <button type="submit" name="save_settings" class="btn btn-primary">Save Settings</button>
     </div>
