@@ -13,7 +13,7 @@ $uploads_dir = $base_path . 'uploads';
 $proofs_dir = $uploads_dir . '/payment_proofs';
 
 if (!is_dir($uploads_dir)) {
-    mkdir($uploads_dir, 0777, true); // Use true for recursive creation and 0777 for broad permissions
+    mkdir($uploads_dir, 0777, true);
 }
 if (!is_dir($proofs_dir)) {
     mkdir($proofs_dir, 0777, true);
@@ -21,6 +21,7 @@ if (!is_dir($proofs_dir)) {
 
 // 2. Include and run database setup/migration
 require_once 'db_connect.php';
+require_once 'helpers.php';
 
 // Fetch categories for the navigation dropdown
 $category_sql = "SELECT * FROM categories ORDER BY name ASC";

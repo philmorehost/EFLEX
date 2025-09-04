@@ -72,7 +72,7 @@ $base_url = "../";
             <a class="nav-link" href="dashboard.php"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
         </li>
         <li class="nav-item">
-            <a class="nav-link" href="manage_products.php"><i class="fas fa-box"></i> Manage Products</a>
+            <a class="nav-link" href="manage_products.php"><i class="fas fa-box"></i> Manage Packages</a>
         </li>
         <li class="nav-item">
             <a class="nav-link" href="manage_categories.php"><i class="fas fa-tags"></i> Manage Categories</a>

@@ -1,12 +1,15 @@
 <?php
-// Include admin header
-include 'includes/header.php';
+// Initialize session and connect to DB. This must be at the top.
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
 require_once '../includes/db_connect.php';
 
-// Fetch categories for the dropdown
-$sql_categories = "SELECT * FROM categories ORDER BY name ASC";
-$result_categories = $mysqli->query($sql_categories);
-$categories = $result_categories->fetch_all(MYSQLI_ASSOC);
+// Check if the user is logged in and is an admin.
+if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true || !isset($_SESSION["role"]) || $_SESSION["role"] !== 'admin'){
+    header("location: ../index.php");
+    exit;
+}
 
 // Define variables and initialize
 $name = $description = $price = $category_id = $google_drive_folder_id = "";
@@ -23,10 +26,10 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
     $price = trim($_POST["price"]);
     $category_id = $_POST["category_id"];
     $google_drive_folder_id = trim($_POST['google_drive_folder_id']);
+    $duration_days = (int)$_POST['duration_days'];
     $is_featured = isset($_POST['is_featured']) ? 1 : 0;
     $is_top_seller = isset($_POST['is_top_seller']) ? 1 : 0;
 
-    // (Existing validation logic for name, desc, price, category)
     if(empty($name)) $name_err = "Please enter a product name.";
     if(empty($description)) $description_err = "Please enter a description.";
     if(empty($price)) $price_err = "Please enter a price.";
@@ -35,7 +38,6 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
     // Handle image upload
     $image_filename = "default.jpg";
     if(isset($_FILES["image"]) && $_FILES["image"]["error"] == 0){
-        // ... (existing image upload logic) ...
         $allowed = ["jpg" => "image/jpeg", "jpeg" => "image/jpeg", "gif" => "image/gif", "png" => "image/png"];
         $filename = $_FILES["image"]["name"];
         $ext = pathinfo($filename, PATHINFO_EXTENSION);
@@ -50,13 +52,14 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
     // Check input errors before inserting in database
     if(empty($name_err) && empty($description_err) && empty($price_err) && empty($category_id_err) && empty($image_err)){
 
-        $sql = "INSERT INTO products (name, description, price, category_id, image, google_drive_folder_id, is_featured, is_top_seller) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+        $sql = "INSERT INTO products (name, description, price, duration_days, category_id, image, google_drive_folder_id, is_featured, is_top_seller) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
         if($stmt = $mysqli->prepare($sql)){
-            $stmt->bind_param("ssdisssi", $name, $description, $price, $category_id, $image_filename, $google_drive_folder_id, $is_featured, $is_top_seller);
+            $stmt->bind_param("ssdiisssi", $name, $description, $price, $duration_days, $category_id, $image_filename, $google_drive_folder_id, $is_featured, $is_top_seller);
 
             if($stmt->execute()){
                 $_SESSION['product_added'] = "Product successfully added.";
+                // This redirect will now work correctly
                 header("location: manage_products.php");
                 exit();
             } else{
@@ -68,18 +71,26 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
         $message = '<div class="alert alert-danger">Please correct the errors and try again.</div>';
     }
 }
+
+// Now that all PHP logic is done, we can start sending HTML.
+include 'includes/header.php';
+
+// Fetch categories for the dropdown (needed for the form)
+$sql_categories = "SELECT * FROM categories ORDER BY name ASC";
+$result_categories = $mysqli->query($sql_categories);
+$categories = $result_categories->fetch_all(MYSQLI_ASSOC);
 ?>
 
 <div class="d-flex justify-content-between align-items-center mb-3">
-    <h1>Add New Product</h1>
-    <a href="manage_products.php" class="btn btn-secondary"><i class="fas fa-arrow-left"></i> Back to Products</a>
+    <h1>Add New Subscription Package</h1>
+    <a href="manage_products.php" class="btn btn-secondary"><i class="fas fa-arrow-left"></i> Back to Packages</a>
 </div>
 
 <?php echo $message; ?>
 
 <div class="card">
     <div class="card-header">
-        <i class="fas fa-plus-circle"></i> New Product Details
+        <i class="fas fa-plus-circle"></i> New Package Details
     </div>
     <div class="card-body">
         <form action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>" method="post" enctype="multipart/form-data">
@@ -100,13 +111,13 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
                             <div class="mb-3">
                                 <label for="price" class="form-label">Price</label>
                                 <div class="input-group">
-                                    <span class="input-group-text">$</span>
+                                    <span class="input-group-text"><?php echo get_app_setting('currency_symbol', '$'); ?></span>
                                     <input type="number" name="price" id="price" class="form-control <?php echo (!empty($price_err)) ? 'is-invalid' : ''; ?>" value="<?php echo $price; ?>" step="0.01">
                                     <span class="invalid-feedback"><?php echo $price_err; ?></span>
                                 </div>
                             </div>
                         </div>
-                        <div class="col-md-6">
+                        <div class="col-md-4">
                              <div class="mb-3">
                                 <label for="category_id" class="form-label">Category</label>
                                 <select name="category_id" id="category_id" class="form-select <?php echo (!empty($category_id_err)) ? 'is-invalid' : ''; ?>">
@@ -116,6 +127,13 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
                                     <?php endforeach; ?>
                                 </select>
                                 <span class="invalid-feedback"><?php echo $category_id_err; ?></span>
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <div class="mb-3">
+                                <label for="duration_days" class="form-label">Duration</label>
+                                <input type="number" name="duration_days" id="duration_days" class="form-control" value="365">
+                                <div class="form-text">In days.</div>
                             </div>
                         </div>
                     </div>

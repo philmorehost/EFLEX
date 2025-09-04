@@ -152,6 +152,12 @@ function setup_database_tables($mysqli) {
         $mysqli->query("ALTER TABLE `products` ADD `google_drive_folder_id` VARCHAR(255) DEFAULT NULL AFTER `image`");
     }
 
+    // Check for duration_days column in products table
+    $result_dd = $mysqli->query("SHOW COLUMNS FROM `products` LIKE 'duration_days'");
+    if($result_dd->num_rows == 0){
+        $mysqli->query("ALTER TABLE `products` ADD `duration_days` INT(11) DEFAULT 365 AFTER `price`");
+    }
+
     // Since settings are key-value, we don't need to alter the table.
     // We just need to ensure the keys are handled in the admin panel.
     // I will add the UI for these in site_settings.php next.

@@ -30,7 +30,9 @@ $featured_products = $featured_products_result->fetch_all(MYSQLI_ASSOC);
         <div class="hero-search-form">
             <form action="search.php" method="get" class="d-flex">
                 <input class="form-control form-control-lg" type="search" name="query" placeholder="Enter keywords, subject, or class..." aria-label="Search">
-                <button class="btn btn-primary btn-lg" type="submit"><i class="fas fa-search"></i></button>
+                <button class="btn btn-primary btn-lg" type="submit">
+                    <i class="fas fa-search me-2"></i>Search
+                </button>
             </form>
         </div>
     </div>

@@ -1,16 +1,24 @@
 <?php
-// Include admin header
-include 'includes/header.php';
+// Initialize session and connect to DB first
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
 require_once '../includes/db_connect.php';
 
-// Check if Order ID is provided
+// Check if the user is logged in and is an admin.
+if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true || !isset($_SESSION["role"]) || $_SESSION["role"] !== 'admin'){
+    header("location: ../index.php");
+    exit;
+}
+
+// Check if Order ID is provided, and do it before any other logic.
 if(!isset($_GET['id']) || empty($_GET['id'])){
     header("location: manage_orders.php");
     exit;
 }
 $order_id = $_GET['id'];
 
-// Handle status update
+// Handle status update logic BEFORE any HTML is sent
 if($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['update_status'])){
     $new_status = $_POST['status'];
     if(!empty($new_status)){
@@ -23,9 +31,13 @@ if($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['update_status'])){
             $stmt_update->close();
         }
     }
+    // Redirect back to the same page to show the updated status and prevent re-submission
     header("location: order_detail.php?id=" . $order_id);
     exit;
 }
+
+// Now that all logic that causes redirects is done, include the header
+include 'includes/header.php';
 
 // Fetch Order and Customer Details
 $sql_order = "SELECT o.*, u.username, u.email FROM orders o JOIN users u ON o.user_id = u.id WHERE o.id = ?";
@@ -85,8 +97,8 @@ if($stmt_items = $mysqli->prepare($sql_items)){
                                     </div>
                                 </td>
                                 <td>x <?php echo $item['quantity']; ?></td>
-                                <td>$<?php echo number_format($item['price'], 2); ?></td>
-                                <td class="text-end">$<?php echo number_format($item['quantity'] * $item['price'], 2); ?></td>
+                                <td><?php echo format_price($item['price']); ?></td>
+                                <td class="text-end"><?php echo format_price($item['quantity'] * $item['price']); ?></td>
                             </tr>
                             <?php endforeach; ?>
                         </tbody>
@@ -101,7 +113,7 @@ if($stmt_items = $mysqli->prepare($sql_items)){
             <div class="card-body">
                 <p><strong>Status:</strong> <span class="badge bg-primary"><?php echo htmlspecialchars($order['status']); ?></span></p>
                 <p><strong>Date:</strong> <?php echo date("F j, Y, g:i a", strtotime($order['created_at'])); ?></p>
-                <p><strong>Total:</strong> <span class="fw-bold fs-5">$<?php echo number_format($order['total_amount'], 2); ?></span></p>
+                <p><strong>Total:</strong> <span class="fw-bold fs-5"><?php echo format_price($order['total_amount']); ?></span></p>
             </div>
         </div>
         <div class="card mb-4">

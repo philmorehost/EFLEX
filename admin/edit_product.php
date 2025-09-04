@@ -33,6 +33,7 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
     $price = trim($_POST["price"]);
     $category_id = $_POST["category_id"];
     $google_drive_folder_id = trim($_POST['google_drive_folder_id']);
+    $duration_days = (int)$_POST['duration_days'];
     $is_featured = isset($_POST['is_featured']) ? 1 : 0;
     $is_top_seller = isset($_POST['is_top_seller']) ? 1 : 0;
     $current_image = $_POST['current_image'];
@@ -46,11 +47,11 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
 
     // Check input errors before updating database
     if(empty($name_err) && empty($description_err) && empty($price_err) && empty($category_id_err) && empty($image_err)){
-        $sql = "UPDATE products SET name=?, description=?, price=?, category_id=?, image=?, google_drive_folder_id=?, is_featured=?, is_top_seller=? WHERE id=?";
+        $sql = "UPDATE products SET name=?, description=?, price=?, duration_days=?, category_id=?, image=?, google_drive_folder_id=?, is_featured=?, is_top_seller=? WHERE id=?";
         if($stmt = $mysqli->prepare($sql)){
-            $stmt->bind_param("ssdisssii", $name, $description, $price, $category_id, $new_image_filename, $google_drive_folder_id, $is_featured, $is_top_seller, $product_id);
+            $stmt->bind_param("ssdiisssii", $name, $description, $price, $duration_days, $category_id, $new_image_filename, $google_drive_folder_id, $is_featured, $is_top_seller, $product_id);
             if($stmt->execute()){
-                $_SESSION['product_updated'] = "Product details updated successfully.";
+                $_SESSION['product_updated'] = "Package details updated successfully.";
                 header("location: manage_products.php");
                 exit();
             } else {
@@ -63,13 +64,13 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
     }
 } else {
     // Fetch current data for the form
-    $sql_fetch = "SELECT name, description, price, category_id, image, google_drive_folder_id, is_featured, is_top_seller FROM products WHERE id = ?";
+    $sql_fetch = "SELECT name, description, price, duration_days, category_id, image, google_drive_folder_id, is_featured, is_top_seller FROM products WHERE id = ?";
     if($stmt_fetch = $mysqli->prepare($sql_fetch)){
         $stmt_fetch->bind_param("i", $product_id);
         if($stmt_fetch->execute()){
             $stmt_fetch->store_result();
             if($stmt_fetch->num_rows == 1){
-                $stmt_fetch->bind_result($name, $description, $price, $category_id, $current_image, $google_drive_folder_id, $is_featured, $is_top_seller);
+                $stmt_fetch->bind_result($name, $description, $price, $duration_days, $category_id, $current_image, $google_drive_folder_id, $is_featured, $is_top_seller);
                 $stmt_fetch->fetch();
             } else {
                 header("location: manage_products.php");
@@ -82,14 +83,14 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
 ?>
 
 <div class="d-flex justify-content-between align-items-center mb-3">
-    <h1>Edit Product</h1>
-    <a href="manage_products.php" class="btn btn-secondary"><i class="fas fa-arrow-left"></i> Back to Products</a>
+    <h1>Edit Subscription Package</h1>
+    <a href="manage_products.php" class="btn btn-secondary"><i class="fas fa-arrow-left"></i> Back to Packages</a>
 </div>
 
 <?php echo $message; ?>
 
 <div class="card">
-    <div class="card-header"><i class="fas fa-edit"></i> Edit Product Details</div>
+    <div class="card-header"><i class="fas fa-edit"></i> Edit Package Details</div>
     <div class="card-body">
         <form action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>?id=<?php echo $product_id; ?>" method="post" enctype="multipart/form-data">
             <input type="hidden" name="id" value="<?php echo $product_id; ?>">
@@ -110,17 +111,22 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
                         <div class="col-md-6 mb-3">
                              <label for="price" class="form-label">Price</label>
                             <div class="input-group">
-                               <span class="input-group-text">$</span>
+                               <span class="input-group-text"><?php echo get_app_setting('currency_symbol', '$'); ?></span>
                                <input type="number" name="price" id="price" class="form-control" value="<?php echo htmlspecialchars($price); ?>" step="0.01">
                             </div>
                         </div>
-                        <div class="col-md-6 mb-3">
+                        <div class="col-md-4 mb-3">
                             <label for="category_id" class="form-label">Category</label>
                             <select name="category_id" id="category_id" class="form-select">
                                 <?php foreach ($categories as $cat): ?>
                                     <option value="<?php echo $cat['id']; ?>" <?php echo ($category_id == $cat['id']) ? 'selected' : ''; ?>><?php echo htmlspecialchars($cat['name']); ?></option>
                                 <?php endforeach; ?>
                             </select>
+                        </div>
+                        <div class="col-md-2 mb-3">
+                            <label for="duration_days" class="form-label">Duration</label>
+                            <input type="number" name="duration_days" id="duration_days" class="form-control" value="<?php echo htmlspecialchars($duration_days ?? 365); ?>">
+                            <div class="form-text">In days.</div>
                         </div>
                     </div>
                      <div class="mb-3">
@@ -151,7 +157,7 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
             <hr>
             <div class="d-flex justify-content-end">
                 <a href="manage_products.php" class="btn btn-secondary me-2">Cancel</a>
-                <button type="submit" class="btn btn-primary">Update Product</button>
+                <button type="submit" name="update_product" class="btn btn-primary">Update Product</button>
             </div>
         </form>
     </div>

@@ -49,7 +49,7 @@ if(!$product){
                 </ol>
             </nav>
             <h2><?php echo htmlspecialchars($product['name']); ?></h2>
-            <h4 class="text-success">$<?php echo htmlspecialchars($product['price']); ?></h4>
+            <h4 class="text-success"><?php echo format_price($product['price']); ?></h4>
             <p class="lead"><?php echo nl2br(htmlspecialchars($product['description'])); ?></p>
 
             <hr>

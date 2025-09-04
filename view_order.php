@@ -88,8 +88,8 @@ if($stmt_items = $mysqli->prepare($sql_items)){
                                         </div>
                                     </td>
                                     <td class="text-center"><?php echo $item['quantity']; ?></td>
-                                    <td class="text-end">$<?php echo number_format($item['price'], 2); ?></td>
-                                    <td class="text-end">$<?php echo number_format($item['price'] * $item['quantity'], 2); ?></td>
+                                    <td class="text-end"><?php echo format_price($item['price']); ?></td>
+                                    <td class="text-end"><?php echo format_price($item['price'] * $item['quantity']); ?></td>
                                 </tr>
                                 <?php endforeach; ?>
                             </tbody>
@@ -98,9 +98,9 @@ if($stmt_items = $mysqli->prepare($sql_items)){
                     <hr>
                     <div class="row justify-content-end">
                         <div class="col-md-6">
-                             <p class="text-end"><strong>Subtotal:</strong> $<?php echo number_format($order['total_amount'], 2); ?></p>
-                             <p class="text-end"><strong>Shipping:</strong> $0.00</p>
-                             <h4 class="text-end"><strong>Total:</strong> $<?php echo number_format($order['total_amount'], 2); ?></h4>
+                             <p class="text-end"><strong>Subtotal:</strong> <?php echo format_price($order['total_amount']); ?></p>
+                             <p class="text-end"><strong>Shipping:</strong> <?php echo format_price(0); ?></p>
+                             <h4 class="text-end"><strong>Total:</strong> <?php echo format_price($order['total_amount']); ?></h4>
                         </div>
                     </div>
                 </div>

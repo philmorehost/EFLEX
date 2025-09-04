@@ -63,7 +63,7 @@ $total_pages = ceil($total_records / $records_per_page);
 
 
 // Fetch products for the current page
-$sql = "SELECT p.id, p.name, p.price, p.image, c.name as category_name
+$sql = "SELECT p.id, p.name, p.price, p.duration_days, p.image, c.name as category_name
         FROM products p
         LEFT JOIN categories c ON p.category_id = c.id
         ORDER BY p.name ASC
@@ -82,15 +82,15 @@ if($stmt = $mysqli->prepare($sql)){
 ?>
 
 <div class="d-flex justify-content-between align-items-center mb-3">
-    <h1>Manage Products</h1>
-    <a href="add_product.php" class="btn btn-success"><i class="fas fa-plus"></i> Add New Product</a>
+    <h1>Manage Subscription Packages</h1>
+    <a href="add_product.php" class="btn btn-success"><i class="fas fa-plus"></i> Add New Package</a>
 </div>
 
 <?php echo $message; ?>
 
 <div class="card">
     <div class="card-header">
-        <i class="fas fa-box"></i> Existing Products
+        <i class="fas fa-box"></i> Existing Packages
     </div>
     <div class="card-body">
         <div class="table-responsive">
@@ -98,9 +98,10 @@ if($stmt = $mysqli->prepare($sql)){
                 <thead class="table-dark">
                     <tr>
                         <th>Image</th>
-                        <th>Name</th>
+                        <th>Package Name</th>
                         <th>Category</th>
                         <th>Price</th>
+                        <th>Duration</th>
                         <th class="text-end">Actions</th>
                     </tr>
                 </thead>
@@ -111,15 +112,16 @@ if($stmt = $mysqli->prepare($sql)){
                             <td><img src="../uploads/<?php echo htmlspecialchars($product['image']); ?>" alt="<?php echo htmlspecialchars($product['name']); ?>" style="width: 50px; height: 50px; object-fit: cover; border-radius: 5px;"></td>
                             <td><?php echo htmlspecialchars($product['name']); ?></td>
                             <td><?php echo htmlspecialchars($product['category_name'] ?? 'N/A'); ?></td>
-                            <td>$<?php echo number_format($product['price'], 2); ?></td>
+                            <td><?php echo format_price($product['price']); ?></td>
+                            <td><?php echo htmlspecialchars($product['duration_days']); ?> days</td>
                             <td class="text-end">
                                 <a href="edit_product.php?id=<?php echo $product['id']; ?>" class="btn btn-sm btn-warning"><i class="fas fa-edit"></i> Edit</a>
-                                <a href="manage_products.php?delete=<?php echo $product['id']; ?>" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure you want to delete this product? This action cannot be undone.')"><i class="fas fa-trash"></i> Delete</a>
+                                <a href="manage_products.php?delete=<?php echo $product['id']; ?>" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure you want to delete this package? This action cannot be undone.')"><i class="fas fa-trash"></i> Delete</a>
                             </td>
                         </tr>
                         <?php endforeach; ?>
                     <?php else: ?>
-                        <tr><td colspan="5" class="text-center">No products found. <a href="add_product.php">Add one now</a>.</td></tr>
+                        <tr><td colspan="6" class="text-center">No packages found. <a href="add_product.php">Add one now</a>.</td></tr>
                     <?php endif; ?>
                 </tbody>
             </table>

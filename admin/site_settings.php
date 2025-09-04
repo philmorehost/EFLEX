@@ -50,6 +50,24 @@ function get_setting($key, $default = '') {
 
 <form action="site_settings.php" method="post">
     <div class="card mb-4">
+        <div class="card-header"><i class="fas fa-money-bill-wave"></i> Currency Settings</div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="currency_code" class="form-label">Currency Code</label>
+                    <input type="text" name="currency_code" class="form-control" id="currency_code" value="<?php echo get_setting('currency_code', 'USD'); ?>">
+                    <div class="form-text">e.g., USD, NGN, EUR</div>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label for="currency_symbol" class="form-label">Currency Symbol</label>
+                    <input type="text" name="currency_symbol" class="form-control" id="currency_symbol" value="<?php echo get_setting('currency_symbol', '$'); ?>">
+                    <div class="form-text">e.g., $, ₦, €</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card mb-4">
         <div class="card-header"><i class="fas fa-university"></i> Bank Transfer Details</div>
         <div class="card-body">
             <div class="mb-3">
