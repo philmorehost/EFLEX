@@ -150,7 +150,7 @@ function grant_file_permission($file_id, $user_email) {
 
 function get_file_details($file_id) {
     // First, ensure the file is not copyable
-    // set_file_uncoppyable($file_id); // Temporarily disabled for testing
+    set_file_uncoppyable($file_id);
 
     $access_token_response = get_google_drive_access_token();
     if (is_array($access_token_response) && isset($access_token_response['error'])) {
