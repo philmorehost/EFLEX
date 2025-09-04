@@ -86,7 +86,8 @@ if ($view_file_id) {
     $file_details = get_file_details($view_file_id);
     if (isset($file_details['name'])) {
         $file_name = $file_details['name'];
-        $file_embed_link = "https://drive.google.com/file/d/{$view_file_id}/preview";
+        // Use the /preview URL with rm=minimal to hide the pop-out button
+        $file_embed_link = "https://drive.google.com/file/d/{$view_file_id}/preview?rm=minimal";
     }
 }
 // --- End New Logic ---
