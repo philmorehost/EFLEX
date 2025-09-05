@@ -65,6 +65,9 @@ $base_url = "../";
             padding: 20px;
             width: calc(100% - 250px);
         }
+        .ck-editor__editable_inline {
+            min-height: 250px;
+        }
     </style>
 </head>
 <body>

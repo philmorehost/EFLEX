@@ -32,7 +32,7 @@ if(isset($_GET["id"]) && !empty(trim($_GET["id"]))){
 if($_SERVER["REQUEST_METHOD"] == "POST"){
     // Validate form fields
     $name = trim($_POST["name"]);
-    $description = trim($_POST["description"]);
+    $description = $_POST["description"]; // Use raw HTML from CKEditor
     $price = trim($_POST["price"]);
     $category_id = $_POST["category_id"];
     $duration_days = (int)$_POST['duration_days'];
@@ -43,7 +43,8 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
 
     // Basic validation
     if(empty($name)) $name_err = "Please enter a product name.";
-    if(empty($description)) $description_err = "Please enter a description.";
+    // For CKEditor, check if the description is empty after stripping HTML tags.
+    if(empty(strip_tags($description))) $description_err = "Please enter a description.";
     if(!isset($price) || $price === "") $price_err = "Please enter a price.";
     if(empty($category_id)) $category_id_err = "Please select a category.";
 
@@ -295,6 +296,14 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
         </form>
     </div>
 </div>
+
+<script>
+    ClassicEditor
+        .create( document.querySelector( '#description' ) )
+        .catch( error => {
+            console.error( error );
+        } );
+</script>
 
 <?php
 // Include admin footer
