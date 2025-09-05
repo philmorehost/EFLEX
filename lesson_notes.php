@@ -129,13 +129,47 @@ include 'includes/header.php';
 </div>
 
 <script>
-// Disable right-click on the secure content area
 const secureContent = document.getElementById('secure-content');
+
+// --- Disable Right-Click ---
 if (secureContent) {
     secureContent.addEventListener('contextmenu', function(e) {
         e.preventDefault();
     });
 }
+
+// --- Disable Keyboard Shortcuts for Dev Tools & Saving ---
+document.addEventListener('keydown', function(e) {
+    // F12
+    if (e.key === 'F12') {
+        e.preventDefault();
+        alert('This function is disabled for security reasons.');
+    }
+
+    // Ctrl+Shift+I
+    if (e.ctrlKey && e.shiftKey && e.key === 'I') {
+        e.preventDefault();
+        alert('This function is disabled for security reasons.');
+    }
+
+    // Ctrl+Shift+J
+    if (e.ctrlKey && e.shiftKey && e.key === 'J') {
+        e.preventDefault();
+        alert('This function is disabled for security reasons.');
+    }
+
+    // Ctrl+U
+    if (e.ctrlKey && e.key === 'u') {
+        e.preventDefault();
+        alert('This function is disabled for security reasons.');
+    }
+
+    // Ctrl+S
+    if (e.ctrlKey && e.key === 's') {
+        e.preventDefault();
+        alert('This function is disabled for security reasons.');
+    }
+});
 </script>
 
 <?php include 'includes/footer.php'; ?>
