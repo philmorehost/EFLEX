@@ -56,8 +56,32 @@ $total_records_result = $mysqli->query("SELECT COUNT(*) FROM users");
 $total_records = $total_records_result->fetch_row()[0];
 $total_pages = ceil($total_records / $records_per_page);
 
-// Fetch users for the current page
-$sql = "SELECT id, username, email, role, subscription_status, subscription_expiry, created_at FROM users ORDER BY created_at DESC LIMIT ? OFFSET ?";
+// Fetch users for the current page along with their latest subscription status
+$sql = "
+    SELECT
+        u.id,
+        u.username,
+        u.email,
+        u.role,
+        u.created_at,
+        sub.status as subscription_status,
+        sub.expires_at as subscription_expiry
+    FROM
+        users u
+    LEFT JOIN (
+        SELECT
+            user_id,
+            status,
+            expires_at,
+            ROW_NUMBER() OVER(PARTITION BY user_id ORDER BY created_at DESC) as rn
+        FROM
+            user_subscriptions
+    ) sub ON u.id = sub.user_id AND sub.rn = 1
+    ORDER BY
+        u.created_at DESC
+    LIMIT ? OFFSET ?
+";
+
 if($stmt = $mysqli->prepare($sql)){
     $stmt->bind_param("ii", $records_per_page, $offset);
     $stmt->execute();
@@ -108,9 +132,13 @@ if($stmt = $mysqli->prepare($sql)){
                                 </span>
                             </td>
                             <td>
-                                <span class="badge bg-<?php echo ($user['subscription_status'] === 'active') ? 'success' : 'warning'; ?>">
-                                    <?php echo htmlspecialchars(ucfirst($user['subscription_status'])); ?>
-                                </span>
+                                <?php if ($user['subscription_status']): ?>
+                                    <span class="badge bg-<?php echo ($user['subscription_status'] === 'active') ? 'success' : 'warning'; ?>">
+                                        <?php echo htmlspecialchars(ucfirst($user['subscription_status'])); ?>
+                                    </span>
+                                <?php else: ?>
+                                    <span class="badge bg-secondary">No Subscription</span>
+                                <?php endif; ?>
                             </td>
                             <td><?php echo $user['subscription_expiry'] ? date("M j, Y", strtotime($user['subscription_expiry'])) : 'N/A'; ?></td>
                             <td class="text-end">
