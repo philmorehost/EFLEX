@@ -1,23 +1,22 @@
 <?php
+session_start();
+
 // Include the custom autoloader
 require_once('autoloader.php');
 
 use Fawno\FPDF\FawnoFPDF;
 
+// Clear previous conversion data
+$_SESSION['converted_files'] = [];
+$_SESSION['conversion_errors'] = [];
+
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_FILES['fileToUpload'])) {
-    // Create directories if they don't exist
-    if (!is_dir('uploads')) {
-        mkdir('uploads');
-    }
-    if (!is_dir('converted')) {
-        mkdir('converted');
-    }
+    if (!is_dir('uploads')) mkdir('uploads');
+    if (!is_dir('converted')) mkdir('converted');
 
     $upload_dir = "uploads/";
     $converted_dir = "converted/";
-    $converted_files = [];
 
-    // Re-organize the $_FILES array
     $files = [];
     if (isset($_FILES['fileToUpload']['name']) && is_array($_FILES['fileToUpload']['name'])) {
         foreach ($_FILES['fileToUpload'] as $key => $all) {
@@ -29,18 +28,18 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_FILES['fileToUpload'])) {
         $files[] = $_FILES['fileToUpload'];
     }
 
-
     foreach ($files as $file) {
+        if ($file['error'] !== UPLOAD_ERR_OK) {
+            $_SESSION['conversion_errors'][] = "Error uploading file: " . $file['name'];
+            continue;
+        }
+
         $target_file = $upload_dir . basename($file["name"]);
         $file_extension = strtolower(pathinfo($target_file, PATHINFO_EXTENSION));
 
-        // Supported extensions
-        $fpdf_extensions = ['txt', 'jpg', 'jpeg', 'png'];
-        $office_extensions = ['doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx'];
-        $supported_extensions = array_merge($fpdf_extensions, $office_extensions);
-
+        $supported_extensions = ['txt', 'jpg', 'jpeg', 'png', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx'];
         if (!in_array($file_extension, $supported_extensions)) {
-            echo "Error: File type '." . $file_extension . "' is not supported for file '" . $file["name"] . "'.<br>";
+            $_SESSION['conversion_errors'][] = "File type '." . $file_extension . "' is not supported for file '" . $file["name"] . "'.";
             continue;
         }
 
@@ -52,109 +51,57 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_FILES['fileToUpload'])) {
             $output_filename = pathinfo($target_file, PATHINFO_FILENAME) . '.pdf';
             $output_path = $converted_dir . $output_filename;
 
-            if (in_array($file_extension, $fpdf_extensions)) {
-                // Convert with FPDF
+            if (in_array($file_extension, ['txt', 'jpg', 'jpeg', 'png'])) {
                 $pdf = new FawnoFPDF();
                 $pdf->AddPage();
                 $pdf->SetFont('Arial', '', 12);
-
                 if ($file_extension == 'txt') {
-                    $content = file_get_contents($target_file);
-                    $pdf->MultiCell(0, 5, $content);
-                } else { // Image
+                    $pdf->MultiCell(0, 5, file_get_contents($target_file));
+                } else {
                     list($width, $height) = getimagesize($target_file);
                     $pageWidth = $pdf->GetPageWidth() - 20;
                     $pageHeight = $pdf->GetPageHeight() - 20;
                     $ratio = $width / $height;
-                    if ($width > $pageWidth) {
-                        $width = $pageWidth;
-                        $height = $width / $ratio;
-                    }
-                    if ($height > $pageHeight) {
-                        $height = $pageHeight;
-                        $width = $height * $ratio;
-                    }
+                    if ($width > $pageWidth) { $width = $pageWidth; $height = $width / $ratio; }
+                    if ($height > $pageHeight) { $height = $pageHeight; $width = $height * $ratio; }
                     $pdf->Image($target_file, 10, 10, $width, $height);
                 }
                 $pdf->Output('F', $output_path);
-                $converted_files[] = $output_path;
-
-            } elseif (in_array($file_extension, $office_extensions)) {
-                // Convert with LibreOffice
-                $command = 'libreoffice --headless --convert-to pdf "' . $target_file . '" --outdir "' . $converted_dir . '" 2>&1';
+                $_SESSION['converted_files'][] = $output_filename;
+            } elseif (in_array($file_extension, ['doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx'])) {
+                $command = '/usr/bin/libreoffice --headless --convert-to pdf "' . $target_file . '" --outdir "' . $converted_dir . '" 2>&1';
                 $output = shell_exec($command);
-
-                // Check if the file was created
                 if (file_exists($output_path)) {
-                    $converted_files[] = $output_path;
+                    $_SESSION['converted_files'][] = $output_filename;
                 } else {
-                    echo "Error converting file '" . $file["name"] . "' with LibreOffice.<br>";
-                    echo "LibreOffice output: <pre>" . htmlspecialchars($output) . "</pre><br>";
+                    $_SESSION['conversion_errors'][] = "Error converting '" . $file["name"] . "'. LibreOffice output: <pre>" . htmlspecialchars($output) . "</pre>";
                 }
             }
-
-            // Clean up the uploaded file
             unlink($target_file);
         } else {
-            echo "Sorry, there was an error uploading your file: " . $file["name"] . "<br>";
+            $_SESSION['conversion_errors'][] = "Error uploading file: " . $file["name"];
         }
     }
 
-    // Apply security to the converted files
+    // Apply security
     $permissions = isset($_POST['permissions']) ? $_POST['permissions'] : [];
-    if (!empty($converted_files) && !empty($permissions)) {
+    if (!empty($_SESSION['converted_files']) && !empty($permissions)) {
         require_once('SecureFPDI.php');
-
-        foreach ($converted_files as $file_path) {
+        foreach ($_SESSION['converted_files'] as $filename) {
+            $file_path = $converted_dir . $filename;
             $pdf = new SecureFPDI();
             $pageCount = $pdf->setSourceFile($file_path);
-
             for ($pageNo = 1; $pageNo <= $pageCount; $pageNo++) {
                 $templateId = $pdf->importPage($pageNo);
                 $size = $pdf->getTemplateSize($templateId);
                 $pdf->AddPage($size['orientation'], $size);
                 $pdf->useTemplate($templateId);
             }
-
             $pdf->SetProtection($permissions);
             $pdf->Output('F', $file_path);
         }
     }
-
-    if (!empty($converted_files)) {
-        $zip = new ZipArchive();
-        $zip_name = "converted_files_" . time() . ".zip";
-        $zip_path = $converted_dir . $zip_name;
-
-        if ($zip->open($zip_path, ZipArchive::CREATE) === TRUE) {
-            foreach ($converted_files as $file) {
-                $zip->addFile($file, basename($file));
-            }
-            $zip->close();
-
-            // Send the zip file to the user
-            if (defined('TEST_MODE') && TEST_MODE) {
-                readfile($zip_path);
-            } else {
-                header('Content-Type: application/zip');
-                header('Content-disposition: attachment; filename=' . $zip_name);
-                header('Content-Length: ' . filesize($zip_path));
-                readfile($zip_path);
-            }
-
-            // Clean up the temporary files
-            foreach ($converted_files as $file) {
-                unlink($file);
-            }
-            unlink($zip_path);
-
-        } else {
-            echo 'Failed to create the zip file.';
-        }
-    } else {
-        echo "No files were converted.";
-    }
-
-} else {
-    echo "No file uploaded.";
 }
+
+header('Location: index.php');
+exit();
