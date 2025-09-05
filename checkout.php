@@ -97,6 +97,13 @@ if($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['place_order'])){
         $status = ($payment_method === 'bank_transfer') ? 'Awaiting Payment' : 'Pending';
         $_SESSION['total_amount'] = $total_price;
 
+        // Store customer details in session for the payment handler
+        $_SESSION['checkout_details'] = [
+            'first_name' => $_POST['first_name'] ?? '',
+            'last_name' => $_POST['last_name'] ?? '',
+            'address' => $_POST['address'] ?? ''
+        ];
+
         $mysqli->begin_transaction();
         try {
             $sql_order = "INSERT INTO orders (user_id, total_amount, payment_method, status) VALUES (?, ?, ?, ?)";
@@ -162,11 +169,28 @@ include 'includes/header.php';
     <div class="col-md-7 col-lg-8">
         <h4 class="mb-3">Your Details</h4>
         <form action="checkout.php" method="post" id="checkout-form">
-            <p>Your subscription will be linked to your account: <strong><?php echo htmlspecialchars($_SESSION['username']); ?></strong></p>
-            <hr class="my-4">
+            <?php if($total_price > 0): ?>
+                <div class="row g-3">
+                    <div class="col-sm-6">
+                        <label for="first_name" class="form-label">First name</label>
+                        <input type="text" class="form-control" id="first_name" name="first_name" placeholder="" value="" required>
+                    </div>
+                    <div class="col-sm-6">
+                        <label for="last_name" class="form-label">Last name</label>
+                        <input type="text" class="form-control" id="last_name" name="last_name" placeholder="" value="" required>
+                    </div>
+                    <div class="col-12">
+                        <label for="address" class="form-label">Address</label>
+                        <input type="text" class="form-control" id="address" name="address" placeholder="1234 Main St" required>
+                    </div>
+                </div>
+                <hr class="my-4">
+                <h5 class="mb-3">Payment Method</h5>
+            <?php else: ?>
+                 <p>Your subscription will be linked to your account: <strong><?php echo htmlspecialchars($_SESSION['username']); ?></strong></p>
+            <?php endif; ?>
 
             <?php if($total_price > 0): ?>
-                <h5 class="mb-3">Payment Method</h5>
                 <div class="my-3">
                     <div class="form-check">
                         <input id="bank_transfer" name="payment_method" type="radio" class="form-check-input" value="bank_transfer" required checked>

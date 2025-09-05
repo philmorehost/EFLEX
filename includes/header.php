@@ -60,11 +60,7 @@ if(isset($_SESSION['cart']) && is_array($_SESSION['cart'])){
                 <div class="header-logo">
                     <a class="navbar-brand" href="index.php">Eflex</a>
                 </div>
-                <div class="header-search flex-grow-1 mx-3">
-                    <form action="search.php" method="get">
-                        <input class="form-control" type="search" name="query" placeholder="Search Products..." aria-label="Search">
-                    </form>
-                </div>
+                <!-- Search bar removed as per user request -->
                 <div class="header-actions">
                     <?php if(isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true): ?>
                         <a href="account.php" class="header-action-btn"><i class="fas fa-user"></i><span><?php echo htmlspecialchars($_SESSION["username"]); ?></span></a>

@@ -35,15 +35,35 @@ if ($total_amount <= 0 || empty($user_email) || $order_id == 0) {
 // The callback URL is where Paystack redirects the user's browser after payment
 $callback_url = 'http://' . $_SERVER['HTTP_HOST'] . '/order_success.php?order_id=' . $order_id;
 
+// Get customer details from session
+$checkout_details = $_SESSION['checkout_details'] ?? [];
+$full_name = trim(($checkout_details['first_name'] ?? '') . ' ' . ($checkout_details['last_name'] ?? ''));
+
 $post_data = [
     'email' => $user_email,
     'amount' => $total_amount * 100, // Paystack requires amount in kobo/cents
     'callback_url' => $callback_url,
     'metadata' => [
         'order_id' => $order_id,
-        'user_id' => $_SESSION['id']
+        'user_id' => $_SESSION['id'],
+        'full_name' => $full_name,
+        'custom_fields' => [
+            [
+                'display_name' => "Full Name",
+                'variable_name' => "full_name",
+                'value' => $full_name
+            ],
+            [
+                'display_name' => "Address",
+                'variable_name' => "address",
+                'value' => $checkout_details['address'] ?? ''
+            ]
+        ]
     ]
 ];
+
+// Clean up the session data after using it
+unset($_SESSION['checkout_details']);
 
 $ch = curl_init();
 curl_setopt($ch, CURLOPT_URL, 'https://api.paystack.co/transaction/initialize');

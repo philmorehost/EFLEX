@@ -8,34 +8,57 @@ $message = "";
 
 // Handle Delete Product
 if(isset($_GET['delete'])){
-    $id = $_GET['delete'];
-    // First, get the image filename to delete it from the server
-    $sql_img = "SELECT image FROM products WHERE id = ?";
-    if($stmt_img = $mysqli->prepare($sql_img)){
-        $stmt_img->bind_param("i", $id);
+    $id_to_delete = $_GET['delete'];
+
+    $mysqli->begin_transaction();
+    try {
+        // 1. Get and delete associated local files from server
+        $sql_files = "SELECT filepath FROM product_local_files WHERE product_id = ?";
+        $stmt_files = $mysqli->prepare($sql_files);
+        $stmt_files->bind_param("i", $id_to_delete);
+        $stmt_files->execute();
+        $result_files = $stmt_files->get_result();
+        while($row = $result_files->fetch_assoc()) {
+            $file_to_unlink = __DIR__ . '/../' . $row['filepath'];
+            if (file_exists($file_to_unlink)) {
+                unlink($file_to_unlink);
+            }
+        }
+        $stmt_files->close();
+
+        // 2. Delete records from product_local_files table
+        $sql_delete_links = "DELETE FROM product_local_files WHERE product_id = ?";
+        $stmt_delete_links = $mysqli->prepare($sql_delete_links);
+        $stmt_delete_links->bind_param("i", $id_to_delete);
+        $stmt_delete_links->execute();
+        $stmt_delete_links->close();
+
+        // 3. Get and delete the main product image from server
+        $sql_img = "SELECT image FROM products WHERE id = ?";
+        $stmt_img = $mysqli->prepare($sql_img);
+        $stmt_img->bind_param("i", $id_to_delete);
         $stmt_img->execute();
         $stmt_img->bind_result($image_filename);
         $stmt_img->fetch();
         $stmt_img->close();
-
-        // Delete the image file if it's not the default one
         if($image_filename && $image_filename != 'default.jpg' && file_exists("../uploads/" . $image_filename)){
             unlink("../uploads/" . $image_filename);
         }
-    }
 
-    // Now, delete the product record from the database
-    $sql = "DELETE FROM products WHERE id = ?";
-    if($stmt = $mysqli->prepare($sql)){
-        $stmt->bind_param("i", $id);
-        if($stmt->execute()){
-             // Redirect to avoid re-deleting on refresh
-             header("location: manage_products.php?delete_success=1");
-             exit();
-        } else {
-            $message = '<div class="alert alert-danger">Error deleting product. Please try again.</div>';
-        }
-        $stmt->close();
+        // 4. Delete the product itself
+        $sql_delete_product = "DELETE FROM products WHERE id = ?";
+        $stmt_delete_product = $mysqli->prepare($sql_delete_product);
+        $stmt_delete_product->bind_param("i", $id_to_delete);
+        $stmt_delete_product->execute();
+        $stmt_delete_product->close();
+
+        $mysqli->commit();
+        header("location: manage_products.php?delete_success=1");
+        exit();
+
+    } catch (Exception $e) {
+        $mysqli->rollback();
+        $message = '<div class="alert alert-danger">Error deleting product: ' . $e->getMessage() . '</div>';
     }
 }
 
@@ -64,7 +87,8 @@ $total_pages = ceil($total_records / $records_per_page);
 
 
 // Fetch products for the current page
-$sql = "SELECT p.id, p.name, p.price, p.duration_days, p.image, c.name as category_name
+$sql = "SELECT p.id, p.name, p.price, p.duration_days, p.image, c.name as category_name,
+               (SELECT COUNT(*) FROM product_local_files plf WHERE plf.product_id = p.id) as file_count
         FROM products p
         LEFT JOIN categories c ON p.category_id = c.id
         ORDER BY p.name ASC
@@ -103,6 +127,7 @@ if($stmt = $mysqli->prepare($sql)){
                         <th>Category</th>
                         <th>Price</th>
                         <th>Duration</th>
+                        <th>Files</th>
                         <th class="text-end">Actions</th>
                     </tr>
                 </thead>
@@ -115,14 +140,15 @@ if($stmt = $mysqli->prepare($sql)){
                             <td><?php echo htmlspecialchars($product['category_name'] ?? 'N/A'); ?></td>
                             <td><?php echo format_price($product['price']); ?></td>
                             <td><?php echo htmlspecialchars($product['duration_days']); ?> days</td>
+                            <td><span class="badge bg-info"><?php echo $product['file_count']; ?></span></td>
                             <td class="text-end">
                                 <a href="edit_product.php?id=<?php echo $product['id']; ?>" class="btn btn-sm btn-warning"><i class="fas fa-edit"></i> Edit</a>
-                                <a href="manage_products.php?delete=<?php echo $product['id']; ?>" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure you want to delete this package? This action cannot be undone.')"><i class="fas fa-trash"></i> Delete</a>
+                                <a href="manage_products.php?delete=<?php echo $product['id']; ?>" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure you want to delete this package? This will also delete all associated files and cannot be undone.')"><i class="fas fa-trash"></i> Delete</a>
                             </td>
                         </tr>
                         <?php endforeach; ?>
                     <?php else: ?>
-                        <tr><td colspan="6" class="text-center">No packages found. <a href="add_product.php">Add one now</a>.</td></tr>
+                        <tr><td colspan="7" class="text-center">No packages found. <a href="add_product.php">Add one now</a>.</td></tr>
                     <?php endif; ?>
                 </tbody>
             </table>

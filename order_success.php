@@ -46,37 +46,53 @@ document.addEventListener('DOMContentLoaded', function() {
     <?php if (!$is_freemium): ?>
         const messageContainer = document.getElementById('message-container');
         const urlParams = new URLSearchParams(window.location.search);
+        const reference = urlParams.get('reference'); // Paystack uses 'reference'
 
-        // This is still the old Stripe logic, but we leave it for now
-        // as the main task was to implement Freemium and Paystack.
-        const paymentIntentId = urlParams.get('payment_intent');
-        if (paymentIntentId) {
-            fetch('finalize_order.php', {
+        if (reference) {
+            fetch('finalize_paystack_order.php', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ payment_intent: paymentIntentId })
+                body: JSON.stringify({ reference: reference })
             })
             .then(response => response.json())
             .then(data => {
                 if (data.status === 'success') {
                     messageContainer.innerHTML = `
-                        <div class="alert alert-success">
-                            <h4 class="alert-heading">Thank You!</h4>
-                            <p>Your order has been placed successfully.</p>
-                            <hr>
-                            <p class="mb-0">Your Order ID is: <strong>${data.orderId}</strong></p>
-                        </div>
-                        <a href="index.php" class="btn btn-primary">Go to Homepage</a>`;
+                        <div class="card border-success">
+                            <div class="card-body">
+                                <i class="fas fa-check-circle fa-4x text-success mb-3"></i>
+                                <h4 class="card-title">Thank You!</h4>
+                                <p class="card-text">Your payment was successful and your subscription is now active.</p>
+                                <hr>
+                                <p class="mb-0">Your Order ID is: <strong>#${data.orderId}</strong></p>
+                            </div>
+                            <div class="card-footer">
+                                <a href="lesson_notes.php" class="btn btn-success me-2">Go to Lesson Notes</a>
+                                <a href="index.php" class="btn btn-outline-primary">Continue Shopping</a>
+                            </div>
+                        </div>`;
                 } else {
-                     messageContainer.innerHTML = `<div class="alert alert-danger"><h4>Order Failed</h4><p>${data.message || 'An unknown error occurred.'}</p></div>`;
+                     messageContainer.innerHTML = `
+                        <div class="card border-danger">
+                            <div class="card-body">
+                                <i class="fas fa-times-circle fa-4x text-danger mb-3"></i>
+                                <h4 class="card-title">Payment Failed</h4>
+                                <p class="card-text">${data.message || 'An unknown error occurred during payment verification.'}</p>
+                                <hr>
+                                <p class="text-muted">Please contact support if you believe this is an error.</p>
+                            </div>
+                            <div class="card-footer">
+                                <a href="cart.php" class="btn btn-danger">Return to Cart</a>
+                            </div>
+                        </div>`;
                 }
             })
             .catch(error => {
                 console.error('Error:', error);
-                messageContainer.innerHTML = `<div class="alert alert-danger"><h4>Network Error</h4><p>Could not finalize your order.</p></div>`;
+                messageContainer.innerHTML = `<div class="alert alert-danger"><h4>Network Error</h4><p>Could not finalize your order. Please check your internet connection and contact support.</p></div>`;
             });
         } else {
-             messageContainer.innerHTML = `<div class="alert alert-danger"><h4>Invalid Access</h4><p>No payment information found.</p></div>`;
+             messageContainer.innerHTML = `<div class="alert alert-warning"><h4>Invalid Access</h4><p>No payment reference found. If you have completed a payment, please contact support.</p></div>`;
         }
     <?php endif; ?>
 });

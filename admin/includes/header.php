@@ -12,6 +12,11 @@ if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true || !isset($_S
     exit;
 }
 
+// Include the database connection and helper functions
+// The path is relative to the admin folder, so we go up one level.
+require_once __DIR__ . '/../includes/db_connect.php';
+require_once __DIR__ . '/../includes/helpers.php';
+
 // Base path for assets
 $base_url = "../";
 ?>
