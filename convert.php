@@ -79,12 +79,16 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_FILES['fileToUpload'])) {
                 if (file_exists($output_path)) {
                     $_SESSION['converted_files'][] = $output_filename;
                 } else {
+                    $debug_info = "--- In-depth Debugging Information ---<br>";
                     $path_env = shell_exec('echo $PATH');
-                    $find_output = shell_exec('find / -name "libreoffice" 2>/dev/null');
-                    $_SESSION['conversion_errors'][] = "Error converting '" . $file["name"] . "'. LibreOffice output: <pre>" . htmlspecialchars($output) . "</pre>" .
-                        "--- Debug Info ---" .
-                        "<br>PATH environment variable: <pre>" . htmlspecialchars($path_env) . "</pre>" .
-                        "<br>Result of `find / -name libreoffice`: <pre>" . htmlspecialchars($find_output) . "</pre>";
+                    $debug_info .= "PATH Environment Variable: <pre>" . ($path_env ? htmlspecialchars($path_env) : "Command failed or returned empty.") . "</pre><br>";
+                    $whoami = shell_exec('whoami');
+                    $debug_info .= "Running as user: <pre>" . ($whoami ? htmlspecialchars($whoami) : "Command failed or returned empty.") . "</pre><br>";
+                    $find_output = shell_exec('find /usr /opt -name "libreoffice" 2>/dev/null');
+                    $debug_info .= "Result of `find /usr /opt -name libreoffice`: <pre>" . ($find_output ? htmlspecialchars($find_output) : "Command failed or returned empty.") . "</pre><br>";
+
+                    $_SESSION['conversion_errors'][] = "Error converting '" . $file["name"] . "'. LibreOffice output: <pre>" . htmlspecialchars($output) . "</pre>";
+                    $_SESSION['debug_info'] = $debug_info;
                 }
             }
             unlink($target_file);

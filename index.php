@@ -9,6 +9,16 @@
     <!-- GOOGLE ADS SCRIPT GOES HERE -->
 </head>
 <body>
+    <?php
+    // Display debug info if any
+    if (!empty($_SESSION['debug_info'])) {
+        echo '<div class="container mt-5"><div class="alert alert-warning" role="alert">';
+        echo '<strong>Debugging Information:</strong><br>';
+        echo $_SESSION['debug_info'];
+        echo '</div></div>';
+        unset($_SESSION['debug_info']);
+    }
+    ?>
     <div class="container mt-5">
         <h1 class="text-center">PDF Converter</h1>
         <p class="text-center">Convert your documents to PDF and secure them with various options.</p>
