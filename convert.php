@@ -1,10 +1,35 @@
 <?php
 session_start();
 
-// Define the path to the LibreOffice executable.
-// You might need to change this depending on your server's configuration.
-// Common paths: /usr/bin/libreoffice, /opt/libreoffice/program/soffice
-define('LIBREOFFICE_PATH', '/usr/lib64/libreoffice/program/soffice');
+/**
+ * Finds the path to the LibreOffice executable.
+ * @return string|null The path to the executable, or null if not found.
+ */
+function find_libreoffice_path() {
+    // List of common paths to check first
+    $common_paths = [
+        '/usr/lib64/libreoffice/program/soffice',
+        '/usr/lib/libreoffice/program/soffice',
+        '/opt/libreoffice/program/soffice',
+        '/usr/bin/libreoffice',
+        '/usr/bin/soffice',
+    ];
+
+    foreach ($common_paths as $path) {
+        if (is_executable($path)) {
+            return $path;
+        }
+    }
+
+    // If not found, try to find it with `find`. We look for 'soffice.bin' which is the actual binary.
+    $find_output = shell_exec('find /usr /opt -name "soffice.bin" -type f -executable 2>/dev/null');
+    if (!empty($find_output)) {
+        $found_paths = explode("\n", trim($find_output));
+        return $found_paths[0]; // Return the first one found
+    }
+
+    return null; // Not found
+}
 
 // Include the custom autoloader
 require_once('autoloader.php');
@@ -74,21 +99,17 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_FILES['fileToUpload'])) {
                 $pdf->Output('F', $output_path);
                 $_SESSION['converted_files'][] = $output_filename;
             } elseif (in_array($file_extension, ['doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx'])) {
-                $command = LIBREOFFICE_PATH . ' --headless --convert-to pdf "' . $target_file . '" --outdir "' . $converted_dir . '" 2>&1';
-                $output = shell_exec($command);
-                if (file_exists($output_path)) {
-                    $_SESSION['converted_files'][] = $output_filename;
+                $libreoffice_path = find_libreoffice_path();
+                if ($libreoffice_path) {
+                    $command = $libreoffice_path . ' --headless --convert-to pdf "' . $target_file . '" --outdir "' . $converted_dir . '" 2>&1';
+                    $output = shell_exec($command);
+                    if (file_exists($output_path)) {
+                        $_SESSION['converted_files'][] = $output_filename;
+                    } else {
+                        $_SESSION['conversion_errors'][] = "Error converting '" . $file["name"] . "'. LibreOffice output: <pre>" . htmlspecialchars($output) . "</pre>";
+                    }
                 } else {
-                    $debug_info = "--- In-depth Debugging Information ---<br>";
-                    $path_env = shell_exec('echo $PATH');
-                    $debug_info .= "PATH Environment Variable: <pre>" . ($path_env ? htmlspecialchars($path_env) : "Command failed or returned empty.") . "</pre><br>";
-                    $whoami = shell_exec('whoami');
-                    $debug_info .= "Running as user: <pre>" . ($whoami ? htmlspecialchars($whoami) : "Command failed or returned empty.") . "</pre><br>";
-                    $find_output = shell_exec('find /usr /opt -name "libreoffice" 2>/dev/null');
-                    $debug_info .= "Result of `find /usr /opt -name libreoffice`: <pre>" . ($find_output ? htmlspecialchars($find_output) : "Command failed or returned empty.") . "</pre><br>";
-
-                    $_SESSION['conversion_errors'][] = "Error converting '" . $file["name"] . "'. LibreOffice output: <pre>" . htmlspecialchars($output) . "</pre>";
-                    $_SESSION['debug_info'] = $debug_info;
+                    $_SESSION['conversion_errors'][] = "Error: LibreOffice executable not found on the server. Please check the server configuration.";
                 }
             }
             unlink($target_file);

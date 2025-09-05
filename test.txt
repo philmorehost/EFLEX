@@ -1,4 +1,0 @@
-This is a test of the new FPDF-based PDF converter.
-Let's see if it works!
-I am testing the text to PDF conversion.
-I hope the security features also work.
