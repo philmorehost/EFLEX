@@ -124,12 +124,16 @@ $categories = $result_categories->fetch_all(MYSQLI_ASSOC);
                 <div class="col-md-8">
                     <div class="mb-3"><label for="name" class="form-label">Product Name</label><input type="text" name="name" id="name" class="form-control <?php echo (!empty($name_err)) ? 'is-invalid' : ''; ?>" value="<?php echo $name; ?>"><span class="invalid-feedback"><?php echo $name_err; ?></span></div>
                     <div class="mb-3"><label for="description" class="form-label">Description</label><textarea name="description" id="description" class="form-control <?php echo (!empty($description_err)) ? 'is-invalid' : ''; ?>" rows="5"><?php echo $description; ?></textarea><span class="invalid-feedback"><?php echo $description_err; ?></span></div>
+
+                    <div class="alert alert-info"><i class="fas fa-info-circle"></i> <strong>Note:</strong> You can provide content using the rich-text editor above for the description, or you can upload files below. You do not need to do both.</div>
+
+                    <div class="mb-3"><label for="product_files" class="form-label">Subscription Files (Optional)</label><input type="file" name="product_files[]" id="product_files" class="form-control" multiple><div class="form-text">Alternatively, upload one or more files for this package.</div><span class="text-danger"><?php echo $files_err; ?></span></div>
+
                     <div class="row">
                         <div class="col-md-6"><div class="mb-3"><label for="price" class="form-label">Price</label><div class="input-group"><span class="input-group-text"><?php echo get_app_setting('currency_symbol', '$'); ?></span><input type="number" name="price" id="price" class="form-control <?php echo (!empty($price_err)) ? 'is-invalid' : ''; ?>" value="<?php echo $price; ?>" step="0.01" min="0"></div><span class="invalid-feedback"><?php echo $price_err; ?></span></div></div>
                         <div class="col-md-4"><div class="mb-3"><label for="category_id" class="form-label">Category</label><select name="category_id" id="category_id" class="form-select <?php echo (!empty($category_id_err)) ? 'is-invalid' : ''; ?>"><option value="">Select a category</option><?php foreach ($categories as $category): ?><option value="<?php echo $category['id']; ?>" <?php echo ($category_id == $category['id']) ? 'selected' : ''; ?>><?php echo htmlspecialchars($category['name']); ?></option><?php endforeach; ?></select><span class="invalid-feedback"><?php echo $category_id_err; ?></span></div></div>
                         <div class="col-md-2"><div class="mb-3"><label for="duration_days" class="form-label">Duration (days)</label><input type="number" name="duration_days" id="duration_days" class="form-control" value="365"></div></div>
                     </div>
-                     <div class="mb-3"><label for="product_files" class="form-label">Subscription Files</label><input type="file" name="product_files[]" id="product_files" class="form-control" multiple><div class="form-text">Upload one or more files for this package.</div><span class="text-danger"><?php echo $files_err; ?></span></div>
                 </div>
                 <div class="col-md-4">
                     <div class="mb-3"><label for="image" class="form-label">Product Image</label><input type="file" name="image" id="image" class="form-control <?php echo (!empty($image_err)) ? 'is-invalid' : ''; ?>"><span class="invalid-feedback"><?php echo $image_err; ?></span></div>
@@ -142,11 +146,4 @@ $categories = $result_categories->fetch_all(MYSQLI_ASSOC);
         </form>
     </div>
 </div>
-<script>
-    ClassicEditor
-        .create( document.querySelector( '#description' ) )
-        .catch( error => {
-            console.error( error );
-        } );
-</script>
 <?php include 'includes/footer.php'; ?>

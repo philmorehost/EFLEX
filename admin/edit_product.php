@@ -216,6 +216,9 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
                         <label for="description" class="form-label">Description</label>
                         <textarea name="description" id="description" class="form-control" rows="5"><?php echo htmlspecialchars($description); ?></textarea>
                     </div>
+
+                    <div class="alert alert-info"><i class="fas fa-info-circle"></i> <strong>Note:</strong> You can provide content using the rich-text editor above for the description, or you can upload files below.</div>
+
                     <div class="row">
                         <div class="col-md-6 mb-3">
                              <label for="price" class="form-label">Price</label>
@@ -296,14 +299,6 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
         </form>
     </div>
 </div>
-
-<script>
-    ClassicEditor
-        .create( document.querySelector( '#description' ) )
-        .catch( error => {
-            console.error( error );
-        } );
-</script>
 
 <?php
 // Include admin footer
