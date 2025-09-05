@@ -79,7 +79,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_FILES['fileToUpload'])) {
                 if (file_exists($output_path)) {
                     $_SESSION['converted_files'][] = $output_filename;
                 } else {
-                    $_SESSION['conversion_errors'][] = "Error converting '" . $file["name"] . "'. LibreOffice output: <pre>" . htmlspecialchars($output) . "</pre>";
+                    $path_env = shell_exec('echo $PATH');
+                    $find_output = shell_exec('find / -name "libreoffice" 2>/dev/null');
+                    $_SESSION['conversion_errors'][] = "Error converting '" . $file["name"] . "'. LibreOffice output: <pre>" . htmlspecialchars($output) . "</pre>" .
+                        "--- Debug Info ---" .
+                        "<br>PATH environment variable: <pre>" . htmlspecialchars($path_env) . "</pre>" .
+                        "<br>Result of `find / -name libreoffice`: <pre>" . htmlspecialchars($find_output) . "</pre>";
                 }
             }
             unlink($target_file);
