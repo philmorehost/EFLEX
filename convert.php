@@ -81,14 +81,15 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_FILES['fileToUpload'])) {
 
             } elseif (in_array($file_extension, $office_extensions)) {
                 // Convert with LibreOffice
-                $command = 'libreoffice --headless --convert-to pdf "' . $target_file . '" --outdir "' . $converted_dir . '"';
-                shell_exec($command);
+                $command = 'libreoffice --headless --convert-to pdf "' . $target_file . '" --outdir "' . $converted_dir . '" 2>&1';
+                $output = shell_exec($command);
 
                 // Check if the file was created
                 if (file_exists($output_path)) {
                     $converted_files[] = $output_path;
                 } else {
                     echo "Error converting file '" . $file["name"] . "' with LibreOffice.<br>";
+                    echo "LibreOffice output: <pre>" . htmlspecialchars($output) . "</pre><br>";
                 }
             }
 
