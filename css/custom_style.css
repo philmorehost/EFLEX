@@ -318,7 +318,10 @@ h1, h2, h3, h4, h5, h6 {
     padding: 5px 10px;
     font-size: 1.2rem;
     z-index: 1001; /* Ensure it's above other elements */
-    color: var(--eflex-text-color);
+}
+
+.nav-toggle-btn .fas {
+    color: var(--eflex-text-color); /* Directly target the icon for visibility */
 }
 
 @media (max-width: 991.98px) {
