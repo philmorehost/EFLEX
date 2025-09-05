@@ -50,9 +50,7 @@ if(!$product){
             </nav>
             <h2><?php echo htmlspecialchars($product['name']); ?></h2>
             <h4 class="text-success"><?php echo format_price($product['price']); ?></h4>
-            <div class="product-description lead">
-                <?php echo $product['description']; ?>
-            </div>
+            <p class="lead"><?php echo nl2br(htmlspecialchars($product['description'])); ?></p>
 
             <hr>
 

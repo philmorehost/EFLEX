@@ -17,12 +17,14 @@ $files_for_product = [];
 $product_name = '';
 $view_file_id = isset($_GET['view']) ? (int)$_GET['view'] : 0;
 
-// 1. Get all active subscriptions for the user that have files
+// 1. Get all active subscriptions for the user that have content (either files or HTML)
 $sql_sub = "SELECT DISTINCT p.id, p.name
             FROM user_subscriptions us
             JOIN products p ON us.product_id = p.id
-            JOIN product_local_files plf ON p.id = plf.product_id
-            WHERE us.user_id = ? AND us.status = 'active' AND (us.expires_at IS NULL OR us.expires_at >= CURDATE())";
+            WHERE us.user_id = ?
+              AND us.status = 'active'
+              AND (us.expires_at IS NULL OR us.expires_at >= CURDATE())
+              AND (EXISTS(SELECT 1 FROM product_local_files plf WHERE plf.product_id = p.id) OR p.html_content IS NOT NULL AND p.html_content != '')";
 
 if ($stmt_sub = $mysqli->prepare($sql_sub)) {
     $stmt_sub->bind_param("i", $user_id);
@@ -37,8 +39,9 @@ if (empty($subscribed_products)) {
     exit;
 }
 
-// 2. If a product is selected, get its files
+// 2. If a product is selected, get its details (files and/or HTML content)
 $product_id = isset($_GET['product_id']) ? (int)$_GET['product_id'] : 0;
+$html_content = null;
 if ($product_id) {
     $is_subscribed_to_product = false;
     foreach($subscribed_products as $p) {
@@ -50,6 +53,19 @@ if ($product_id) {
     }
 
     if ($is_subscribed_to_product) {
+        // Check for HTML content first
+        $sql_html = "SELECT html_content FROM products WHERE id = ?";
+        if($stmt_html = $mysqli->prepare($sql_html)) {
+            $stmt_html->bind_param("i", $product_id);
+            $stmt_html->execute();
+            $result_html = $stmt_html->get_result();
+            if($row = $result_html->fetch_assoc()) {
+                $html_content = $row['html_content'];
+            }
+            $stmt_html->close();
+        }
+
+        // Then check for files
         $sql_files = "SELECT id, original_filename FROM product_local_files WHERE product_id = ? ORDER BY original_filename ASC";
         if($stmt_files = $mysqli->prepare($sql_files)) {
             $stmt_files->bind_param("i", $product_id);
@@ -59,6 +75,7 @@ if ($product_id) {
             $stmt_files->close();
         }
     } else {
+        // User is not subscribed to the selected product, reset it.
         $product_id = 0;
     }
 }
@@ -95,15 +112,30 @@ include 'includes/header.php';
                 <div class="embed-responsive" style="height: 80vh; border: 1px solid #ddd;">
                     <iframe class="embed-responsive-item w-100 h-100" src="view_file.php?id=<?php echo $view_file_id; ?>"></iframe>
                 </div>
+            <?php elseif ($product_id && !empty($html_content)) : ?>
+                <h4><?php echo htmlspecialchars($product_name); ?></h4>
+                <div id="secure-content" class="secure-content">
+                    <?php echo $html_content; ?>
+                </div>
             <?php else : ?>
                 <div class="text-center p-5 border rounded d-flex flex-column justify-content-center align-items-center" style="min-height: 300px;">
                     <i class="fas fa-book-reader fa-3x text-muted mb-3"></i>
                     <h4>Welcome to your Lesson Notes</h4>
-                    <p class="text-muted">Select a subscription and a file from the list on the left to view it.</p>
+                    <p class="text-muted">Select a subscription from the list on the left to view its content.</p>
                 </div>
             <?php endif; ?>
         </div>
     </div>
 </div>
+
+<script>
+// Disable right-click on the secure content area
+const secureContent = document.getElementById('secure-content');
+if (secureContent) {
+    secureContent.addEventListener('contextmenu', function(e) {
+        e.preventDefault();
+    });
+}
+</script>
 
 <?php include 'includes/footer.php'; ?>

@@ -284,6 +284,31 @@ h1, h2, h3, h4, h5, h6 {
     color: var(--eflex-white);
 }
 
+/* 6. Secure Content Display */
+.secure-content {
+    -webkit-user-select: none; /* Safari */
+    -ms-user-select: none; /* IE 10+ */
+    user-select: none; /* Standard syntax */
+    padding: 20px;
+    border: 1px solid var(--eflex-border-color);
+    border-radius: 5px;
+    background-color: var(--eflex-white);
+}
+
+@media print {
+    .secure-content, .secure-content * {
+        display: none !important;
+        visibility: hidden !important;
+    }
+    body::after {
+        content: "Printing is disabled for this content.";
+        display: block;
+        text-align: center;
+        font-size: 24px;
+        margin-top: 50px;
+    }
+}
+
 /* 5. Responsive Navigation */
 .nav-toggle-btn {
     display: none; /* Hidden by default */

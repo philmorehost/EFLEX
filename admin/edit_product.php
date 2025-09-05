@@ -32,7 +32,7 @@ if(isset($_GET["id"]) && !empty(trim($_GET["id"]))){
 if($_SERVER["REQUEST_METHOD"] == "POST"){
     // Validate form fields
     $name = trim($_POST["name"]);
-    $description = $_POST["description"]; // Use raw HTML from CKEditor
+    $description = trim($_POST["description"]);
     $price = trim($_POST["price"]);
     $category_id = $_POST["category_id"];
     $duration_days = (int)$_POST['duration_days'];
@@ -40,11 +40,11 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
     $is_top_seller = isset($_POST['is_top_seller']) ? 1 : 0;
     $current_image = $_POST['current_image'];
     $files_to_delete = $_POST['delete_files'] ?? [];
+    $html_content = $_POST['html_content'] ?? null;
 
     // Basic validation
     if(empty($name)) $name_err = "Please enter a product name.";
-    // For CKEditor, check if the description is empty after stripping HTML tags.
-    if(empty(strip_tags($description))) $description_err = "Please enter a description.";
+    if(empty($description)) $description_err = "Please enter a description.";
     if(!isset($price) || $price === "") $price_err = "Please enter a price.";
     if(empty($category_id)) $category_id_err = "Please select a category.";
 
@@ -134,9 +134,9 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
         }
 
         // 4. Update Product Details
-        $sql_update = "UPDATE products SET name=?, description=?, price=?, duration_days=?, category_id=?, image=?, is_featured=?, is_top_seller=? WHERE id=?";
+        $sql_update = "UPDATE products SET name=?, description=?, html_content=?, price=?, duration_days=?, category_id=?, image=?, is_featured=?, is_top_seller=? WHERE id=?";
         $stmt_update = $mysqli->prepare($sql_update);
-        $stmt_update->bind_param("ssdiisiii", $name, $description, $price, $duration_days, $category_id, $new_image_filename, $is_featured, $is_top_seller, $product_id);
+        $stmt_update->bind_param("sssdiisiii", $name, $description, $html_content, $price, $duration_days, $category_id, $new_image_filename, $is_featured, $is_top_seller, $product_id);
         $stmt_update->execute();
         $stmt_update->close();
 
@@ -155,7 +155,7 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
 
 } else {
     // Fetch current data for the form if not a POST request
-    $sql_fetch = "SELECT name, description, price, duration_days, category_id, image, is_featured, is_top_seller FROM products WHERE id = ?";
+    $sql_fetch = "SELECT name, description, html_content, price, duration_days, category_id, image, is_featured, is_top_seller FROM products WHERE id = ?";
     if($stmt_fetch = $mysqli->prepare($sql_fetch)){
         $stmt_fetch->bind_param("i", $product_id);
         if($stmt_fetch->execute()){
@@ -164,6 +164,7 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
                 $product = $result->fetch_assoc();
                 $name = $product['name'];
                 $description = $product['description'];
+                $html_content = $product['html_content'];
                 $price = $product['price'];
                 $duration_days = $product['duration_days'];
                 $category_id = $product['category_id'];
@@ -216,9 +217,6 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
                         <label for="description" class="form-label">Description</label>
                         <textarea name="description" id="description" class="form-control" rows="5"><?php echo htmlspecialchars($description); ?></textarea>
                     </div>
-
-                    <div class="alert alert-info"><i class="fas fa-info-circle"></i> <strong>Note:</strong> You can provide content using the rich-text editor above for the description, or you can upload files below.</div>
-
                     <div class="row">
                         <div class="col-md-6 mb-3">
                              <label for="price" class="form-label">Price</label>
@@ -271,6 +269,12 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
                         <input type="file" name="product_files[]" id="product_files" class="form-control" multiple>
                         <div class="form-text">Select one or more new files to add to this package.</div>
                     </div>
+                    <hr>
+                    <div class="mb-3">
+                         <label for="html_content" class="form-label">Web Content (Alternative to Files)</label>
+                         <div class="alert alert-info"><i class="fas fa-info-circle"></i> As an alternative to uploading files, you can create or edit the content directly below.</div>
+                         <textarea name="html_content" id="html_content" class="form-control" rows="10"><?php echo htmlspecialchars($html_content ?? ''); ?></textarea>
+                     </div>
                 </div>
                 <div class="col-md-4">
                     <!-- Image and flags -->

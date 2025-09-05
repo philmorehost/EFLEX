@@ -6,8 +6,8 @@
 <!-- CKEditor 5 -->
 <script src="https://cdn.ckeditor.com/ckeditor5/41.4.2/classic/ckeditor.js"></script>
 <script>
-    // Initialize CKEditor on any page that has an element with the id 'description'
-    const editorElement = document.querySelector('#description');
+    // Initialize CKEditor on any page that has an element with the id 'html_content'
+    const editorElement = document.querySelector('#html_content');
     if (editorElement) {
         ClassicEditor
             .create(editorElement)

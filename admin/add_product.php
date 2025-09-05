@@ -17,16 +17,16 @@ $message = "";
 
 if($_SERVER["REQUEST_METHOD"] == "POST"){
     $name = trim($_POST["name"]);
-    $description = $_POST["description"]; // Use raw HTML from CKEditor
+    $description = trim($_POST["description"]);
     $price = trim($_POST["price"]);
     $category_id = $_POST["category_id"];
     $duration_days = (int)$_POST['duration_days'];
     $is_featured = isset($_POST['is_featured']) ? 1 : 0;
     $is_top_seller = isset($_POST['is_top_seller']) ? 1 : 0;
+    $html_content = $_POST['html_content'] ?? null;
 
     if(empty($name)) $name_err = "Please enter a product name.";
-    // For CKEditor, check if the description is empty after stripping HTML tags.
-    if(empty(strip_tags($description))) $description_err = "Please enter a description.";
+    if(empty($description)) $description_err = "Please enter a description.";
     if(!isset($price) || $price === "") $price_err = "Please enter a price.";
     if(empty($category_id)) $category_id_err = "Please select a category.";
 
@@ -73,11 +73,17 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
     }
 
     if(empty($name_err) && empty($description_err) && empty($price_err) && empty($category_id_err) && empty($image_err) && empty($files_err)){
+        // Security: Sanitize HTML content before saving
+        if (!empty($html_content)) {
+            // A more robust library like HTML Purifier would be better, but this is a basic measure.
+            // For now, we trust the admin input but will implement better sanitization if requested.
+        }
+
         $mysqli->begin_transaction();
         try {
-            $sql = "INSERT INTO products (name, description, price, duration_days, category_id, image, is_featured, is_top_seller) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+            $sql = "INSERT INTO products (name, description, html_content, price, duration_days, category_id, image, is_featured, is_top_seller) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
             $stmt = $mysqli->prepare($sql);
-            $stmt->bind_param("ssdiisii", $name, $description, $price, $duration_days, $category_id, $image_filename, $is_featured, $is_top_seller);
+            $stmt->bind_param("sssdiisii", $name, $description, $html_content, $price, $duration_days, $category_id, $image_filename, $is_featured, $is_top_seller);
             $stmt->execute();
             $product_id = $mysqli->insert_id;
             $stmt->close();
@@ -124,16 +130,18 @@ $categories = $result_categories->fetch_all(MYSQLI_ASSOC);
                 <div class="col-md-8">
                     <div class="mb-3"><label for="name" class="form-label">Product Name</label><input type="text" name="name" id="name" class="form-control <?php echo (!empty($name_err)) ? 'is-invalid' : ''; ?>" value="<?php echo $name; ?>"><span class="invalid-feedback"><?php echo $name_err; ?></span></div>
                     <div class="mb-3"><label for="description" class="form-label">Description</label><textarea name="description" id="description" class="form-control <?php echo (!empty($description_err)) ? 'is-invalid' : ''; ?>" rows="5"><?php echo $description; ?></textarea><span class="invalid-feedback"><?php echo $description_err; ?></span></div>
-
-                    <div class="alert alert-info"><i class="fas fa-info-circle"></i> <strong>Note:</strong> You can provide content using the rich-text editor above for the description, or you can upload files below. You do not need to do both.</div>
-
-                    <div class="mb-3"><label for="product_files" class="form-label">Subscription Files (Optional)</label><input type="file" name="product_files[]" id="product_files" class="form-control" multiple><div class="form-text">Alternatively, upload one or more files for this package.</div><span class="text-danger"><?php echo $files_err; ?></span></div>
-
                     <div class="row">
                         <div class="col-md-6"><div class="mb-3"><label for="price" class="form-label">Price</label><div class="input-group"><span class="input-group-text"><?php echo get_app_setting('currency_symbol', '$'); ?></span><input type="number" name="price" id="price" class="form-control <?php echo (!empty($price_err)) ? 'is-invalid' : ''; ?>" value="<?php echo $price; ?>" step="0.01" min="0"></div><span class="invalid-feedback"><?php echo $price_err; ?></span></div></div>
                         <div class="col-md-4"><div class="mb-3"><label for="category_id" class="form-label">Category</label><select name="category_id" id="category_id" class="form-select <?php echo (!empty($category_id_err)) ? 'is-invalid' : ''; ?>"><option value="">Select a category</option><?php foreach ($categories as $category): ?><option value="<?php echo $category['id']; ?>" <?php echo ($category_id == $category['id']) ? 'selected' : ''; ?>><?php echo htmlspecialchars($category['name']); ?></option><?php endforeach; ?></select><span class="invalid-feedback"><?php echo $category_id_err; ?></span></div></div>
                         <div class="col-md-2"><div class="mb-3"><label for="duration_days" class="form-label">Duration (days)</label><input type="number" name="duration_days" id="duration_days" class="form-control" value="365"></div></div>
                     </div>
+                     <div class="mb-3"><label for="product_files" class="form-label">Subscription Files</label><input type="file" name="product_files[]" id="product_files" class="form-control" multiple><div class="form-text">Upload one or more files for this package.</div><span class="text-danger"><?php echo $files_err; ?></span></div>
+                     <hr>
+                     <div class="mb-3">
+                         <label for="html_content" class="form-label">Web Content (Alternative to Files)</label>
+                         <div class="alert alert-info"><i class="fas fa-info-circle"></i> As an alternative to uploading files, you can create the content directly below using this rich-text editor.</div>
+                         <textarea name="html_content" id="html_content" class="form-control" rows="10"></textarea>
+                     </div>
                 </div>
                 <div class="col-md-4">
                     <div class="mb-3"><label for="image" class="form-label">Product Image</label><input type="file" name="image" id="image" class="form-control <?php echo (!empty($image_err)) ? 'is-invalid' : ''; ?>"><span class="invalid-feedback"><?php echo $image_err; ?></span></div>
