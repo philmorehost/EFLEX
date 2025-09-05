@@ -63,7 +63,8 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
         <div class="card-header"><i class="fas fa-info-circle"></i> Site Information</div>
         <div class="card-body">
             <div class="mb-3"><label for="site_title" class="form-label">Site Title</label><input type="text" name="site_title" class="form-control" id="site_title" value="<?php echo get_app_setting('site_title', 'Eflex E-commerce'); ?>"></div>
-            <div class="mb-3"><label for="site_info" class="form-label">Site Information (About Us)</label><textarea name="site_info" class="form-control" id="site_info" rows="4"><?php echo get_app_setting('site_info'); ?></textarea></div>
+            <div class="mb-3"><label for="site_info" class="form-label">Site Information (Footer About Us)</label><textarea name="site_info" class="form-control" id="site_info" rows="4"><?php echo get_app_setting('site_info'); ?></textarea></div>
+            <div class="mb-3"><label for="footer_copyright_text" class="form-label">Footer Copyright Text</label><input type="text" name="footer_copyright_text" class="form-control" id="footer_copyright_text" value="<?php echo get_app_setting('footer_copyright_text', '&copy; ' . date("Y") . ' ' . get_app_setting('site_title') . '. All Rights Reserved.'); ?>"></div>
         </div>
     </div>
 
@@ -96,6 +97,7 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
             <div class="row">
                 <div class="col-md-6 mb-3"><label for="contact_email" class="form-label">Contact Email</label><input type="email" name="contact_email" class="form-control" id="contact_email" value="<?php echo get_app_setting('contact_email'); ?>"></div>
                 <div class="col-md-6 mb-3"><label for="contact_phone" class="form-label">Contact Phone</label><input type="text" name="contact_phone" class="form-control" id="contact_phone" value="<?php echo get_app_setting('contact_phone'); ?>"></div>
+                <div class="col-12 mb-3"><label for="contact_address" class="form-label">Contact Address</label><input type="text" name="contact_address" class="form-control" id="contact_address" value="<?php echo get_app_setting('contact_address'); ?>"></div>
                 <div class="col-md-6 mb-3"><label for="social_facebook" class="form-label">Facebook URL</label><input type="url" name="social_facebook" class="form-control" id="social_facebook" value="<?php echo get_app_setting('social_facebook'); ?>"></div>
                 <div class="col-md-6 mb-3"><label for="social_twitter" class="form-label">Twitter URL</label><input type="url" name="social_twitter" class="form-control" id="social_twitter" value="<?php echo get_app_setting('social_twitter'); ?>"></div>
                 <div class="col-md-6 mb-3"><label for="social_instagram" class="form-label">Instagram URL</label><input type="url" name="social_instagram" class="form-control" id="social_instagram" value="<?php echo get_app_setting('social_instagram'); ?>"></div>

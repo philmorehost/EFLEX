@@ -62,4 +62,27 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
+    // --- Mobile Navigation Toggle ---
+    const navToggleBtn = document.getElementById('nav-toggle-btn');
+    const mainNav = document.getElementById('main-nav');
+
+    if (navToggleBtn && mainNav) {
+        navToggleBtn.addEventListener('click', function() {
+            mainNav.classList.toggle('is-active');
+        });
+    }
+
+    // --- Mobile Dropdown Toggle ---
+    const dropdownToggles = document.querySelectorAll('.nav-item-dropdown > a');
+    dropdownToggles.forEach(function(toggle) {
+        toggle.addEventListener('click', function(e) {
+            // We only want this behavior on mobile
+            if (window.innerWidth < 992) {
+                e.preventDefault(); // Prevent link navigation
+                const parentDropdown = toggle.parentElement;
+                parentDropdown.classList.toggle('is-open');
+            }
+        });
+    });
+
 });

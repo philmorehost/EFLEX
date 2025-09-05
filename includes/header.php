@@ -39,7 +39,7 @@ if(isset($_SESSION['cart']) && is_array($_SESSION['cart'])){
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Eflex E-commerce</title>
+    <title><?php echo get_app_setting('site_title', 'Eflex E-commerce'); ?></title>
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -58,9 +58,11 @@ if(isset($_SESSION['cart']) && is_array($_SESSION['cart'])){
         <div class="container">
             <div class="d-flex justify-content-between align-items-center">
                 <div class="header-logo">
-                    <a class="navbar-brand" href="index.php">Eflex</a>
+                    <a class="navbar-brand" href="index.php"><?php echo get_app_setting('site_title', 'Eflex'); ?></a>
                 </div>
-                <!-- Search bar removed as per user request -->
+                <button class="nav-toggle-btn" id="nav-toggle-btn">
+                    <i class="fas fa-bars"></i>
+                </button>
                 <div class="header-actions">
                     <?php if(isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true): ?>
                         <a href="account.php" class="header-action-btn"><i class="fas fa-user"></i><span><?php echo htmlspecialchars($_SESSION["username"]); ?></span></a>
@@ -77,7 +79,7 @@ if(isset($_SESSION['cart']) && is_array($_SESSION['cart'])){
             </div>
         </div>
     </div>
-    <nav class="header-nav">
+    <nav class="header-nav" id="main-nav">
         <div class="container">
             <ul class="nav-list">
                 <li><a href="index.php" class="nav-link">Home</a></li>

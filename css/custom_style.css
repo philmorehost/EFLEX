@@ -39,6 +39,7 @@ h1, h2, h3, h4, h5, h6 {
 .site-header {
     box-shadow: 0 2px 4px rgba(0,0,0,0.05);
     background-color: var(--eflex-white);
+    position: relative; /* Needed for mobile nav positioning */
 }
 
 .header-main {
@@ -281,4 +282,94 @@ h1, h2, h3, h4, h5, h6 {
 
 .footer a:hover {
     color: var(--eflex-white);
+}
+
+/* 5. Responsive Navigation */
+.nav-toggle-btn {
+    display: none; /* Hidden by default */
+    background: none;
+    border: 1px solid var(--eflex-border-color);
+    border-radius: 4px;
+    padding: 5px 10px;
+    font-size: 1.2rem;
+    z-index: 1001; /* Ensure it's above other elements */
+}
+
+@media (max-width: 991.98px) {
+    .header-main .container > .d-flex {
+        justify-content: space-between !important;
+    }
+
+    .nav-toggle-btn {
+        display: block; /* Show on mobile */
+    }
+
+    .header-actions {
+        display: none; /* Hide actions on mobile to simplify */
+    }
+
+    /* Adjust the main nav container */
+    .header-nav {
+        display: none; /* Hide nav by default on mobile */
+        position: absolute;
+        top: 100%; /* Position below header */
+        left: 0;
+        right: 0;
+        background-color: var(--eflex-white);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        z-index: 1000;
+        border-top: 1px solid var(--eflex-border-color);
+    }
+
+    .header-nav.is-active {
+        display: block; /* Show when active */
+    }
+
+    /* Adjust the nav list for vertical layout */
+    .nav-list {
+        flex-direction: column;
+        align-items: flex-start;
+        padding: 10px 0;
+        width: 100%;
+    }
+
+    .nav-list > li {
+        width: 100%;
+    }
+
+    .nav-list > li > a.nav-link {
+        padding: 12px 20px;
+        width: 100%;
+        border-bottom: 1px solid var(--eflex-background-color);
+    }
+
+    .nav-list > li:last-child > a.nav-link {
+        border-bottom: none;
+    }
+
+    /* Adjust dropdown for mobile */
+    .nav-item-dropdown:hover .dropdown-menu-custom {
+        display: none; /* Disable hover effect on mobile */
+    }
+
+    .dropdown-menu-custom {
+        position: static;
+        box-shadow: none;
+        border: none;
+        width: 100%;
+        background-color: #fdfdfd;
+        padding-left: 20px; /* Indent sub-menu */
+    }
+
+    .nav-item-dropdown.is-open > .dropdown-menu-custom {
+        display: block;
+    }
+
+    .nav-item-dropdown > a .fa-chevron-down {
+        transition: transform 0.2s ease-in-out;
+    }
+
+    .nav-item-dropdown.is-open > a .fa-chevron-down {
+        transform: rotate(180deg);
+    }
 }
