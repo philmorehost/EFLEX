@@ -321,7 +321,7 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .nav-toggle-btn .fas {
-    color: var(--eflex-text-color); /* Directly target the icon for visibility */
+    color: black !important; /* Force color to be black to override any conflicting styles */
 }
 
 @media (max-width: 991.98px) {
