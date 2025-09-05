@@ -14,8 +14,9 @@
             <div class="card-body">
                 <form action="convert.php" method="post" enctype="multipart/form-data">
                     <div class="mb-3">
-                        <label for="formFile" class="form-label">Select a file to convert</label>
-                        <input class="form-control" type="file" id="formFile" name="fileToUpload" required>
+                        <label for="formFile" class="form-label">Select one or more files to convert</label>
+                        <input class="form-control" type="file" id="formFile" name="fileToUpload[]" required multiple>
+                        <div id="fileHelp" class="form-text">Supported formats: .txt, .jpg, .jpeg, .png, .doc, .docx, .xls, .xlsx, .ppt, .pptx</div>
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Security Options</label>
