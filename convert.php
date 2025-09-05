@@ -1,6 +1,11 @@
 <?php
 session_start();
 
+// Define the path to the LibreOffice executable.
+// You might need to change this depending on your server's configuration.
+// Common paths: /usr/bin/libreoffice, /opt/libreoffice/program/soffice
+define('LIBREOFFICE_PATH', '/usr/bin/libreoffice');
+
 // Include the custom autoloader
 require_once('autoloader.php');
 
@@ -69,7 +74,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_FILES['fileToUpload'])) {
                 $pdf->Output('F', $output_path);
                 $_SESSION['converted_files'][] = $output_filename;
             } elseif (in_array($file_extension, ['doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx'])) {
-                $command = '/usr/bin/libreoffice --headless --convert-to pdf "' . $target_file . '" --outdir "' . $converted_dir . '" 2>&1';
+                $command = LIBREOFFICE_PATH . ' --headless --convert-to pdf "' . $target_file . '" --outdir "' . $converted_dir . '" 2>&1';
                 $output = shell_exec($command);
                 if (file_exists($output_path)) {
                     $_SESSION['converted_files'][] = $output_filename;
