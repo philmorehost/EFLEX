@@ -54,16 +54,7 @@ if(!$product){
 
             <hr>
 
-            <form id="add-to-cart-form" class="ajax-add-to-cart-form">
-                <input type="hidden" name="product_id" value="<?php echo $product['id']; ?>">
-                <div class="row">
-                    <div class="col-md-4">
-                        <label for="quantity" class="form-label">Quantity</label>
-                        <input type="number" name="quantity" id="quantity" class="form-control" value="1" min="1">
-                    </div>
-                </div>
-                <button type="submit" class="btn btn-primary btn-lg mt-3">Add to Cart</button>
-            </form>
+            <a href="cart.php?action=add&id=<?php echo $product['id']; ?>&single=1" class="btn btn-primary btn-lg mt-3">Subscribe</a>
         </div>
     </div>
 </div>
