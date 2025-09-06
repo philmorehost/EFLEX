@@ -234,6 +234,28 @@ h1, h2, h3, h4, h5, h6 {
     color: var(--eflex-white);
 }
 
+.hero-search-section {
+    background-color: var(--eflex-background-color);
+}
+
+.hero-search-form .form-control {
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+    border: 2px solid var(--eflex-primary-color);
+    box-shadow: none; /* Remove default focus shadow */
+}
+.hero-search-form .form-control:focus {
+    border-color: #0b5ed7;
+    z-index: 2; /* Ensure the input is above the button on focus */
+}
+
+
+.hero-search-form .btn {
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+    z-index: 1;
+}
+
 /* Make carousel controls darker to be visible on white background */
 .carousel-control-prev-icon,
 .carousel-control-next-icon {
