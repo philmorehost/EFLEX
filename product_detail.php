@@ -50,11 +50,12 @@ if(!$product){
             </nav>
             <h2><?php echo htmlspecialchars($product['name']); ?></h2>
             <h4 class="text-success"><?php echo format_price($product['price']); ?></h4>
-            <p class="lead"><?php echo nl2br(htmlspecialchars($product['description'])); ?></p>
+
+            <a href="cart.php?action=add&id=<?php echo $product['id']; ?>&single=1" class="btn btn-primary btn-lg my-3">Subscribe</a>
 
             <hr>
 
-            <a href="cart.php?action=add&id=<?php echo $product['id']; ?>&single=1" class="btn btn-primary btn-lg mt-3">Subscribe</a>
+            <p class="lead"><?php echo nl2br(htmlspecialchars($product['description'])); ?></p>
         </div>
     </div>
 </div>
