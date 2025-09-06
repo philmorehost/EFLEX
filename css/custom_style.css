@@ -336,8 +336,8 @@ h1, h2, h3, h4, h5, h6 {
     border-bottom-left-radius: 0;
 }
 
-.nav-toggle-btn .fas {
-    color: black !important; /* Force color to be black to override any conflicting styles */
+#nav-toggle-btn .fas {
+    color: var(--eflex-primary-color);
 }
 
 @media (max-width: 991.98px) {
