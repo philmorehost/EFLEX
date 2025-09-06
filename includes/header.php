@@ -60,6 +60,15 @@ if(isset($_SESSION['cart']) && is_array($_SESSION['cart'])){
                 <div class="header-logo">
                     <a class="navbar-brand" href="index.php"><?php echo get_app_setting('site_title', 'Eflex'); ?></a>
                 </div>
+
+                <!-- Global Search Bar -->
+                <div class="header-search mx-auto">
+                    <form action="search.php" method="get" class="d-flex">
+                        <input class="form-control" type="search" name="query" placeholder="Search for anything..." aria-label="Search">
+                        <button class="btn btn-primary" type="submit"><i class="fas fa-search"></i></button>
+                    </form>
+                </div>
+
                 <button class="nav-toggle-btn" id="nav-toggle-btn">
                     <i class="fas fa-bars"></i>
                 </button>

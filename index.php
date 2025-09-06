@@ -25,18 +25,11 @@ $premium_products = $premium_products_result->fetch_all(MYSQLI_ASSOC);
 
 ?>
 
-<!-- Hero Section -->
-<div class="hero-section bg-dark text-white text-center">
+<!-- New simplified hero section -->
+<div class="hero-section-simple bg-light text-center py-5">
     <div class="container">
-        <h1 class="display-4">Search for Lesson Notes</h1>
-        <div class="hero-search-form">
-            <form action="search.php" method="get" class="d-flex">
-                <input class="form-control form-control-lg" type="search" name="query" placeholder="Enter keywords, subject, or class..." aria-label="Search">
-                <button class="btn btn-primary btn-lg" type="submit">
-                    <i class="fas fa-search me-2"></i>Search
-                </button>
-            </form>
-        </div>
+        <h1 class="display-5">Welcome to <?php echo get_app_setting('site_title', 'Eflex'); ?></h1>
+        <p class="lead">Your source for quality educational materials.</p>
     </div>
 </div>
 

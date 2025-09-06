@@ -211,22 +211,6 @@ h1, h2, h3, h4, h5, h6 {
     margin-bottom: 2rem;
 }
 
-.hero-search-form {
-    max-width: 700px;
-    margin: 30px auto 0;
-}
-
-.hero-search-form .form-control {
-    border-right: 0;
-    border-radius: 30px 0 0 30px;
-    padding: 10px 25px;
-}
-
-.hero-search-form .btn {
-    border-radius: 0 30px 30px 0;
-    padding: 10px 25px;
-}
-
 .how-it-works-step {
     padding: 20px;
     transition: all 0.3s ease-in-out;
@@ -320,11 +304,25 @@ h1, h2, h3, h4, h5, h6 {
     z-index: 1001; /* Ensure it's above other elements */
 }
 
+.header-search .form-control {
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+}
+
+.header-search .btn {
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+}
+
 .nav-toggle-btn .fas {
     color: black !important; /* Force color to be black to override any conflicting styles */
 }
 
 @media (max-width: 991.98px) {
+    .header-search {
+        display: none; /* Hide search bar on mobile */
+    }
+
     .header-main .container > .d-flex {
         justify-content: space-between !important;
     }
