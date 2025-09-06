@@ -28,14 +28,13 @@ $premium_products = $premium_products_result->fetch_all(MYSQLI_ASSOC);
 <!-- Hero Search Section -->
 <div class="hero-search-section text-center py-5">
     <div class="container">
-        <h1 class="display-5">Search for Lesson Notes</h1>
+        <h1 class="display-6">Search for Lesson Notes</h1>
         <div class="row justify-content-center">
             <div class="col-md-8">
                 <form action="search.php" method="get" class="d-flex hero-search-form">
                     <input class="form-control form-control-lg" type="search" name="query" placeholder="Enter keywords, subject, or topic..." aria-label="Search">
                     <button class="btn btn-primary btn-lg" type="submit"><i class="fas fa-search"></i></button>
                 </form>
-                <p class="lead mt-3">Your source for quality educational materials.</p>
             </div>
         </div>
     </div>
@@ -54,7 +53,7 @@ $premium_products = $premium_products_result->fetch_all(MYSQLI_ASSOC);
             <div class="carousel-item <?php if($index == 0) echo 'active'; ?>">
                 <div class="row">
                     <?php foreach($chunk as $product): ?>
-                        <div class="col-md-3 mb-4">
+                        <div class="col-6 col-md-3 mb-4">
                             <?php include 'includes/product_card.php'; ?>
                         </div>
                     <?php endforeach; ?>
@@ -80,7 +79,7 @@ $premium_products = $premium_products_result->fetch_all(MYSQLI_ASSOC);
     <h2 class="text-center mb-4">Premium Packages</h2>
     <div class="row">
         <?php foreach($premium_products as $product): ?>
-            <div class="col-md-3 mb-4">
+            <div class="col-6 col-md-3 mb-4">
                 <?php include 'includes/product_card.php'; ?>
             </div>
         <?php endforeach; ?>
