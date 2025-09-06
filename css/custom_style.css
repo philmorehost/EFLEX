@@ -358,7 +358,15 @@ h1, h2, h3, h4, h5, h6 {
     }
 
     .header-actions {
-        display: none; /* Hide actions on mobile to simplify */
+        display: flex; /* Show actions on mobile */
+    }
+
+    /* Hide text on action buttons on mobile to save space */
+    .header-action-btn span {
+        display: none;
+    }
+    .header-action-btn i {
+        margin-right: 0;
     }
 
     /* Adjust the main nav container */
