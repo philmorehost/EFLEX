@@ -101,7 +101,7 @@ $premium_products = $premium_products_result->fetch_all(MYSQLI_ASSOC);
     <div class="row text-center">
         <div class="col-md-3">
             <div class="how-it-works-step">
-                <div class="step-icon"><i class="fas fa-th-list"></i></div>
+                <div class="step-icon"><i class="fas fa-table-list"></i></div>
                 <h5>1. Browse Packages</h5>
                 <p>Visit our Subscriptions page to see the available lesson note packages.</p>
             </div>
@@ -122,7 +122,7 @@ $premium_products = $premium_products_result->fetch_all(MYSQLI_ASSOC);
         </div>
         <div class="col-md-3">
             <div class="how-it-works-step">
-                <div class="step-icon"><i class="fas fa-book-reader"></i></div>
+                <div class="step-icon"><i class="fas fa-book-open-reader"></i></div>
                 <h5>4. Get Instant Access</h5>
                 <p>Once payment is confirmed, you get immediate access to your subscribed lesson notes.</p>
             </div>
