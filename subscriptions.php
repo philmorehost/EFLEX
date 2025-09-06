@@ -24,11 +24,11 @@ $packages = $result->fetch_all(MYSQLI_ASSOC);
                             <h6 class="card-price text-center mb-4"><?php echo format_price($package['price']); ?>
                                 <small class="text-muted">/ <?php echo htmlspecialchars($package['duration_days']); ?> days</small>
                             </h6>
-                            <div class="description mb-4">
-                                <?php echo nl2br(htmlspecialchars($package['description'])); ?>
-                            </div>
-                            <div class="mt-auto">
+                            <div class="mb-4">
                                 <a href="cart.php?action=add&id=<?php echo $package['id']; ?>" class="btn btn-primary w-100">Subscribe Now</a>
+                            </div>
+                            <div class="description">
+                                <?php echo nl2br(htmlspecialchars($package['description'])); ?>
                             </div>
                         </div>
                     </div>
