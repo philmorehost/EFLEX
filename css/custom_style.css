@@ -342,11 +342,15 @@ h1, h2, h3, h4, h5, h6 {
 
 @media (max-width: 991.98px) {
     .header-search {
-        display: none; /* Hide search bar on mobile */
+        display: block; /* Show search bar on mobile */
+        order: 3; /* Place it after other elements */
+        width: 100%;
+        margin: 15px 0 0;
     }
 
     .header-main .container > .d-flex {
         justify-content: space-between !important;
+        flex-wrap: wrap; /* Allow items to wrap */
     }
 
     .nav-toggle-btn {
