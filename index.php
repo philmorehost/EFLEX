@@ -1,4 +1,5 @@
 <?php
+$body_class = 'home-page'; // Add a class to the body for page-specific styling
 // Include the header
 include 'includes/header.php';
 
@@ -26,7 +27,7 @@ $premium_products = $premium_products_result->fetch_all(MYSQLI_ASSOC);
 ?>
 
 <!-- Hero Search Section -->
-<div class="hero-search-section text-center py-5">
+<div class="hero-search-section text-center py-3">
     <div class="container">
         <h1 class="display-6">Search for Lesson Notes</h1>
         <div class="row justify-content-center">
@@ -40,52 +41,58 @@ $premium_products = $premium_products_result->fetch_all(MYSQLI_ASSOC);
     </div>
 </div>
 
-<!-- Freemium Packages Section -->
-<?php if (!empty($freemium_products)): ?>
-<div class="container my-5">
-    <h2 class="text-center mb-4">Freemium Packages</h2>
-    <div id="freemiumCarousel" class="carousel slide" data-bs-ride="carousel">
-        <div class="carousel-inner">
-            <?php
-            $chunks = array_chunk($freemium_products, 4);
-            foreach($chunks as $index => $chunk):
-            ?>
-            <div class="carousel-item <?php if($index == 0) echo 'active'; ?>">
-                <div class="row">
-                    <?php foreach($chunk as $product): ?>
-                        <div class="col-6 col-md-3 mb-4">
-                            <?php include 'includes/product_card.php'; ?>
+<!-- Packages Section -->
+<div class="container my-3">
+    <div class="row">
+        <!-- Freemium Column -->
+        <?php if (!empty($freemium_products)): ?>
+        <div class="col-lg-6">
+            <h2 class="text-center mb-4">Freemium Packages</h2>
+            <div id="freemiumCarousel" class="carousel slide" data-bs-ride="carousel">
+                <div class="carousel-inner">
+                    <?php
+                    // Adjust chunk size for a 2-up display in the carousel
+                    $chunks = array_chunk($freemium_products, 2);
+                    foreach($chunks as $index => $chunk):
+                    ?>
+                    <div class="carousel-item <?php if($index == 0) echo 'active'; ?>">
+                        <div class="row">
+                            <?php foreach($chunk as $product): ?>
+                                <div class="col-6 col-md-6 mb-4">
+                                    <?php include 'includes/product_card.php'; ?>
+                                </div>
+                            <?php endforeach; ?>
                         </div>
+                    </div>
                     <?php endforeach; ?>
                 </div>
+                <button class="carousel-control-prev" type="button" data-bs-target="#freemiumCarousel" data-bs-slide="prev">
+                    <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                    <span class="visually-hidden">Previous</span>
+                </button>
+                <button class="carousel-control-next" type="button" data-bs-target="#freemiumCarousel" data-bs-slide="next">
+                    <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                    <span class="visually-hidden">Next</span>
+                </button>
             </div>
-            <?php endforeach; ?>
         </div>
-        <button class="carousel-control-prev" type="button" data-bs-target="#freemiumCarousel" data-bs-slide="prev">
-            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-            <span class="visually-hidden">Previous</span>
-        </button>
-        <button class="carousel-control-next" type="button" data-bs-target="#freemiumCarousel" data-bs-slide="next">
-            <span class="carousel-control-next-icon" aria-hidden="true"></span>
-            <span class="visually-hidden">Next</span>
-        </button>
-    </div>
-</div>
-<?php endif; ?>
+        <?php endif; ?>
 
-<!-- Premium Packages Section -->
-<?php if (!empty($premium_products)): ?>
-<div class="container my-5">
-    <h2 class="text-center mb-4">Premium Packages</h2>
-    <div class="row">
-        <?php foreach($premium_products as $product): ?>
-            <div class="col-6 col-md-3 mb-4">
-                <?php include 'includes/product_card.php'; ?>
+        <!-- Premium Column -->
+        <?php if (!empty($premium_products)): ?>
+        <div class="col-lg-6">
+            <h2 class="text-center mb-4">Premium Packages</h2>
+            <div class="row">
+                <?php foreach($premium_products as $product): ?>
+                    <div class="col-6 col-md-6 mb-4">
+                        <?php include 'includes/product_card.php'; ?>
+                    </div>
+                <?php endforeach; ?>
             </div>
-        <?php endforeach; ?>
+        </div>
+        <?php endif; ?>
     </div>
 </div>
-<?php endif; ?>
 
 
 <!-- How It Works Section -->

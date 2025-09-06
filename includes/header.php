@@ -51,7 +51,7 @@ if(isset($_SESSION['cart']) && is_array($_SESSION['cart'])){
     <!-- Custom CSS -->
     <link href="css/custom_style.css" rel="stylesheet">
 </head>
-<body>
+<body class="<?php echo isset($body_class) ? $body_class : ''; ?>">
 
 <header class="site-header">
     <div class="header-main">
