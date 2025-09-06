@@ -71,6 +71,15 @@ function setup_database_tables($mysqli) {
       PRIMARY KEY (`setting_key`)
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;",
 
+    "password_resets" => "CREATE TABLE `password_resets` (
+        `id` int(11) NOT NULL AUTO_INCREMENT,
+        `email` varchar(100) NOT NULL,
+        `token` varchar(255) NOT NULL,
+        `expires_at` int(11) NOT NULL,
+        PRIMARY KEY (`id`),
+        KEY `email` (`email`)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;",
+
     "user_subscriptions" => "CREATE TABLE `user_subscriptions` (
         `id` int(11) NOT NULL AUTO_INCREMENT,
         `user_id` int(11) NOT NULL,

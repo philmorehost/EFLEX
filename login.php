@@ -73,7 +73,9 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
             $stmt->close();
         }
     }
-    $mysqli->close();
+    // The connection should not be closed here, as the header and footer may need it.
+    // The connection will be closed automatically at the end of the script execution.
+    // $mysqli->close();
 }
 
 // Include the header
@@ -86,6 +88,10 @@ include 'includes/header.php';
         <p>Please fill in your credentials to login.</p>
 
         <?php
+        if(isset($_SESSION['password_reset_success'])){
+            echo '<div class="alert alert-success">' . $_SESSION['password_reset_success'] . '</div>';
+            unset($_SESSION['password_reset_success']);
+        }
         if(!empty($login_err)){
             echo '<div class="alert alert-danger">' . $login_err . '</div>';
         }
@@ -102,10 +108,13 @@ include 'includes/header.php';
                 <input type="password" name="password" class="form-control <?php echo (!empty($password_err)) ? 'is-invalid' : ''; ?>">
                 <span class="invalid-feedback"><?php echo $password_err; ?></span>
             </div>
-            <div class="form-group">
+            <div class="form-group mb-3">
                 <input type="submit" class="btn btn-primary" value="Login">
             </div>
-            <p>Don't have an account? <a href="register.php">Sign up now</a>.</p>
+            <div class="d-flex justify-content-between">
+                <p>Don't have an account? <a href="register.php">Sign up now</a>.</p>
+                <p><a href="forgot_password.php">Forgot password?</a></p>
+            </div>
         </form>
     </div>
 </div>
