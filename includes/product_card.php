@@ -5,7 +5,7 @@
     <div class="card-body d-flex flex-column">
         <h5 class="card-title"><a href="product_detail.php?id=<?php echo $product['id']; ?>" class="text-dark text-decoration-none"><?php echo htmlspecialchars($product['name']); ?></a></h5>
         <p class="card-text text-muted"><?php echo format_price($product['price']); ?></p>
-        <div class="mt-auto">
+        <div class="mt-2">
              <a href="cart.php?action=add&id=<?php echo $product['id']; ?>&single=1" class="btn btn-primary w-100">Subscribe</a>
         </div>
     </div>
