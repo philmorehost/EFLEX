@@ -106,7 +106,7 @@ if($stmt_items = $mysqli->prepare($sql_items)){
                 </div>
                 <div class="card-footer">
                     <strong>Shipping Address:</strong><br>
-                    <?php echo nl2br(htmlspecialchars($order['shipping_address'])); ?>
+                    <?php echo nl2br(htmlspecialchars($order['shipping_address'] ?? 'No shipping address provided.')); ?>
                 </div>
             </div>
         </div>

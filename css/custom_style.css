@@ -337,7 +337,7 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 #nav-toggle-btn .fas {
-    color: var(--eflex-primary-color);
+    color: var(--eflex-primary-color) !important;
 }
 
 @media (max-width: 991.98px) {
@@ -354,7 +354,7 @@ h1, h2, h3, h4, h5, h6 {
     }
 
     .header-actions {
-        display: flex; /* Show actions on mobile */
+        display: none; /* Hide actions on mobile to simplify */
     }
 
     /* Hide text on action buttons on mobile to save space */

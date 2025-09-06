@@ -107,7 +107,18 @@ if(isset($_SESSION['cart']) && is_array($_SESSION['cart'])){
                 </li>
                 <?php if(isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true): ?>
                     <li><a href="lesson_notes.php" class="nav-link">Lesson Notes</a></li>
+                    <li class="nav-item-dropdown">
+                        <a href="account.php" class="nav-link"><?php echo htmlspecialchars($_SESSION["username"]); ?> <i class="fas fa-chevron-down"></i></a>
+                        <ul class="dropdown-menu-custom">
+                            <li><a href="account.php">My Account</a></li>
+                            <li><a href="my_orders.php">My Orders</a></li>
+                            <li><a href="logout.php">Logout</a></li>
+                        </ul>
+                    </li>
+                <?php else: ?>
+                    <li><a href="login.php" class="nav-link">Login</a></li>
                 <?php endif; ?>
+
                 <?php if(isset($_SESSION["role"]) && $_SESSION["role"] === 'admin'): ?>
                     <li><a href="admin/dashboard.php" class="nav-link">Admin Dashboard</a></li>
                 <?php endif; ?>
