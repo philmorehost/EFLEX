@@ -69,8 +69,10 @@ if(isset($_SESSION['cart']) && is_array($_SESSION['cart'])){
                     </form>
                 </div>
 
-                <button class="nav-toggle-btn" id="nav-toggle-btn">
-                    <i class="fas fa-bars"></i>
+                <button class="nav-toggle-btn" id="nav-toggle-btn" aria-label="Toggle navigation">
+                    <span></span>
+                    <span></span>
+                    <span></span>
                 </button>
                 <div class="header-actions">
                     <?php if(isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true): ?>
