@@ -15,6 +15,16 @@
                 console.error('Error initializing CKEditor:', error);
             });
     }
+
+    // Sidebar Toggle Script
+    const sidebarToggleBtn = document.getElementById('sidebar-toggle');
+    const adminBody = document.getElementById('admin-body');
+
+    if (sidebarToggleBtn && adminBody) {
+        sidebarToggleBtn.addEventListener('click', function() {
+            adminBody.classList.toggle('sidebar-toggled');
+        });
+    }
 </script>
 </body>
 </html>

@@ -68,9 +68,24 @@ $base_url = "../";
         .ck-editor__editable_inline {
             min-height: 250px;
         }
+        @media (max-width: 991.98px) {
+            .sidebar {
+                left: -250px;
+                transition: left 0.3s ease-in-out;
+            }
+            .content-wrapper {
+                margin-left: 0;
+                width: 100%;
+            }
+            body.sidebar-toggled .sidebar {
+                left: 0;
+            }
+        }
     </style>
 </head>
-<body>
+<body id="admin-body">
+
+<button class="btn btn-dark d-lg-none" id="sidebar-toggle" style="position: fixed; top: 10px; left: 10px; z-index: 1031;"><i class="fas fa-bars"></i></button>
 
 <div class="sidebar">
     <h3 class="text-center">Eflex Admin</h3>
