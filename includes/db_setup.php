@@ -95,6 +95,32 @@ function setup_database_tables($mysqli) {
         CONSTRAINT `user_subscriptions_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
         CONSTRAINT `user_subscriptions_ibfk_2` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`) ON DELETE CASCADE,
         CONSTRAINT `user_subscriptions_ibfk_3` FOREIGN KEY (`order_id`) REFERENCES `orders` (`id`) ON DELETE CASCADE
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;",
+
+    "product_local_files" => "CREATE TABLE `product_local_files` (
+        `id` int(11) NOT NULL AUTO_INCREMENT,
+        `product_id` int(11) NOT NULL,
+        `filename` varchar(255) NOT NULL,
+        `original_filename` varchar(255) NOT NULL,
+        `filepath` varchar(255) NOT NULL,
+        `mimetype` varchar(255) NOT NULL,
+        `filesize` int(11) NOT NULL,
+        `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+        PRIMARY KEY (`id`),
+        KEY `product_id` (`product_id`),
+        CONSTRAINT `product_local_files_ibfk_1` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`) ON DELETE CASCADE
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;",
+
+    "product_google_drive_files" => "CREATE TABLE `product_google_drive_files` (
+      `id` int(11) NOT NULL AUTO_INCREMENT,
+      `product_id` int(11) NOT NULL,
+      `google_drive_file_id` varchar(255) NOT NULL,
+      `filename` varchar(255) NOT NULL,
+      `mimetype` varchar(255) NOT NULL,
+      `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+      PRIMARY KEY (`id`),
+      KEY `product_id` (`product_id`),
+      CONSTRAINT `product_google_drive_files_ibfk_1` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`) ON DELETE CASCADE
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;"
     ];
 

@@ -234,28 +234,6 @@ h1, h2, h3, h4, h5, h6 {
     color: var(--eflex-white);
 }
 
-.hero-search-section {
-    background-color: var(--eflex-background-color);
-}
-
-.hero-search-form .form-control {
-    border-top-right-radius: 0;
-    border-bottom-right-radius: 0;
-    border: 2px solid var(--eflex-primary-color);
-    box-shadow: none; /* Remove default focus shadow */
-}
-.hero-search-form .form-control:focus {
-    border-color: #0b5ed7;
-    z-index: 2; /* Ensure the input is above the button on focus */
-}
-
-
-.hero-search-form .btn {
-    border-top-left-radius: 0;
-    border-bottom-left-radius: 0;
-    z-index: 1;
-}
-
 /* Make carousel controls darker to be visible on white background */
 .carousel-control-prev-icon,
 .carousel-control-next-icon {
@@ -316,41 +294,28 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 /* 5. Responsive Navigation */
-/* Styles for the CSS hamburger icon */
 .nav-toggle-btn {
+    display: none; /* Hidden by default */
     background: none;
     border: 1px solid var(--eflex-border-color);
     border-radius: 4px;
-    cursor: pointer;
-    display: none; /* Hidden by default, shown in media query */
-    padding: 8px; /* Adjusted padding for better touch area */
-    z-index: 1001;
-    width: 32px; /* Set a fixed size */
-    height: 28px;
+    padding: 5px 10px;
+    font-size: 1.2rem;
+    z-index: 1001; /* Ensure it's above other elements */
 }
 
-.nav-toggle-btn span {
-    display: block;
-    width: 100%;
-    height: 2px;
-    background-color: var(--eflex-primary-color);
-    border-radius: 2px;
-    transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out;
-    transform-origin: center;
+.header-search .form-control {
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
 }
 
-/* Animate to "X" when active */
-.nav-toggle-btn.is-active span:nth-of-type(1) {
-    transform: translateY(8px) rotate(45deg);
+.header-search .btn {
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
 }
 
-.nav-toggle-btn.is-active span:nth-of-type(2) {
-    opacity: 0;
-    transform: translateX(-100%);
-}
-
-.nav-toggle-btn.is-active span:nth-of-type(3) {
-    transform: translateY(-8px) rotate(-45deg);
+.nav-toggle-btn .fas {
+    color: black !important; /* Force color to be black to override any conflicting styles */
 }
 
 @media (max-width: 991.98px) {
@@ -363,21 +328,11 @@ h1, h2, h3, h4, h5, h6 {
     }
 
     .nav-toggle-btn {
-        display: flex; /* Show on mobile */
-        flex-direction: column;
-        justify-content: space-around;
+        display: block; /* Show on mobile */
     }
 
     .header-actions {
         display: none; /* Hide actions on mobile to simplify */
-    }
-
-    /* Hide text on action buttons on mobile to save space */
-    .header-action-btn span {
-        display: none;
-    }
-    .header-action-btn i {
-        margin-right: 0;
     }
 
     /* Adjust the main nav container */
@@ -445,5 +400,3 @@ h1, h2, h3, h4, h5, h6 {
         transform: rotate(180deg);
     }
 }
-
-/* Page-specific styles can be added here in the future if needed. */

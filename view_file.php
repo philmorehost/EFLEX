@@ -57,47 +57,19 @@ if (isset($_SESSION['role']) && $_SESSION['role'] === 'admin') {
     $stmt_sub->close();
 }
 
-// --- Stream or Display File if Access is Granted ---
+// --- Stream File if Access is Granted ---
 if ($has_access) {
     $file_path = __DIR__ . '/' . $file_info['filepath'];
     if (file_exists($file_path)) {
-        $mimetype = $file_info['mimetype'];
+        header('Content-Type: ' . $file_info['mimetype']);
+        header('Content-Disposition: inline; filename="' . basename($file_info['original_filename']) . '"');
+        header('Content-Length: ' . filesize($file_path));
 
-        // For images and text, embed in a secure HTML viewer
-        if (strpos($mimetype, 'image/') === 0 || $mimetype === 'text/plain') {
-            include 'includes/header.php'; // Display the website header
+        ob_clean();
+        flush();
 
-            echo '<div class="container my-5">';
-            echo '<h3>Viewing: ' . htmlspecialchars($file_info['original_filename']) . '</h3>';
-            echo '<hr>';
-
-            // Secure content wrapper to disable printing/copying
-            echo '<div class="secure-content">';
-
-            $content = file_get_contents($file_path);
-            if (strpos($mimetype, 'image/') === 0) {
-                // Embed image using a data URI
-                echo '<img src="data:' . $mimetype . ';base64,' . base64_encode($content) . '" class="img-fluid" alt="' . htmlspecialchars($file_info['original_filename']) . '">';
-            } elseif ($mimetype === 'text/plain') {
-                // Display plain text in a preformatted block
-                echo '<pre>' . htmlspecialchars($content) . '</pre>';
-            }
-
-            echo '</div>'; // end .secure-content
-            echo '</div>'; // end .container
-
-            include 'includes/footer.php'; // Display the website footer
-            exit;
-        } else {
-            // For other file types (PDF, etc.), stream directly
-            header('Content-Type: ' . $mimetype);
-            header('Content-Disposition: inline; filename="' . basename($file_info['original_filename']) . '"');
-            header('Content-Length: ' . filesize($file_path));
-            ob_clean();
-            flush();
-            readfile($file_path);
-            exit;
-        }
+        readfile($file_path);
+        exit;
     } else {
         http_response_code(404);
         die("File not found on server.");

@@ -69,7 +69,6 @@ document.addEventListener('DOMContentLoaded', function() {
     if (navToggleBtn && mainNav) {
         navToggleBtn.addEventListener('click', function() {
             mainNav.classList.toggle('is-active');
-            this.classList.toggle('is-active'); // Also toggle class on the button itself
         });
     }
 

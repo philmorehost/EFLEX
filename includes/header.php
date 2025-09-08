@@ -51,7 +51,7 @@ if(isset($_SESSION['cart']) && is_array($_SESSION['cart'])){
     <!-- Custom CSS -->
     <link href="css/custom_style.css" rel="stylesheet">
 </head>
-<body class="<?php echo isset($body_class) ? $body_class : ''; ?>">
+<body>
 
 <header class="site-header">
     <div class="header-main">
@@ -69,10 +69,8 @@ if(isset($_SESSION['cart']) && is_array($_SESSION['cart'])){
                     </form>
                 </div>
 
-                <button class="nav-toggle-btn" id="nav-toggle-btn" aria-label="Toggle navigation">
-                    <span></span>
-                    <span></span>
-                    <span></span>
+                <button class="nav-toggle-btn" id="nav-toggle-btn">
+                    <i class="fas fa-bars"></i>
                 </button>
                 <div class="header-actions">
                     <?php if(isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true): ?>
@@ -109,18 +107,7 @@ if(isset($_SESSION['cart']) && is_array($_SESSION['cart'])){
                 </li>
                 <?php if(isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true): ?>
                     <li><a href="lesson_notes.php" class="nav-link">Lesson Notes</a></li>
-                    <li class="nav-item-dropdown">
-                        <a href="account.php" class="nav-link"><?php echo htmlspecialchars($_SESSION["username"]); ?> <i class="fas fa-chevron-down"></i></a>
-                        <ul class="dropdown-menu-custom">
-                            <li><a href="account.php">My Account</a></li>
-                            <li><a href="my_orders.php">My Orders</a></li>
-                            <li><a href="logout.php">Logout</a></li>
-                        </ul>
-                    </li>
-                <?php else: ?>
-                    <li><a href="login.php" class="nav-link">Login</a></li>
                 <?php endif; ?>
-
                 <?php if(isset($_SESSION["role"]) && $_SESSION["role"] === 'admin'): ?>
                     <li><a href="admin/dashboard.php" class="nav-link">Admin Dashboard</a></li>
                 <?php endif; ?>
