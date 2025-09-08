@@ -2,7 +2,7 @@
 # /vendor/ # Commented out to allow tracking of PHPMailer
 
 # Credentials
-/admin/secure/gdrive.dat
+# /admin/secure/gdrive.dat # Commented out to allow tracking for initial setup
 google_drive_credentials.json
 
 # Local development files

@@ -28,7 +28,7 @@ $premium_products = $premium_products_result->fetch_all(MYSQLI_ASSOC);
 <style>
     .hero-section-search {
         background: #f8f9fa;
-        padding: 6rem 0;
+        padding: 3rem 0; /* Reduced padding */
     }
     .hero-section-search h1 {
         font-size: 2.8rem;
@@ -50,30 +50,32 @@ $premium_products = $premium_products_result->fetch_all(MYSQLI_ASSOC);
         border-top-left-radius: 0;
         border-bottom-left-radius: 0;
     }
-    .hero-section-search .lead {
-        margin-top: 1rem;
-        font-size: 1.1rem;
-        color: #6c757d;
-    }
+    /* .lead class is no longer used here */
 </style>
 <div class="hero-section-search text-center">
     <div class="container">
         <h1>Search for Lesson Notes</h1>
-        <div class="search-form-wrapper">
+        <div class="search-form-wrapper mb-3"> <!-- Added margin-bottom to search wrapper -->
             <form action="search.php" method="get" class="d-flex">
                 <input class="form-control" type="search" name="query" placeholder="Enter a subject, topic, or keyword..." aria-label="Search">
                 <button class="btn btn-primary" type="submit"><i class="fas fa-search"></i></button>
             </form>
         </div>
-        <p class="lead">Your source for quality educational materials.</p>
+        <!-- Removed the lead text -->
     </div>
 </div>
 
 <div class="container my-5">
     <div class="row">
+        <?php
+        $has_freemium = !empty($freemium_products);
+        $has_premium = !empty($premium_products);
+        $column_class = ($has_freemium && $has_premium) ? 'col-lg-6' : 'col-12';
+        ?>
+
         <!-- Freemium Classes Section -->
-        <?php if (!empty($freemium_products)): ?>
-        <div class="col-lg-6 mb-5 mb-lg-0">
+        <?php if ($has_freemium): ?>
+        <div class="<?php echo $column_class; ?> mb-5 mb-lg-0">
             <h2 class="text-center mb-4">Freemium Classes</h2>
             <div class="row">
                 <?php foreach($freemium_products as $class): ?>
@@ -86,8 +88,8 @@ $premium_products = $premium_products_result->fetch_all(MYSQLI_ASSOC);
         <?php endif; ?>
 
         <!-- Premium Classes Section -->
-        <?php if (!empty($premium_products)): ?>
-        <div class="col-lg-6">
+        <?php if ($has_premium): ?>
+        <div class="<?php echo $column_class; ?>">
             <h2 class="text-center mb-4">Premium Classes</h2>
             <div class="row">
                 <?php foreach($premium_products as $class): ?>
