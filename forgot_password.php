@@ -10,9 +10,7 @@ session_start();
 require_once 'includes/db_connect.php';
 require_once 'includes/helpers.php';
 
-// --- Note: The following lines assume PHPMailer is installed via Composer ---
-// You may need to adjust the path based on your installation.
-require_once 'vendor/autoload.php';
+// PHPMailer is now included via helpers.php
 
 $email = "";
 $message = "";
