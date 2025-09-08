@@ -5,15 +5,15 @@ require_once 'includes/db_connect.php';
 
 // Pagination variables
 $page = isset($_GET['page']) && is_numeric($_GET['page']) ? (int)$_GET['page'] : 1;
-$records_per_page = 8; // Show 8 products per page
+$records_per_page = 8; // Show 8 classes per page
 $offset = ($page - 1) * $records_per_page;
 
-// Get total number of products
+// Get total number of classes
 $total_records_result = $mysqli->query("SELECT COUNT(*) FROM products");
 $total_records = $total_records_result->fetch_row()[0];
 $total_pages = ceil($total_records / $records_per_page);
 
-// Fetch products for the current page
+// Fetch classes for the current page
 $sql = "SELECT * FROM products ORDER BY created_at DESC LIMIT ? OFFSET ?";
 if($stmt = $mysqli->prepare($sql)){
     $stmt->bind_param("ii", $records_per_page, $offset);
@@ -27,19 +27,19 @@ if($stmt = $mysqli->prepare($sql)){
 ?>
 
 <div class="d-flex justify-content-between align-items-center mb-3">
-    <h2>All Products</h2>
+    <h2>All Classes</h2>
 </div>
 
 <div class="row">
     <?php if (count($products) > 0): ?>
-        <?php foreach ($products as $product): ?>
+        <?php foreach ($products as $class): ?>
             <div class="col-md-4 col-lg-3 mb-4">
                 <?php include 'includes/product_card.php'; ?>
             </div>
         <?php endforeach; ?>
     <?php else: ?>
         <div class="col">
-            <p>No products have been added yet.</p>
+            <p>No classes have been added yet.</p>
         </div>
     <?php endif; ?>
 </div>

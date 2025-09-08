@@ -41,7 +41,7 @@ if ($event && $event->event == 'charge.success') {
         $stmt_order->close();
     }
 
-    // Fetch the items from the order to find out which subscription packages were purchased
+    // Fetch the items from the order to find out which subscription classes were purchased
     $sql_items = "SELECT product_id FROM order_items WHERE order_id = ?";
     if($stmt_items = $mysqli->prepare($sql_items)){
         $stmt_items->bind_param("i", $order_id);
@@ -59,7 +59,7 @@ if ($event && $event->event == 'charge.success') {
                 $result_prod = $stmt_prod->get_result();
 
                 if($prod_details = $result_prod->fetch_assoc()){
-                    // This is a subscription product. Activate it.
+                    // This is a subscription class. Activate it.
                     $duration_days = (int)$prod_details['duration_days'];
                     $expires_at = date('Y-m-d H:i:s', strtotime("+$duration_days days"));
 

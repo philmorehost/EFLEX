@@ -25,7 +25,7 @@ if (isset($_SESSION['freemium_success'])) {
                         </div>
                         <div class="card-footer">
                              <a href="lesson_notes.php" class="btn btn-success me-2">Go to Lesson Notes</a>
-                             <a href="index.php" class="btn btn-outline-primary">Continue Shopping</a>
+                             <a href="products.php" class="btn btn-outline-primary">Browse More Classes</a>
                         </div>
                     </div>
                 <?php else: ?>
@@ -68,7 +68,7 @@ document.addEventListener('DOMContentLoaded', function() {
                             </div>
                             <div class="card-footer">
                                 <a href="lesson_notes.php" class="btn btn-success me-2">Go to Lesson Notes</a>
-                                <a href="index.php" class="btn btn-outline-primary">Continue Shopping</a>
+                                <a href="products.php" class="btn btn-outline-primary">Browse More Classes</a>
                             </div>
                         </div>`;
                 } else {
@@ -82,7 +82,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                 <p class="text-muted">Please contact support if you believe this is an error.</p>
                             </div>
                             <div class="card-footer">
-                                <a href="cart.php" class="btn btn-danger">Return to Cart</a>
+                                <a href="cart.php" class="btn btn-danger">Return to Your Classes</a>
                             </div>
                         </div>`;
                 }

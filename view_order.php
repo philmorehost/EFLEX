@@ -40,7 +40,7 @@ if($stmt_order = $mysqli->prepare($sql_order)){
 }
 
 // Fetch Order Items
-$sql_items = "SELECT oi.*, p.name as product_name, p.image as product_image FROM order_items oi JOIN products p ON oi.product_id = p.id WHERE oi.order_id = ?";
+$sql_items = "SELECT oi.*, p.name as class_name, p.image as class_image FROM order_items oi JOIN products p ON oi.product_id = p.id WHERE oi.order_id = ?";
 $order_items = [];
 if($stmt_items = $mysqli->prepare($sql_items)){
     $stmt_items->bind_param("i", $order_id);
@@ -72,7 +72,7 @@ if($stmt_items = $mysqli->prepare($sql_items)){
                         <table class="table">
                             <thead>
                                 <tr>
-                                    <th>Product</th>
+                                    <th>Class</th>
                                     <th class="text-center">Quantity</th>
                                     <th class="text-end">Price</th>
                                     <th class="text-end">Subtotal</th>
@@ -83,8 +83,8 @@ if($stmt_items = $mysqli->prepare($sql_items)){
                                 <tr>
                                     <td>
                                         <div class="d-flex align-items-center">
-                                            <img src="uploads/<?php echo htmlspecialchars($item['product_image']); ?>" class="me-3" style="width: 60px; height: 60px; object-fit: cover; border-radius: 5px;" alt="<?php echo htmlspecialchars($item['product_name']); ?>">
-                                            <?php echo htmlspecialchars($item['product_name']); ?>
+                                            <img src="uploads/<?php echo htmlspecialchars($item['class_image']); ?>" class="me-3" style="width: 60px; height: 60px; object-fit: cover; border-radius: 5px;" alt="<?php echo htmlspecialchars($item['class_name']); ?>">
+                                            <?php echo htmlspecialchars($item['class_name']); ?>
                                         </div>
                                     </td>
                                     <td class="text-center"><?php echo $item['quantity']; ?></td>

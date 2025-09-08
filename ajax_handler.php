@@ -37,11 +37,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             $response = [
                 'status' => 'success',
-                'message' => 'Item added to cart.',
+                'message' => 'Class added to your list.',
                 'cart_count' => $cart_item_count
             ];
         } else {
-            $response['message'] = 'Invalid product ID or quantity.';
+            $response['message'] = 'Invalid class ID or quantity.';
         }
     }
 }

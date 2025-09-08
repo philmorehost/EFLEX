@@ -2,16 +2,16 @@
 // Include the header
 include 'includes/header.php';
 
-// Check if product ID is provided
+// Check if class ID is provided
 if(!isset($_GET['id']) || empty($_GET['id'])){
-    echo "<h1>Product not found</h1>";
+    echo "<h1>Class not found</h1>";
     include 'includes/footer.php';
     exit();
 }
 
 $product_id = $_GET['id'];
 
-// Fetch product details
+// Fetch class details
 $sql = "SELECT p.*, c.name as category_name
         FROM products p
         LEFT JOIN categories c ON p.category_id = c.id
@@ -27,9 +27,9 @@ if($stmt = $mysqli->prepare($sql)){
     $stmt->close();
 }
 
-// If product not found, display message
+// If class not found, display message
 if(!$product){
-    echo "<h1>Product not found</h1>";
+    echo "<h1>Class not found</h1>";
     include 'includes/footer.php';
     exit();
 }
@@ -54,16 +54,7 @@ if(!$product){
 
             <hr>
 
-            <form id="add-to-cart-form" class="ajax-add-to-cart-form">
-                <input type="hidden" name="product_id" value="<?php echo $product['id']; ?>">
-                <div class="row">
-                    <div class="col-md-4">
-                        <label for="quantity" class="form-label">Quantity</label>
-                        <input type="number" name="quantity" id="quantity" class="form-control" value="1" min="1">
-                    </div>
-                </div>
-                <button type="submit" class="btn btn-primary btn-lg mt-3">Add to Cart</button>
-            </form>
+            <a href="cart.php?action=add&id=<?php echo $product['id']; ?>&single=1" class="btn btn-primary btn-lg mt-3">Subscribe Now</a>
         </div>
     </div>
 </div>

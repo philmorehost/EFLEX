@@ -5,10 +5,10 @@ include 'includes/header.php';
 // --- Dashboard Specific Content ---
 
 // Example: Fetch some stats for the dashboard
-// For demonstration, let's count total products, users, and orders.
+// For demonstration, let's count total classes, users, and orders.
 require_once '../includes/db_connect.php'; // Ensure database connection
 
-// Count Products
+// Count Classes
 $product_count_sql = "SELECT COUNT(*) as total FROM products";
 $product_count_result = $mysqli->query($product_count_sql);
 $product_count = $product_count_result->fetch_assoc()['total'];
@@ -31,10 +31,10 @@ $order_count = $order_count_result->fetch_assoc()['total'];
 <div class="row">
     <div class="col-md-4">
         <div class="card text-white bg-primary mb-3">
-            <div class="card-header">Total Products</div>
+            <div class="card-header">Total Classes</div>
             <div class="card-body">
                 <h5 class="card-title"><?php echo $product_count; ?></h5>
-                <a href="manage_products.php" class="text-white">View Products &rarr;</a>
+                <a href="manage_products.php" class="text-white">View Classes &rarr;</a>
             </div>
         </div>
     </div>

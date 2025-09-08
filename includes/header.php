@@ -80,9 +80,9 @@ if(isset($_SESSION['cart']) && is_array($_SESSION['cart'])){
                         <a href="login.php" class="header-action-btn"><i class="fas fa-user"></i><span>Login</span></a>
                     <?php endif; ?>
                     <a href="cart.php" class="header-action-btn">
-                        <i class="fas fa-shopping-cart"></i>
+                        <i class="fas fa-book"></i>
                         <span class="badge rounded-pill bg-primary cart-badge"><?php echo $cart_item_count; ?></span>
-                        <span>Cart</span>
+                        <span>Classes</span>
                     </a>
                 </div>
             </div>
@@ -94,9 +94,9 @@ if(isset($_SESSION['cart']) && is_array($_SESSION['cart'])){
                 <li><a href="index.php" class="nav-link">Home</a></li>
                 <li><a href="subscriptions.php" class="nav-link">Subscriptions</a></li>
                 <li class="nav-item-dropdown">
-                    <a href="products.php" class="nav-link">Products <i class="fas fa-chevron-down"></i></a>
+                    <a href="products.php" class="nav-link">Classes <i class="fas fa-chevron-down"></i></a>
                     <ul class="dropdown-menu-custom">
-                        <li><a href="products.php">All Products</a></li>
+                        <li><a href="products.php">All Classes</a></li>
                         <?php if(count($nav_categories) > 0): ?>
                              <li class="divider"></li>
                             <?php foreach ($nav_categories as $nav_category): ?>

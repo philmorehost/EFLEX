@@ -20,8 +20,8 @@ if(isset($_GET['action']) && $_GET['action'] == 'delete' && isset($_GET['id'])){
     }
 }
 
-// Fetch all subscriptions with user and product names
-$sql = "SELECT us.id, u.username, p.name as product_name, us.status, us.expires_at, us.created_at
+// Fetch all subscriptions with user and class names
+$sql = "SELECT us.id, u.username, p.name as class_name, us.status, us.expires_at, us.created_at
         FROM user_subscriptions us
         JOIN users u ON us.user_id = u.id
         JOIN products p ON us.product_id = p.id
@@ -49,7 +49,7 @@ $subscriptions = $result->fetch_all(MYSQLI_ASSOC);
                     <tr>
                         <th>ID</th>
                         <th>User</th>
-                        <th>Product</th>
+                        <th>Class</th>
                         <th>Status</th>
                         <th>Expires On</th>
                         <th>Created On</th>
@@ -62,7 +62,7 @@ $subscriptions = $result->fetch_all(MYSQLI_ASSOC);
                         <tr>
                             <td><?php echo $sub['id']; ?></td>
                             <td><?php echo htmlspecialchars($sub['username']); ?></td>
-                            <td><?php echo htmlspecialchars($sub['product_name']); ?></td>
+                            <td><?php echo htmlspecialchars($sub['class_name']); ?></td>
                             <td>
                                 <span class="badge bg-<?php echo ($sub['status'] === 'active') ? 'success' : 'secondary'; ?>">
                                     <?php echo htmlspecialchars(ucfirst($sub['status'])); ?>

@@ -12,7 +12,7 @@ if(!empty($query)){
     // Prepare the search term for a LIKE query
     $search_term = "%" . $query . "%";
 
-    // SQL to search in product name and description
+    // SQL to search in class name and description
     $sql = "SELECT * FROM products WHERE name LIKE ? OR description LIKE ?";
 
     if($stmt = $mysqli->prepare($sql)){
@@ -31,18 +31,18 @@ if(!empty($query)){
 
     <div class="row">
         <?php if (count($search_results) > 0): ?>
-            <?php foreach ($search_results as $product): ?>
+            <?php foreach ($search_results as $class): ?>
                 <div class="col-md-4 col-lg-3 mb-4">
                     <?php include 'includes/product_card.php'; ?>
                 </div>
             <?php endforeach; ?>
         <?php elseif(!empty($query)): ?>
             <div class="col">
-                <p>No products found matching your search criteria.</p>
+                <p>No classes found matching your search criteria.</p>
             </div>
         <?php else: ?>
              <div class="col">
-                <p>Please enter a search term to find products.</p>
+                <p>Please enter a search term to find classes.</p>
             </div>
         <?php endif; ?>
     </div>

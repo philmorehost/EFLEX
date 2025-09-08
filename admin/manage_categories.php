@@ -80,7 +80,7 @@ if(isset($_GET['delete'])){
         $stmt_check->close();
 
         if($product_count > 0){
-            $message = '<div class="alert alert-danger">Cannot delete category. It is associated with '.$product_count.' product(s).</div>';
+            $message = '<div class="alert alert-danger">Cannot delete category. It is associated with '.$product_count.' class(es).</div>';
         } else {
             $sql = "DELETE FROM categories WHERE id = ?";
             if($stmt = $mysqli->prepare($sql)){
@@ -129,7 +129,7 @@ $categories = $mysqli->query("SELECT * FROM categories ORDER BY name ASC")->fetc
 ?>
 
 <h1>Manage Categories</h1>
-<p class="lead">Add, edit, or remove product categories.</p>
+<p class="lead">Add, edit, or remove class categories.</p>
 
 <?php echo $message; ?>
 

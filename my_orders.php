@@ -93,7 +93,7 @@ function get_status_badge_user($status) {
                                     </tr>
                                     <?php endforeach; ?>
                                 <?php else: ?>
-                                    <tr><td colspan="5" class="text-center">You have not placed any orders yet. <a href="products.php">Start shopping!</a></td></tr>
+                                    <tr><td colspan="5" class="text-center">You have not placed any orders yet. <a href="products.php">Browse Classes</a></td></tr>
                                 <?php endif; ?>
                             </tbody>
                         </table>

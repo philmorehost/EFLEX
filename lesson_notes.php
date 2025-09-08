@@ -12,9 +12,9 @@ require_once 'includes/db_connect.php';
 
 // --- Local File Subscription Logic ---
 $user_id = $_SESSION['id'];
-$subscribed_products = [];
-$files_for_product = [];
-$product_name = '';
+$subscribed_classes = [];
+$files_for_class = [];
+$class_name = '';
 $view_file_id = isset($_GET['view']) ? (int)$_GET['view'] : 0;
 
 // 1. Get all active subscriptions for the user that have content (either files or HTML)
@@ -30,33 +30,33 @@ if ($stmt_sub = $mysqli->prepare($sql_sub)) {
     $stmt_sub->bind_param("i", $user_id);
     $stmt_sub->execute();
     $result = $stmt_sub->get_result();
-    $subscribed_products = $result->fetch_all(MYSQLI_ASSOC);
+    $subscribed_classes = $result->fetch_all(MYSQLI_ASSOC);
     $stmt_sub->close();
 }
 
-if (empty($subscribed_products)) {
+if (empty($subscribed_classes)) {
     header("location: subscribe.php");
     exit;
 }
 
-// 2. If a product is selected, get its details (files and/or HTML content)
-$product_id = isset($_GET['product_id']) ? (int)$_GET['product_id'] : 0;
+// 2. If a class is selected, get its details (files and/or HTML content)
+$class_id = isset($_GET['class_id']) ? (int)$_GET['class_id'] : 0;
 $html_content = null;
-if ($product_id) {
-    $is_subscribed_to_product = false;
-    foreach($subscribed_products as $p) {
-        if ($p['id'] == $product_id) {
-            $is_subscribed_to_product = true;
-            $product_name = $p['name'];
+if ($class_id) {
+    $is_subscribed_to_class = false;
+    foreach($subscribed_classes as $p) {
+        if ($p['id'] == $class_id) {
+            $is_subscribed_to_class = true;
+            $class_name = $p['name'];
             break;
         }
     }
 
-    if ($is_subscribed_to_product) {
+    if ($is_subscribed_to_class) {
         // Check for HTML content first
         $sql_html = "SELECT html_content FROM products WHERE id = ?";
         if($stmt_html = $mysqli->prepare($sql_html)) {
-            $stmt_html->bind_param("i", $product_id);
+            $stmt_html->bind_param("i", $class_id);
             $stmt_html->execute();
             $result_html = $stmt_html->get_result();
             if($row = $result_html->fetch_assoc()) {
@@ -68,15 +68,15 @@ if ($product_id) {
         // Then check for files
         $sql_files = "SELECT id, original_filename FROM product_local_files WHERE product_id = ? ORDER BY original_filename ASC";
         if($stmt_files = $mysqli->prepare($sql_files)) {
-            $stmt_files->bind_param("i", $product_id);
+            $stmt_files->bind_param("i", $class_id);
             $stmt_files->execute();
             $result_files = $stmt_files->get_result();
-            $files_for_product = $result_files->fetch_all(MYSQLI_ASSOC);
+            $files_for_class = $result_files->fetch_all(MYSQLI_ASSOC);
             $stmt_files->close();
         }
     } else {
-        // User is not subscribed to the selected product, reset it.
-        $product_id = 0;
+        // User is not subscribed to the selected class, reset it.
+        $class_id = 0;
     }
 }
 
@@ -88,19 +88,19 @@ include 'includes/header.php';
         <div class="col-md-4">
             <h4>My Subscriptions</h4>
             <div class="list-group mb-4">
-                <?php foreach ($subscribed_products as $product) : ?>
-                    <a href="lesson_notes.php?product_id=<?php echo $product['id']; ?>"
-                       class="list-group-item list-group-item-action <?php echo ($product_id == $product['id']) ? 'active' : ''; ?>">
-                        <i class="fas fa-book me-2"></i> <?php echo htmlspecialchars($product['name']); ?>
+                <?php foreach ($subscribed_classes as $class) : ?>
+                    <a href="lesson_notes.php?class_id=<?php echo $class['id']; ?>"
+                       class="list-group-item list-group-item-action <?php echo ($class_id == $class['id']) ? 'active' : ''; ?>">
+                        <i class="fas fa-book me-2"></i> <?php echo htmlspecialchars($class['name']); ?>
                     </a>
                 <?php endforeach; ?>
             </div>
 
-            <?php if ($product_id && !empty($files_for_product)) : ?>
-                <h4 class="mt-4">Files for <?php echo htmlspecialchars($product_name); ?></h4>
+            <?php if ($class_id && !empty($files_for_class)) : ?>
+                <h4 class="mt-4">Files for <?php echo htmlspecialchars($class_name); ?></h4>
                 <div class="list-group">
-                    <?php foreach ($files_for_product as $file) : ?>
-                        <a href="lesson_notes.php?product_id=<?php echo $product_id; ?>&view=<?php echo $file['id']; ?>" class="list-group-item list-group-item-action <?php echo ($view_file_id == $file['id']) ? 'active' : ''; ?>">
+                    <?php foreach ($files_for_class as $file) : ?>
+                        <a href="lesson_notes.php?class_id=<?php echo $class_id; ?>&view=<?php echo $file['id']; ?>" class="list-group-item list-group-item-action <?php echo ($view_file_id == $file['id']) ? 'active' : ''; ?>">
                             <i class="fas fa-file-alt me-2"></i> <?php echo htmlspecialchars($file['original_filename']); ?>
                         </a>
                     <?php endforeach; ?>
@@ -112,8 +112,8 @@ include 'includes/header.php';
                 <div class="embed-responsive" style="height: 80vh; border: 1px solid #ddd;">
                     <iframe class="embed-responsive-item w-100 h-100" src="view_file.php?id=<?php echo $view_file_id; ?>"></iframe>
                 </div>
-            <?php elseif ($product_id && !empty($html_content)) : ?>
-                <h4><?php echo htmlspecialchars($product_name); ?></h4>
+            <?php elseif ($class_id && !empty($html_content)) : ?>
+                <h4><?php echo htmlspecialchars($class_name); ?></h4>
                 <div id="secure-content" class="secure-content">
                     <?php echo $html_content; ?>
                 </div>

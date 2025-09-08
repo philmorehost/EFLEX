@@ -2,7 +2,7 @@
 // Include the header
 include 'includes/header.php';
 
-// Fetch all subscription packages (i.e., products)
+// Fetch all subscription classes
 $sql = "SELECT * FROM products ORDER BY price ASC";
 $result = $mysqli->query($sql);
 $packages = $result->fetch_all(MYSQLI_ASSOC);
@@ -10,7 +10,7 @@ $packages = $result->fetch_all(MYSQLI_ASSOC);
 
 <div class="container my-5">
     <div class="text-center mb-5">
-        <h2>Subscription Packages</h2>
+        <h2>Subscription Classes</h2>
         <p class="lead">Choose a package to get access to our library of lesson notes.</p>
     </div>
 

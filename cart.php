@@ -98,14 +98,14 @@ if(!empty($_SESSION['cart'])){
 include 'includes/header.php';
 ?>
 
-<h2>Shopping Cart</h2>
+<h2>Your Classes</h2>
 
 <?php if(!empty($cart_items)): ?>
 <div class="table-responsive">
     <table class="table align-middle">
         <thead>
             <tr>
-                <th scope="col" colspan="2">Product</th>
+                <th scope="col" colspan="2">Class</th>
                 <th scope="col">Price</th>
                 <th scope="col" style="width: 150px;">Quantity</th>
                 <th scope="col" class="text-end">Subtotal</th>
@@ -140,12 +140,12 @@ include 'includes/header.php';
     </table>
 </div>
 <div class="d-flex justify-content-end">
-    <a href="products.php" class="btn btn-secondary me-2">Continue Shopping</a>
+    <a href="products.php" class="btn btn-secondary me-2">Browse More Classes</a>
     <a href="checkout.php" class="btn btn-primary">Proceed to Checkout</a>
 </div>
 <?php else: ?>
-    <div class="alert alert-info">Your shopping cart is empty.</div>
-    <a href="products.php" class="btn btn-primary">Start Shopping</a>
+    <div class="alert alert-info">Your cart is empty.</div>
+    <a href="products.php" class="btn btn-primary">Browse Classes</a>
 <?php endif; ?>
 
 <?php

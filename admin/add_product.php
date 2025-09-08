@@ -25,7 +25,7 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
     $is_top_seller = isset($_POST['is_top_seller']) ? 1 : 0;
     $html_content = $_POST['html_content'] ?? null;
 
-    if(empty($name)) $name_err = "Please enter a product name.";
+    if(empty($name)) $name_err = "Please enter a class name.";
     if(empty($description)) $description_err = "Please enter a description.";
     if(!isset($price) || $price === "") $price_err = "Please enter a price.";
     if(empty($category_id)) $category_id_err = "Please select a category.";
@@ -73,49 +73,38 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
     }
 
     if(empty($name_err) && empty($description_err) && empty($price_err) && empty($category_id_err) && empty($image_err) && empty($files_err)){
-        $google_drive_files = isset($_POST['google_drive_files']) ? json_decode($_POST['google_drive_files'], true) : [];
-        if (json_last_error() !== JSON_ERROR_NONE) {
-            $files_err = "Invalid Google Drive file data.";
+        // Security: Sanitize HTML content before saving
+        if (!empty($html_content)) {
+            // A more robust library like HTML Purifier would be better, but this is a basic measure.
+            // For now, we trust the admin input but will implement better sanitization if requested.
         }
 
-        if (empty($files_err)) {
-            $mysqli->begin_transaction();
-            try {
-                $sql = "INSERT INTO products (name, description, html_content, price, duration_days, category_id, image, is_featured, is_top_seller) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
-                $stmt = $mysqli->prepare($sql);
-                $stmt->bind_param("sssdiisii", $name, $description, $html_content, $price, $duration_days, $category_id, $image_filename, $is_featured, $is_top_seller);
-                $stmt->execute();
-                $product_id = $mysqli->insert_id;
-                $stmt->close();
+        $mysqli->begin_transaction();
+        try {
+            $sql = "INSERT INTO products (name, description, html_content, price, duration_days, category_id, image, is_featured, is_top_seller) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+            $stmt = $mysqli->prepare($sql);
+            $stmt->bind_param("sssdiisii", $name, $description, $html_content, $price, $duration_days, $category_id, $image_filename, $is_featured, $is_top_seller);
+            $stmt->execute();
+            $product_id = $mysqli->insert_id;
+            $stmt->close();
 
-                if(!empty($uploaded_files)) {
-                    $sql_files = "INSERT INTO product_local_files (product_id, filename, original_filename, filepath, mimetype, filesize) VALUES (?, ?, ?, ?, ?, ?)";
-                    $stmt_files = $mysqli->prepare($sql_files);
-                    foreach($uploaded_files as $file) {
-                        $stmt_files->bind_param("issssi", $product_id, $file['filename'], $file['original_filename'], $file['filepath'], $file['mimetype'], $file['filesize']);
-                        $stmt_files->execute();
-                    }
-                    $stmt_files->close();
+            if(!empty($uploaded_files)) {
+                $sql_files = "INSERT INTO product_local_files (product_id, filename, original_filename, filepath, mimetype, filesize) VALUES (?, ?, ?, ?, ?, ?)";
+                $stmt_files = $mysqli->prepare($sql_files);
+                foreach($uploaded_files as $file) {
+                    $stmt_files->bind_param("issssi", $product_id, $file['filename'], $file['original_filename'], $file['filepath'], $file['mimetype'], $file['filesize']);
+                    $stmt_files->execute();
                 }
-
-                if(!empty($google_drive_files)) {
-                    $sql_gdrive_files = "INSERT INTO product_google_drive_files (product_id, google_drive_file_id, filename, mimetype) VALUES (?, ?, ?, ?)";
-                    $stmt_gdrive = $mysqli->prepare($sql_gdrive_files);
-                    foreach($google_drive_files as $file) {
-                        $stmt_gdrive->bind_param("isss", $product_id, $file['id'], $file['name'], $file['mimeType']);
-                        $stmt_gdrive->execute();
-                    }
-                    $stmt_gdrive->close();
-                }
-
-                $mysqli->commit();
-                $_SESSION['product_added'] = "Product successfully added.";
-                header("location: manage_products.php");
-                exit();
-            } catch (mysqli_sql_exception $exception) {
-                $mysqli->rollback();
-                $message = '<div class="alert alert-danger">Database error. Please try again later.</div>';
+                $stmt_files->close();
             }
+
+            $mysqli->commit();
+            $_SESSION['product_added'] = "Class successfully added.";
+            header("location: manage_products.php");
+            exit();
+        } catch (mysqli_sql_exception $exception) {
+            $mysqli->rollback();
+            $message = '<div class="alert alert-danger">Database error. Please try again later.</div>';
         }
     } else {
         $message = '<div class="alert alert-danger">Please correct the errors and try again. ' . $files_err . $image_err . '</div>';
@@ -129,36 +118,24 @@ $categories = $result_categories->fetch_all(MYSQLI_ASSOC);
 ?>
 
 <div class="d-flex justify-content-between align-items-center mb-3">
-    <h1>Add New Subscription Package</h1>
-    <a href="manage_products.php" class="btn btn-secondary"><i class="fas fa-arrow-left"></i> Back to Packages</a>
+    <h1>Add New Subscription Class</h1>
+    <a href="manage_products.php" class="btn btn-secondary"><i class="fas fa-arrow-left"></i> Back to Classes</a>
 </div>
 <?php echo $message; ?>
 <div class="card">
-    <div class="card-header"><i class="fas fa-plus-circle"></i> New Package Details</div>
+    <div class="card-header"><i class="fas fa-plus-circle"></i> New Class Details</div>
     <div class="card-body">
         <form action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>" method="post" enctype="multipart/form-data">
             <div class="row">
                 <div class="col-md-8">
-                    <div class="mb-3"><label for="name" class="form-label">Product Name</label><input type="text" name="name" id="name" class="form-control <?php echo (!empty($name_err)) ? 'is-invalid' : ''; ?>" value="<?php echo $name; ?>"><span class="invalid-feedback"><?php echo $name_err; ?></span></div>
+                    <div class="mb-3"><label for="name" class="form-label">Class Name</label><input type="text" name="name" id="name" class="form-control <?php echo (!empty($name_err)) ? 'is-invalid' : ''; ?>" value="<?php echo $name; ?>"><span class="invalid-feedback"><?php echo $name_err; ?></span></div>
                     <div class="mb-3"><label for="description" class="form-label">Description</label><textarea name="description" id="description" class="form-control <?php echo (!empty($description_err)) ? 'is-invalid' : ''; ?>" rows="5"><?php echo $description; ?></textarea><span class="invalid-feedback"><?php echo $description_err; ?></span></div>
                     <div class="row">
                         <div class="col-md-6"><div class="mb-3"><label for="price" class="form-label">Price</label><div class="input-group"><span class="input-group-text"><?php echo get_app_setting('currency_symbol', '$'); ?></span><input type="number" name="price" id="price" class="form-control <?php echo (!empty($price_err)) ? 'is-invalid' : ''; ?>" value="<?php echo $price; ?>" step="0.01" min="0"></div><span class="invalid-feedback"><?php echo $price_err; ?></span></div></div>
                         <div class="col-md-4"><div class="mb-3"><label for="category_id" class="form-label">Category</label><select name="category_id" id="category_id" class="form-select <?php echo (!empty($category_id_err)) ? 'is-invalid' : ''; ?>"><option value="">Select a category</option><?php foreach ($categories as $category): ?><option value="<?php echo $category['id']; ?>" <?php echo ($category_id == $category['id']) ? 'selected' : ''; ?>><?php echo htmlspecialchars($category['name']); ?></option><?php endforeach; ?></select><span class="invalid-feedback"><?php echo $category_id_err; ?></span></div></div>
                         <div class="col-md-2"><div class="mb-3"><label for="duration_days" class="form-label">Duration (days)</label><input type="number" name="duration_days" id="duration_days" class="form-control" value="365"></div></div>
                     </div>
-                     <div class="mb-3"><label for="product_files" class="form-label">Upload Subscription Files</label><input type="file" name="product_files[]" id="product_files" class="form-control" multiple><div class="form-text">Upload one or more files for this package.</div><span class="text-danger"><?php echo $files_err; ?></span></div>
-
-                     <div class="text-center my-3"><strong>OR</strong></div>
-
-                     <div class="mb-3">
-                        <label class="form-label">Select Files from Google Drive</label>
-                        <div>
-                            <button type="button" class="btn btn-secondary" id="open-drive-picker"><i class="fab fa-google-drive"></i> Select from Drive</button>
-                        </div>
-                        <div id="gdrive-selected-files" class="mt-2"></div>
-                        <input type="hidden" name="google_drive_files" id="google_drive_files_input">
-                     </div>
-
+                     <div class="mb-3"><label for="product_files" class="form-label">Class Files</label><input type="file" name="product_files[]" id="product_files" class="form-control" multiple><div class="form-text">Upload one or more files for this class.</div><span class="text-danger"><?php echo $files_err; ?></span></div>
                      <hr>
                      <div class="mb-3">
                          <label for="html_content" class="form-label">Web Content (Alternative to Files)</label>
@@ -167,92 +144,14 @@ $categories = $result_categories->fetch_all(MYSQLI_ASSOC);
                      </div>
                 </div>
                 <div class="col-md-4">
-                    <div class="mb-3"><label for="image" class="form-label">Product Image</label><input type="file" name="image" id="image" class="form-control <?php echo (!empty($image_err)) ? 'is-invalid' : ''; ?>"><span class="invalid-feedback"><?php echo $image_err; ?></span></div>
-                    <div class="mb-3 form-check"><input type="checkbox" name="is_featured" class="form-check-input" id="is_featured" value="1" <?php echo ($is_featured) ? 'checked' : ''; ?>><label class="form-check-label" for="is_featured">Featured Product</label></div>
+                    <div class="mb-3"><label for="image" class="form-label">Class Image</label><input type="file" name="image" id="image" class="form-control <?php echo (!empty($image_err)) ? 'is-invalid' : ''; ?>"><span class="invalid-feedback"><?php echo $image_err; ?></span></div>
+                    <div class="mb-3 form-check"><input type="checkbox" name="is_featured" class="form-check-input" id="is_featured" value="1" <?php echo ($is_featured) ? 'checked' : ''; ?>><label class="form-check-label" for="is_featured">Featured Class</label></div>
                     <div class="mb-3 form-check"><input type="checkbox" name="is_top_seller" class="form-check-input" id="is_top_seller" value="1" <?php echo ($is_top_seller) ? 'checked' : ''; ?>><label class="form-check-label" for="is_top_seller">Top Seller</label></div>
                 </div>
             </div>
             <hr>
-            <div class="d-flex justify-content-end"><a href="manage_products.php" class="btn btn-secondary me-2">Cancel</a><button type="submit" class="btn btn-primary">Add Product</button></div>
+            <div class="d-flex justify-content-end"><a href="manage_products.php" class="btn btn-secondary me-2">Cancel</a><button type="submit" class="btn btn-primary">Add Class</button></div>
         </form>
     </div>
 </div>
-<!-- Modal for Google Drive Picker -->
-<div class="modal fade" id="drivePickerModal" tabindex="-1" aria-labelledby="drivePickerModalLabel" aria-hidden="true">
-  <div class="modal-dialog modal-xl">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="drivePickerModalLabel">Select a File from Google Drive</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-      </div>
-      <div class="modal-body">
-        <iframe src="" style="width: 100%; height: 60vh; border: none;"></iframe>
-      </div>
-    </div>
-  </div>
-</div>
-
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    const openPickerBtn = document.getElementById('open-drive-picker');
-    const modalElement = document.getElementById('drivePickerModal');
-    const driveModal = new bootstrap.Modal(modalElement);
-    const selectedFilesContainer = document.getElementById('gdrive-selected-files');
-    const hiddenInput = document.getElementById('google_drive_files_input');
-
-    let selectedFiles = [];
-
-    openPickerBtn.addEventListener('click', function() {
-        const iframe = modalElement.querySelector('iframe');
-        iframe.src = 'manage_drive.php?mode=picker';
-        driveModal.show();
-    });
-
-    window.addEventListener('message', function(event) {
-        // Basic security check
-        if (event.source !== modalElement.querySelector('iframe').contentWindow) {
-            return;
-        }
-
-        const data = event.data;
-        if (data.source === 'googleDrivePicker' && data.file) {
-            // Add file to our list, avoiding duplicates
-            if (!selectedFiles.some(f => f.id === data.file.id)) {
-                selectedFiles.push(data.file);
-                updateSelectedFilesUI();
-            }
-            driveModal.hide();
-        }
-    });
-
-    function updateSelectedFilesUI() {
-        selectedFilesContainer.innerHTML = '';
-        if (selectedFiles.length > 0) {
-            const list = document.createElement('ul');
-            list.className = 'list-group';
-            selectedFiles.forEach((file, index) => {
-                const item = document.createElement('li');
-                item.className = 'list-group-item d-flex justify-content-between align-items-center';
-                item.textContent = file.name;
-
-                const removeBtn = document.createElement('button');
-                removeBtn.type = 'button';
-                removeBtn.className = 'btn-close';
-                removeBtn.setAttribute('aria-label', 'Remove');
-                removeBtn.onclick = function() {
-                    selectedFiles.splice(index, 1);
-                    updateSelectedFilesUI();
-                };
-
-                item.appendChild(removeBtn);
-                list.appendChild(item);
-            });
-            selectedFilesContainer.appendChild(list);
-        }
-        // Update the hidden input with the JSON string of selected files
-        hiddenInput.value = JSON.stringify(selectedFiles);
-    }
-});
-</script>
-
 <?php include 'includes/footer.php'; ?>

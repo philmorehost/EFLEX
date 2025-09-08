@@ -25,7 +25,7 @@ if($stmt_cat = $mysqli->prepare($sql_cat)){
 }
 
 
-// Fetch products in this category
+// Fetch classes in this category
 $sql_prod = "SELECT * FROM products WHERE category_id = ? ORDER BY created_at DESC";
 $products = [];
 if($stmt_prod = $mysqli->prepare($sql_prod)){
@@ -38,19 +38,19 @@ if($stmt_prod = $mysqli->prepare($sql_prod)){
 ?>
 
 <div class="d-flex justify-content-between align-items-center mb-3">
-    <h2>Products in: <?php echo htmlspecialchars($category_name); ?></h2>
+    <h2>Classes in: <?php echo htmlspecialchars($category_name); ?></h2>
 </div>
 
 <div class="row">
     <?php if (count($products) > 0): ?>
-        <?php foreach ($products as $product): ?>
+        <?php foreach ($products as $class): ?>
             <div class="col-md-4 col-lg-3 mb-4">
                 <?php include 'includes/product_card.php'; ?>
             </div>
         <?php endforeach; ?>
     <?php else: ?>
         <div class="col">
-            <p>No products found in this category.</p>
+            <p>No classes found in this category.</p>
         </div>
     <?php endif; ?>
 </div>

@@ -5,13 +5,13 @@
         <div class="row">
             <div class="col-lg-4 col-md-6 mb-4">
                 <h5><?php echo get_app_setting('site_title', 'Eflex'); ?></h5>
-                <p><?php echo get_app_setting('site_info', 'Your one-stop shop for the latest and greatest products. We are committed to providing high-quality products and an excellent shopping experience.'); ?></p>
+                <p><?php echo get_app_setting('site_info', 'Your one-stop shop for high-quality educational materials. We are committed to providing an excellent learning experience.'); ?></p>
             </div>
             <div class="col-lg-2 col-md-6 mb-4">
                 <h5>Quick Links</h5>
                 <ul class="list-unstyled">
                     <li><a href="index.php">Home</a></li>
-                    <li><a href="products.php">Products</a></li>
+                    <li><a href="products.php">Classes</a></li>
                      <li><a href="subscriptions.php">Subscriptions</a></li>
                     <li><a href="account.php">My Account</a></li>
                 </ul>
