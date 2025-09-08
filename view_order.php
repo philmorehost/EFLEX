@@ -72,7 +72,7 @@ if($stmt_items = $mysqli->prepare($sql_items)){
                         <table class="table">
                             <thead>
                                 <tr>
-                                    <th>Product</th>
+                                    <th>Class</th>
                                     <th class="text-center">Quantity</th>
                                     <th class="text-end">Price</th>
                                     <th class="text-end">Subtotal</th>

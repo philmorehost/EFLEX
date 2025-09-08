@@ -118,12 +118,12 @@ $categories = $result_categories->fetch_all(MYSQLI_ASSOC);
 ?>
 
 <div class="d-flex justify-content-between align-items-center mb-3">
-    <h1>Add New Subscription Package</h1>
-    <a href="manage_products.php" class="btn btn-secondary"><i class="fas fa-arrow-left"></i> Back to Packages</a>
+    <h1>Add New Subscription Class</h1>
+    <a href="manage_products.php" class="btn btn-secondary"><i class="fas fa-arrow-left"></i> Back to Classes</a>
 </div>
 <?php echo $message; ?>
 <div class="card">
-    <div class="card-header"><i class="fas fa-plus-circle"></i> New Package Details</div>
+    <div class="card-header"><i class="fas fa-plus-circle"></i> New Class Details</div>
     <div class="card-body">
         <form action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>" method="post" enctype="multipart/form-data">
             <div class="row">
@@ -150,7 +150,7 @@ $categories = $result_categories->fetch_all(MYSQLI_ASSOC);
                 </div>
             </div>
             <hr>
-            <div class="d-flex justify-content-end"><a href="manage_products.php" class="btn btn-secondary me-2">Cancel</a><button type="submit" class="btn btn-primary">Add Product</button></div>
+            <div class="d-flex justify-content-end"><a href="manage_products.php" class="btn btn-secondary me-2">Cancel</a><button type="submit" class="btn btn-primary">Add Class</button></div>
         </form>
     </div>
 </div>

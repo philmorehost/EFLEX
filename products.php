@@ -27,7 +27,7 @@ if($stmt = $mysqli->prepare($sql)){
 ?>
 
 <div class="d-flex justify-content-between align-items-center mb-3">
-    <h2>All Products</h2>
+    <h2>All Classes</h2>
 </div>
 
 <div class="row">

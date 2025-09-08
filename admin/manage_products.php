@@ -107,15 +107,15 @@ if($stmt = $mysqli->prepare($sql)){
 ?>
 
 <div class="d-flex justify-content-between align-items-center mb-3">
-    <h1>Manage Subscription Packages</h1>
-    <a href="add_product.php" class="btn btn-success"><i class="fas fa-plus"></i> Add New Package</a>
+    <h1>Manage Subscription Classes</h1>
+    <a href="add_product.php" class="btn btn-success"><i class="fas fa-plus"></i> Add New Class</a>
 </div>
 
 <?php echo $message; ?>
 
 <div class="card">
     <div class="card-header">
-        <i class="fas fa-box"></i> Existing Packages
+        <i class="fas fa-box"></i> Existing Classes
     </div>
     <div class="card-body">
         <div class="table-responsive">
@@ -123,7 +123,7 @@ if($stmt = $mysqli->prepare($sql)){
                 <thead class="table-dark">
                     <tr>
                         <th>Image</th>
-                        <th>Package Name</th>
+                        <th>Class Name</th>
                         <th>Category</th>
                         <th>Price</th>
                         <th>Duration</th>
@@ -143,12 +143,12 @@ if($stmt = $mysqli->prepare($sql)){
                             <td><span class="badge bg-info"><?php echo $product['file_count']; ?></span></td>
                             <td class="text-end">
                                 <a href="edit_product.php?id=<?php echo $product['id']; ?>" class="btn btn-sm btn-warning"><i class="fas fa-edit"></i> Edit</a>
-                                <a href="manage_products.php?delete=<?php echo $product['id']; ?>" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure you want to delete this package? This will also delete all associated files and cannot be undone.')"><i class="fas fa-trash"></i> Delete</a>
+                                <a href="manage_products.php?delete=<?php echo $product['id']; ?>" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure you want to delete this class? This will also delete all associated files and cannot be undone.')"><i class="fas fa-trash"></i> Delete</a>
                             </td>
                         </tr>
                         <?php endforeach; ?>
                     <?php else: ?>
-                        <tr><td colspan="7" class="text-center">No packages found. <a href="add_product.php">Add one now</a>.</td></tr>
+                        <tr><td colspan="7" class="text-center">No classes found. <a href="add_product.php">Add one now</a>.</td></tr>
                     <?php endif; ?>
                 </tbody>
             </table>

@@ -143,7 +143,7 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
         // --- Commit Transaction ---
         $mysqli->commit();
 
-        $_SESSION['product_updated'] = "Package details updated successfully.";
+        $_SESSION['product_updated'] = "Class details updated successfully.";
         header("location: manage_products.php");
         exit();
 
@@ -193,14 +193,14 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
 ?>
 
 <div class="d-flex justify-content-between align-items-center mb-3">
-    <h1>Edit Subscription Package</h1>
-    <a href="manage_products.php" class="btn btn-secondary"><i class="fas fa-arrow-left"></i> Back to Packages</a>
+    <h1>Edit Subscription Class</h1>
+    <a href="manage_products.php" class="btn btn-secondary"><i class="fas fa-arrow-left"></i> Back to Classes</a>
 </div>
 
 <?php echo $message; ?>
 
 <div class="card">
-    <div class="card-header"><i class="fas fa-edit"></i> Edit Package Details</div>
+    <div class="card-header"><i class="fas fa-edit"></i> Edit Class Details</div>
     <div class="card-body">
         <form action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>?id=<?php echo $product_id; ?>" method="post" enctype="multipart/form-data">
             <input type="hidden" name="id" value="<?php echo $product_id; ?>">
@@ -210,7 +210,7 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
                 <div class="col-md-8">
                     <!-- Form fields for product details -->
                     <div class="mb-3">
-                        <label for="name" class="form-label">Package Name</label>
+                        <label for="name" class="form-label">Class Name</label>
                         <input type="text" name="name" id="name" class="form-control" value="<?php echo htmlspecialchars($name); ?>">
                     </div>
                     <div class="mb-3">
@@ -298,7 +298,7 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
             <hr>
             <div class="d-flex justify-content-end">
                 <a href="manage_products.php" class="btn btn-secondary me-2">Cancel</a>
-                <button type="submit" name="update_product" class="btn btn-primary">Update Product</button>
+                <button type="submit" name="update_product" class="btn btn-primary">Update Class</button>
             </div>
         </form>
     </div>
