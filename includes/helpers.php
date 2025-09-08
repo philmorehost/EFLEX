@@ -4,9 +4,9 @@ use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
 
 // Manually include PHPMailer files
-require_once __DIR__ . '/../vendor/phpmailer/phpmailer/Exception.php';
-require_once __DIR__ . '/../vendor/phpmailer/phpmailer/PHPMailer.php';
-require_once __DIR__ . '/../vendor/phpmailer/phpmailer/SMTP.php';
+require_once dirname(__DIR__) . '/vendor/phpmailer/phpmailer/Exception.php';
+require_once dirname(__DIR__) . '/vendor/phpmailer/phpmailer/PHPMailer.php';
+require_once dirname(__DIR__) . '/vendor/phpmailer/phpmailer/SMTP.php';
 
 // A place for helper functions that can be used across the application.
 
