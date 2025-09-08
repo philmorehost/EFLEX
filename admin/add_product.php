@@ -117,6 +117,7 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
             $mysqli->rollback();
             $message = '<div class="alert alert-danger">Database error. Please try again later.</div>';
         }
+    }
     } else {
         $message = '<div class="alert alert-danger">Please correct the errors and try again. ' . $files_err . $image_err . '</div>';
     }
