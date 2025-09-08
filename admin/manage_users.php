@@ -46,26 +46,14 @@ if(isset($_SESSION['user_updated_message'])){
 }
 
 
-// Pagination variables
+// Search and Pagination variables
+$search_query = isset($_GET['search']) ? trim($_GET['search']) : '';
 $page = isset($_GET['page']) && is_numeric($_GET['page']) ? (int)$_GET['page'] : 1;
 $records_per_page = 15;
 $offset = ($page - 1) * $records_per_page;
 
-// Get total number of users
-$total_records_result = $mysqli->query("SELECT COUNT(*) FROM users");
-$total_records = $total_records_result->fetch_row()[0];
-$total_pages = ceil($total_records / $records_per_page);
-
-// Fetch users for the current page along with their latest subscription status
-$sql = "
-    SELECT
-        u.id,
-        u.username,
-        u.email,
-        u.role,
-        u.created_at,
-        sub.status as subscription_status,
-        sub.expires_at as subscription_expiry
+// Base SQL and parameters
+$sql_base = "
     FROM
         users u
     LEFT JOIN (
@@ -77,13 +65,58 @@ $sql = "
         FROM
             user_subscriptions
     ) sub ON u.id = sub.user_id AND sub.rn = 1
+";
+$sql_where = "";
+$params = [];
+$param_types = "";
+
+if(!empty($search_query)){
+    $sql_where = " WHERE (u.username LIKE ? OR u.email LIKE ?)";
+    $search_term = "%" . $search_query . "%";
+    $params[] = &$search_term;
+    $params[] = &$search_term;
+    $param_types .= "ss";
+}
+
+
+// Get total number of users
+$total_records_sql = "SELECT COUNT(DISTINCT u.id) " . $sql_base . $sql_where;
+if($stmt_total = $mysqli->prepare($total_records_sql)){
+    if(!empty($search_query)){
+        $stmt_total->bind_param($param_types, ...$params);
+    }
+    $stmt_total->execute();
+    $total_records_result = $stmt_total->get_result();
+    $total_records = $total_records_result->fetch_row()[0];
+    $stmt_total->close();
+} else {
+    $total_records = 0;
+}
+$total_pages = ceil($total_records / $records_per_page);
+
+
+// Fetch users for the current page
+$sql = "
+    SELECT
+        u.id,
+        u.username,
+        u.email,
+        u.role,
+        u.created_at,
+        sub.status as subscription_status,
+        sub.expires_at as subscription_expiry
+    " . $sql_base . $sql_where . "
     ORDER BY
         u.created_at DESC
     LIMIT ? OFFSET ?
 ";
 
+$params[] = &$records_per_page;
+$params[] = &$offset;
+$param_types .= "ii";
+
 if($stmt = $mysqli->prepare($sql)){
-    $stmt->bind_param("ii", $records_per_page, $offset);
+    $stmt->bind_param($param_types, ...$params);
     $stmt->execute();
     $result = $stmt->get_result();
     $users = $result->fetch_all(MYSQLI_ASSOC);
@@ -101,6 +134,19 @@ if($stmt = $mysqli->prepare($sql)){
 </div>
 
 <?php echo $message; ?>
+
+<!-- Search Form -->
+<div class="card mb-3">
+    <div class="card-body">
+        <form action="manage_users.php" method="get" class="d-flex">
+            <input type="text" name="search" class="form-control me-2" placeholder="Search by username or email..." value="<?php echo htmlspecialchars($search_query); ?>">
+            <button type="submit" class="btn btn-primary"><i class="fas fa-search"></i> Search</button>
+            <?php if(!empty($search_query)): ?>
+                <a href="manage_users.php" class="btn btn-secondary ms-2"><i class="fas fa-times"></i> Clear</a>
+            <?php endif; ?>
+        </form>
+    </div>
+</div>
 
 <div class="card">
     <div class="card-header">
@@ -162,13 +208,13 @@ if($stmt = $mysqli->prepare($sql)){
         <nav aria-label="Page navigation">
             <ul class="pagination justify-content-center mb-0">
                 <?php if($page > 1): ?>
-                    <li class="page-item"><a class="page-link" href="manage_users.php?page=<?php echo $page-1; ?>">Previous</a></li>
+                    <li class="page-item"><a class="page-link" href="manage_users.php?page=<?php echo $page-1; ?>&search=<?php echo urlencode($search_query); ?>">Previous</a></li>
                 <?php endif; ?>
                 <?php for($i = 1; $i <= $total_pages; $i++): ?>
-                    <li class="page-item <?php if($page == $i) echo 'active'; ?>"><a class="page-link" href="manage_users.php?page=<?php echo $i; ?>"><?php echo $i; ?></a></li>
+                    <li class="page-item <?php if($page == $i) echo 'active'; ?>"><a class="page-link" href="manage_users.php?page=<?php echo $i; ?>&search=<?php echo urlencode($search_query); ?>"><?php echo $i; ?></a></li>
                 <?php endfor; ?>
                 <?php if($page < $total_pages): ?>
-                    <li class="page-item"><a class="page-link" href="manage_users.php?page=<?php echo $page+1; ?>">Next</a></li>
+                    <li class="page-item"><a class="page-link" href="manage_users.php?page=<?php echo $page+1; ?>&search=<?php echo urlencode($search_query); ?>">Next</a></li>
                 <?php endif; ?>
             </ul>
         </nav>

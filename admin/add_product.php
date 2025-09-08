@@ -98,6 +98,25 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
                 $stmt_files->close();
             }
 
+            // Handle Google Drive file IDs
+            if(isset($_POST['gdrive_file_ids']) && !empty($_POST['gdrive_file_ids'])) {
+                require_once '../includes/google_drive_api.php';
+                $gdrive_file_ids = explode(',', $_POST['gdrive_file_ids']);
+
+                $sql_gdrive = "INSERT INTO product_gdrive_files (product_id, gdrive_file_id, filename, webview_link) VALUES (?, ?, ?, ?)";
+                $stmt_gdrive = $mysqli->prepare($sql_gdrive);
+
+                foreach($gdrive_file_ids as $file_id) {
+                    if(empty($file_id)) continue;
+                    $details = get_file_details($file_id);
+                    if(!isset($details['error'])) {
+                        $stmt_gdrive->bind_param("isss", $product_id, $details['id'], $details['name'], $details['webViewLink']);
+                        $stmt_gdrive->execute();
+                    }
+                }
+                $stmt_gdrive->close();
+            }
+
             $mysqli->commit();
             $_SESSION['product_added'] = "Class successfully added.";
             header("location: manage_products.php");
@@ -135,7 +154,23 @@ $categories = $result_categories->fetch_all(MYSQLI_ASSOC);
                         <div class="col-md-4"><div class="mb-3"><label for="category_id" class="form-label">Category</label><select name="category_id" id="category_id" class="form-select <?php echo (!empty($category_id_err)) ? 'is-invalid' : ''; ?>"><option value="">Select a category</option><?php foreach ($categories as $category): ?><option value="<?php echo $category['id']; ?>" <?php echo ($category_id == $category['id']) ? 'selected' : ''; ?>><?php echo htmlspecialchars($category['name']); ?></option><?php endforeach; ?></select><span class="invalid-feedback"><?php echo $category_id_err; ?></span></div></div>
                         <div class="col-md-2"><div class="mb-3"><label for="duration_days" class="form-label">Duration (days)</label><input type="number" name="duration_days" id="duration_days" class="form-control" value="365"></div></div>
                     </div>
-                     <div class="mb-3"><label for="product_files" class="form-label">Class Files</label><input type="file" name="product_files[]" id="product_files" class="form-control" multiple><div class="form-text">Upload one or more files for this class.</div><span class="text-danger"><?php echo $files_err; ?></span></div>
+                     <div class="mb-3">
+                         <div class="form-check mb-2">
+                             <input class="form-check-input" type="checkbox" id="use_google_drive">
+                             <label class="form-check-label" for="use_google_drive">
+                                 Add files from Google Drive
+                             </label>
+                         </div>
+                     </div>
+                     <div class="mb-3" id="local-upload-container">
+                        <label for="product_files" class="form-label">Class Files</label><input type="file" name="product_files[]" id="product_files" class="form-control" multiple><div class="form-text">Upload one or more files for this class.</div><span class="text-danger"><?php echo $files_err; ?></span>
+                     </div>
+                     <div class="mb-3 d-none" id="gdrive-upload-container">
+                         <label class="form-label">Google Drive Files</label>
+                         <button type="button" class="btn btn-secondary" id="browse-gdrive-btn"><i class="fab fa-google-drive"></i> Browse Google Drive</button>
+                         <div id="gdrive-selected-files" class="mt-2"></div>
+                         <input type="hidden" name="gdrive_file_ids" id="gdrive_file_ids">
+                     </div>
                      <hr>
                      <div class="mb-3">
                          <label for="html_content" class="form-label">Web Content (Alternative to Files)</label>
@@ -154,4 +189,102 @@ $categories = $result_categories->fetch_all(MYSQLI_ASSOC);
         </form>
     </div>
 </div>
+<!-- Google Drive Browser Modal -->
+<div class="modal fade" id="gdriveModal" tabindex="-1" aria-labelledby="gdriveModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="gdriveModalLabel">Browse Google Drive</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body" id="gdrive-browser-body">
+        <!-- Content will be loaded via AJAX -->
+        <div class="text-center"><div class="spinner-border" role="status"><span class="visually-hidden">Loading...</span></div></div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-primary" id="select-gdrive-files-btn">Select Files</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
 <?php include 'includes/footer.php'; ?>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const useGoogleDriveCheckbox = document.getElementById('use_google_drive');
+    const localUploadContainer = document.getElementById('local-upload-container');
+    const gdriveUploadContainer = document.getElementById('gdrive-upload-container');
+    const browseGdriveBtn = document.getElementById('browse-gdrive-btn');
+    const gdriveModal = new bootstrap.Modal(document.getElementById('gdriveModal'));
+    const gdriveBrowserBody = document.getElementById('gdrive-browser-body');
+    const selectGdriveFilesBtn = document.getElementById('select-gdrive-files-btn');
+    const gdriveSelectedFilesDiv = document.getElementById('gdrive-selected-files');
+    const gdriveFileIdsInput = document.getElementById('gdrive_file_ids');
+
+    useGoogleDriveCheckbox.addEventListener('change', function() {
+        if (this.checked) {
+            localUploadContainer.classList.add('d-none');
+            gdriveUploadContainer.classList.remove('d-none');
+        } else {
+            localUploadContainer.classList.remove('d-none');
+            gdriveUploadContainer.classList.add('d-none');
+        }
+    });
+
+    browseGdriveBtn.addEventListener('click', function() {
+        gdriveModal.show();
+        loadGdriveBrowser('root');
+    });
+
+    function loadGdriveBrowser(folderId) {
+        gdriveBrowserBody.innerHTML = '<div class="text-center"><div class="spinner-border" role="status"><span class="visually-hidden">Loading...</span></div></div>';
+        fetch(`ajax_drive_browser.php?folder=${folderId}`)
+            .then(response => response.text())
+            .then(html => {
+                gdriveBrowserBody.innerHTML = html;
+            })
+            .catch(error => {
+                gdriveBrowserBody.innerHTML = '<div class="alert alert-danger">Failed to load Google Drive content.</div>';
+                console.error('Error:', error);
+            });
+    }
+
+    gdriveBrowserBody.addEventListener('click', function(e) {
+        if (e.target.matches('.drive-browse-btn') || e.target.closest('.drive-browse-btn')) {
+            e.preventDefault();
+            const target = e.target.matches('.drive-browse-btn') ? e.target : e.target.closest('.drive-browse-btn');
+            const folderId = target.dataset.folderId;
+            loadGdriveBrowser(folderId);
+        }
+    });
+
+    selectGdriveFilesBtn.addEventListener('click', function() {
+        const selectedCheckboxes = gdriveBrowserBody.querySelectorAll('input[type="checkbox"]:checked');
+        let selectedFiles = [];
+        let selectedFileIds = [];
+
+        selectedCheckboxes.forEach(checkbox => {
+            selectedFileIds.push(checkbox.value);
+            selectedFiles.push({
+                id: checkbox.value,
+                name: checkbox.dataset.fileName
+            });
+        });
+
+        gdriveFileIdsInput.value = selectedFileIds.join(',');
+
+        let selectedFilesHtml = '<h6>Selected Files:</h6><ul class="list-unstyled">';
+        selectedFiles.forEach(file => {
+            selectedFilesHtml += `<li><i class="far fa-file-alt me-2"></i>${file.name}</li>`;
+        });
+        selectedFilesHtml += '</ul>';
+
+        gdriveSelectedFilesDiv.innerHTML = selectedFiles.length > 0 ? selectedFilesHtml : '';
+
+        gdriveModal.hide();
+    });
+});
+</script>

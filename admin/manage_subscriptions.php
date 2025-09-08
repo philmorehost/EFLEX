@@ -20,14 +20,38 @@ if(isset($_GET['action']) && $_GET['action'] == 'delete' && isset($_GET['id'])){
     }
 }
 
-// Fetch all subscriptions with user and class names
+// Search and Fetch
+$search_query = isset($_GET['search']) ? trim($_GET['search']) : '';
 $sql = "SELECT us.id, u.username, p.name as class_name, us.status, us.expires_at, us.created_at
         FROM user_subscriptions us
         JOIN users u ON us.user_id = u.id
-        JOIN products p ON us.product_id = p.id
-        ORDER BY us.created_at DESC";
-$result = $mysqli->query($sql);
-$subscriptions = $result->fetch_all(MYSQLI_ASSOC);
+        JOIN products p ON us.product_id = p.id";
+
+$params = [];
+$param_types = "";
+
+if(!empty($search_query)){
+    $sql .= " WHERE (u.username LIKE ? OR p.name LIKE ?)";
+    $search_term = "%" . $search_query . "%";
+    $params[] = &$search_term;
+    $params[] = &$search_term;
+    $param_types .= "ss";
+}
+
+$sql .= " ORDER BY us.created_at DESC";
+
+if($stmt = $mysqli->prepare($sql)){
+    if(!empty($search_query)){
+        $stmt->bind_param($param_types, ...$params);
+    }
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $subscriptions = $result->fetch_all(MYSQLI_ASSOC);
+    $stmt->close();
+} else {
+    $subscriptions = [];
+    $message .= '<div class="alert alert-danger">Error fetching subscriptions.</div>';
+}
 
 ?>
 
@@ -37,6 +61,19 @@ $subscriptions = $result->fetch_all(MYSQLI_ASSOC);
 </div>
 
 <?php echo $message; ?>
+
+<!-- Search Form -->
+<div class="card mb-3">
+    <div class="card-body">
+        <form action="manage_subscriptions.php" method="get" class="d-flex">
+            <input type="text" name="search" class="form-control me-2" placeholder="Search by user or class name..." value="<?php echo htmlspecialchars($search_query); ?>">
+            <button type="submit" class="btn btn-primary"><i class="fas fa-search"></i> Search</button>
+            <?php if(!empty($search_query)): ?>
+                <a href="manage_subscriptions.php" class="btn btn-secondary ms-2"><i class="fas fa-times"></i> Clear</a>
+            <?php endif; ?>
+        </form>
+    </div>
+</div>
 
 <div class="card">
     <div class="card-header">

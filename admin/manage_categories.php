@@ -124,7 +124,31 @@ if(isset($_GET['edit'])){
 }
 
 // Fetch all categories for display
-$categories = $mysqli->query("SELECT * FROM categories ORDER BY name ASC")->fetch_all(MYSQLI_ASSOC);
+$search_query = isset($_GET['search']) ? trim($_GET['search']) : '';
+$sql = "SELECT * FROM categories";
+$params = [];
+$param_types = "";
+
+if(!empty($search_query)){
+    $sql .= " WHERE name LIKE ?";
+    $search_term = "%" . $search_query . "%";
+    $params[] = &$search_term;
+    $param_types .= "s";
+}
+$sql .= " ORDER BY name ASC";
+
+if($stmt = $mysqli->prepare($sql)){
+    if(!empty($search_query)){
+        $stmt->bind_param($param_types, ...$params);
+    }
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $categories = $result->fetch_all(MYSQLI_ASSOC);
+    $stmt->close();
+} else {
+    $categories = [];
+    $message .= '<div class="alert alert-danger">Error fetching categories.</div>';
+}
 
 ?>
 
@@ -138,6 +162,17 @@ $categories = $mysqli->query("SELECT * FROM categories ORDER BY name ASC")->fetc
         <div class="card">
             <div class="card-header"><i class="fas fa-tags"></i> Existing Categories</div>
             <div class="card-body">
+                <!-- Search Form -->
+                <form action="manage_categories.php" method="get" class="mb-3">
+                    <div class="input-group">
+                        <input type="text" name="search" class="form-control" placeholder="Search by category name..." value="<?php echo htmlspecialchars($search_query); ?>">
+                        <button type="submit" class="btn btn-primary"><i class="fas fa-search"></i></button>
+                        <?php if(!empty($search_query)): ?>
+                            <a href="manage_categories.php" class="btn btn-secondary"><i class="fas fa-times"></i></a>
+                        <?php endif; ?>
+                    </div>
+                </form>
+
                 <div class="table-responsive">
                     <table class="table table-hover">
                         <thead class="table-dark">
