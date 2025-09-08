@@ -33,10 +33,10 @@ $premium_products = $premium_products_result->fetch_all(MYSQLI_ASSOC);
     </div>
 </div>
 
-<!-- Freemium Classes Section -->
+<!-- Freemium Packages Section -->
 <?php if (!empty($freemium_products)): ?>
 <div class="container my-5">
-    <h2 class="text-center mb-4">Freemium Classes</h2>
+    <h2 class="text-center mb-4">Freemium Packages</h2>
     <div id="freemiumCarousel" class="carousel slide" data-bs-ride="carousel">
         <div class="carousel-inner">
             <?php
@@ -66,10 +66,10 @@ $premium_products = $premium_products_result->fetch_all(MYSQLI_ASSOC);
 </div>
 <?php endif; ?>
 
-<!-- Premium Classes Section -->
+<!-- Premium Packages Section -->
 <?php if (!empty($premium_products)): ?>
 <div class="container my-5">
-    <h2 class="text-center mb-4">Premium Classes</h2>
+    <h2 class="text-center mb-4">Premium Packages</h2>
     <div class="row">
         <?php foreach($premium_products as $product): ?>
             <div class="col-md-3 mb-4">
@@ -88,7 +88,7 @@ $premium_products = $premium_products_result->fetch_all(MYSQLI_ASSOC);
         <div class="col-md-3">
             <div class="how-it-works-step">
                 <div class="step-icon"><i class="fas fa-th-list"></i></div>
-                <h5>1. Browse Classes</h5>
+                <h5>1. Browse Packages</h5>
                 <p>Visit our Subscriptions page to see the available lesson note packages.</p>
             </div>
         </div>
