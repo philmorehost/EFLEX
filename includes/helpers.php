@@ -1,12 +1,18 @@
 <?php
+// Define a project root constant to make file includes robust.
+if (!defined('PROJECT_ROOT')) {
+    // Assumes helpers.php is in /includes/ at the project root.
+    define('PROJECT_ROOT', dirname(__DIR__));
+}
+
 // Use PHPMailer classes
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
 
-// Manually include PHPMailer files using relative path from project root
-require_once 'vendor/phpmailer/phpmailer/Exception.php';
-require_once 'vendor/phpmailer/phpmailer/PHPMailer.php';
-require_once 'vendor/phpmailer/phpmailer/SMTP.php';
+// Manually include PHPMailer files using an absolute path
+require_once PROJECT_ROOT . '/vendor/phpmailer/phpmailer/Exception.php';
+require_once PROJECT_ROOT . '/vendor/phpmailer/phpmailer/PHPMailer.php';
+require_once PROJECT_ROOT . '/vendor/phpmailer/phpmailer/SMTP.php';
 
 // A place for helper functions that can be used across the application.
 
