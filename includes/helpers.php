@@ -1,4 +1,13 @@
 <?php
+// Use PHPMailer classes
+use PHPMailer\PHPMailer\PHPMailer;
+use PHPMailer\PHPMailer\Exception;
+
+// Manually include PHPMailer files
+require_once __DIR__ . '/../vendor/phpmailer/phpmailer/Exception.php';
+require_once __DIR__ . '/../vendor/phpmailer/phpmailer/PHPMailer.php';
+require_once __DIR__ . '/../vendor/phpmailer/phpmailer/SMTP.php';
+
 // A place for helper functions that can be used across the application.
 
 // Global variable to cache settings so we don't query the DB repeatedly.
@@ -94,13 +103,127 @@ function finalize_successful_order($order_id, $user_id) {
         }
         $stmt_insert->close();
 
+        // --- Fetch data for email notifications ---
+        // Get user details
+        $sql_user = "SELECT username, email FROM users WHERE id = ?";
+        $stmt_user = $mysqli->prepare($sql_user);
+        $stmt_user->bind_param("i", $user_id);
+        $stmt_user->execute();
+        $user_result = $stmt_user->get_result()->fetch_assoc();
+        $stmt_user->close();
+
+        // Get order total
+        $sql_order_total = "SELECT total_amount FROM orders WHERE id = ?";
+        $stmt_order_total = $mysqli->prepare($sql_order_total);
+        $stmt_order_total->bind_param("i", $order_id);
+        $stmt_order_total->execute();
+        $order_result = $stmt_order_total->get_result()->fetch_assoc();
+        $stmt_order_total->close();
+
+        // Re-fetch item names for the email
+        $item_names = [];
+        foreach ($items as $item) {
+            $sql_product_name = "SELECT name FROM products WHERE id = ?";
+            $stmt_product_name = $mysqli->prepare($sql_product_name);
+            $stmt_product_name->bind_param("i", $item['product_id']);
+            $stmt_product_name->execute();
+            $product_result = $stmt_product_name->get_result()->fetch_assoc();
+            $item_names[] = $product_result['name'];
+            $stmt_product_name->close();
+        }
+        $item_list_html = "<ul><li>" . implode("</li><li>", $item_names) . "</li></ul>";
+
+
         $mysqli->commit();
+
+        // --- Send notification emails AFTER commit ---
+        $site_title = get_app_setting('site_title', 'Eflex');
+
+        // 1. Email to the user
+        $user_subject = "Your Order Confirmation from " . $site_title;
+        $user_body = "
+            Hi " . htmlspecialchars($user_result['username']) . ",<br><br>
+            Thank you for your order! Your payment has been confirmed and your subscription is now active.<br><br>
+            <b>Order Details:</b><br>
+            Order ID: #$order_id<br>
+            Total Amount: " . format_price($order_result['total_amount']) . "<br>
+            Items:<br>
+            $item_list_html
+            <br>
+            You can view your active subscriptions in your account's 'Lesson Notes' section.<br><br>
+            Best regards,<br>
+            The " . $site_title . " Team
+        ";
+        send_notification_email($user_result['email'], $user_subject, $user_body);
+
+        // 2. Email to the admin
+        $admin_email = get_app_setting('admin_notification_email', get_app_setting('contact_email'));
+        if(!empty($admin_email)) {
+            $admin_subject = "New Order Notification (#$order_id) on " . $site_title;
+            $admin_body = "
+                A new order has been placed and paid for on your website.<br><br>
+                <b>Order Details:</b><br>
+                Order ID: #$order_id<br>
+                Customer: " . htmlspecialchars($user_result['username']) . " (" . htmlspecialchars($user_result['email']) . ")<br>
+                Total Amount: " . format_price($order_result['total_amount']) . "<br>
+                Items:<br>
+                $item_list_html
+                <br>
+                The order has been marked as 'Completed' and the user's subscription has been activated automatically.
+            ";
+            send_notification_email($admin_email, $admin_subject, $admin_body);
+        }
+
         return ['status' => 'success'];
 
     } catch (Exception $e) {
         $mysqli->rollback();
         // In a real application, you'd log the error message $e->getMessage()
         return ['status' => 'error', 'message' => 'Failed to finalize order. Please contact support.'];
+    }
+}
+
+
+/**
+ * Sends an email notification using PHPMailer with settings from the database.
+ *
+ * @param string $to The recipient's email address.
+ * @param string $subject The email subject.
+ * @param string $body The email body (HTML).
+ * @param bool $is_html Whether the email body is HTML. Defaults to true.
+ * @return bool True on success, false on failure.
+ */
+function send_notification_email($to, $subject, $body, $is_html = true) {
+    $mail = new PHPMailer(true);
+
+    try {
+        // Server settings from the database
+        $mail->isSMTP();
+        $mail->Host       = get_app_setting('smtp_host');
+        $mail->SMTPAuth   = true;
+        $mail->Username   = get_app_setting('smtp_user');
+        $mail->Password   = get_app_setting('smtp_pass');
+        $mail->SMTPSecure = get_app_setting('smtp_encryption', PHPMailer::ENCRYPTION_SMTPS);
+        $mail->Port       = get_app_setting('smtp_port', 465);
+
+        // Recipients
+        $mail->setFrom(get_app_setting('from_email'), get_app_setting('from_name', 'Eflex'));
+        $mail->addAddress($to);
+
+        // Content
+        $mail->isHTML($is_html);
+        $mail->Subject = $subject;
+        $mail->Body    = $body;
+        if($is_html) {
+            $mail->AltBody = strip_tags($body);
+        }
+
+        $mail->send();
+        return true;
+    } catch (Exception $e) {
+        // In a real app, you would log this error. For now, we just return false.
+        // error_log("Mailer Error: " . $mail->ErrorInfo);
+        return false;
     }
 }
 ?>

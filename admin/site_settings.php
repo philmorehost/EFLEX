@@ -95,7 +95,8 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
         <div class="card-header"><i class="fas fa-address-book"></i> Contact & Social Media</div>
         <div class="card-body">
             <div class="row">
-                <div class="col-md-6 mb-3"><label for="contact_email" class="form-label">Contact Email</label><input type="email" name="contact_email" class="form-control" id="contact_email" value="<?php echo get_app_setting('contact_email'); ?>"></div>
+                <div class="col-md-6 mb-3"><label for="contact_email" class="form-label">Public Contact Email</label><input type="email" name="contact_email" class="form-control" id="contact_email" value="<?php echo get_app_setting('contact_email'); ?>"></div>
+                <div class="col-md-6 mb-3"><label for="admin_notification_email" class="form-label">Admin Notification Email</label><input type="email" name="admin_notification_email" class="form-control" id="admin_notification_email" value="<?php echo get_app_setting('admin_notification_email'); ?>"><div class="form-text">The email address where admin notifications (e.g., new user, new order) are sent.</div></div>
                 <div class="col-md-6 mb-3"><label for="contact_phone" class="form-label">Contact Phone</label><input type="text" name="contact_phone" class="form-control" id="contact_phone" value="<?php echo get_app_setting('contact_phone'); ?>"></div>
                 <div class="col-12 mb-3"><label for="contact_address" class="form-label">Contact Address</label><input type="text" name="contact_address" class="form-control" id="contact_address" value="<?php echo get_app_setting('contact_address'); ?>"></div>
                 <div class="col-md-6 mb-3"><label for="social_facebook" class="form-label">Facebook URL</label><input type="url" name="social_facebook" class="form-control" id="social_facebook" value="<?php echo get_app_setting('social_facebook'); ?>"></div>

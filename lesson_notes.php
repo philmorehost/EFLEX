@@ -65,7 +65,7 @@ if ($class_id) {
             $stmt_html->close();
         }
 
-        // Then check for files
+        // Then check for local files
         $sql_files = "SELECT id, original_filename FROM product_local_files WHERE product_id = ? ORDER BY original_filename ASC";
         if($stmt_files = $mysqli->prepare($sql_files)) {
             $stmt_files->bind_param("i", $class_id);
@@ -74,6 +74,18 @@ if ($class_id) {
             $files_for_class = $result_files->fetch_all(MYSQLI_ASSOC);
             $stmt_files->close();
         }
+
+        // And also check for Google Drive files
+        $gdrive_files_for_class = [];
+        $sql_gdrive_files = "SELECT gdrive_file_id, filename, webview_link FROM product_gdrive_files WHERE product_id = ? ORDER BY filename ASC";
+        if($stmt_gdrive = $mysqli->prepare($sql_gdrive_files)) {
+            $stmt_gdrive->bind_param("i", $class_id);
+            $stmt_gdrive->execute();
+            $result_gdrive = $stmt_gdrive->get_result();
+            $gdrive_files_for_class = $result_gdrive->fetch_all(MYSQLI_ASSOC);
+            $stmt_gdrive->close();
+        }
+
     } else {
         // User is not subscribed to the selected class, reset it.
         $class_id = 0;
@@ -97,11 +109,22 @@ include 'includes/header.php';
             </div>
 
             <?php if ($class_id && !empty($files_for_class)) : ?>
-                <h4 class="mt-4">Files for <?php echo htmlspecialchars($class_name); ?></h4>
+                <h4 class="mt-4">Local Files for <?php echo htmlspecialchars($class_name); ?></h4>
                 <div class="list-group">
                     <?php foreach ($files_for_class as $file) : ?>
                         <a href="lesson_notes.php?class_id=<?php echo $class_id; ?>&view=<?php echo $file['id']; ?>" class="list-group-item list-group-item-action <?php echo ($view_file_id == $file['id']) ? 'active' : ''; ?>">
                             <i class="fas fa-file-alt me-2"></i> <?php echo htmlspecialchars($file['original_filename']); ?>
+                        </a>
+                    <?php endforeach; ?>
+                </div>
+            <?php endif; ?>
+
+            <?php if ($class_id && !empty($gdrive_files_for_class)) : ?>
+                <h4 class="mt-4">Google Drive Files for <?php echo htmlspecialchars($class_name); ?></h4>
+                <div class="list-group">
+                    <?php foreach ($gdrive_files_for_class as $file) : ?>
+                        <a href="<?php echo htmlspecialchars($file['webview_link']); ?>" target="_blank" class="list-group-item list-group-item-action">
+                            <i class="fab fa-google-drive me-2"></i> <?php echo htmlspecialchars($file['filename']); ?>
                         </a>
                     <?php endforeach; ?>
                 </div>

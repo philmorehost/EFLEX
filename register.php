@@ -104,6 +104,23 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
             $param_password = password_hash($password, PASSWORD_DEFAULT);
 
             if($stmt->execute()){
+                // Send notification emails
+                require_once 'includes/helpers.php';
+                $site_title = get_app_setting('site_title', 'Eflex');
+
+                // 1. Email to the new user
+                $user_subject = "Welcome to " . $site_title . "!";
+                $user_body = "Hi " . htmlspecialchars($username) . ",<br><br>Thank you for registering at " . $site_title . ". We're excited to have you.<br><br>You can now log in using your credentials.<br><br>Best regards,<br>The " . $site_title . " Team";
+                send_notification_email($email, $user_subject, $user_body);
+
+                // 2. Email to the admin
+                $admin_email = get_app_setting('admin_notification_email', get_app_setting('contact_email'));
+                if(!empty($admin_email)) {
+                    $admin_subject = "New User Registration on " . $site_title;
+                    $admin_body = "A new user has registered on your website.<br><br>Username: " . htmlspecialchars($username) . "<br>Email: " . htmlspecialchars($email) . "<br><br>You can view their profile in the admin dashboard.";
+                    send_notification_email($admin_email, $admin_subject, $admin_body);
+                }
+
                 header("location: login.php?registration=success");
             } else{
                 echo "Oops! Something went wrong. Please try again later.";

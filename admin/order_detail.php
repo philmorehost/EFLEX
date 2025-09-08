@@ -27,6 +27,28 @@ if($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['update_status'])){
             $stmt_update->bind_param("si", $new_status, $order_id);
             if($stmt_update->execute()){
                 $_SESSION['order_update_message'] = "Order #$order_id status has been updated.";
+
+                // Send notification email to the user
+                $sql_user = "SELECT email, username FROM users WHERE id = (SELECT user_id FROM orders WHERE id = ?)";
+                $stmt_user = $mysqli->prepare($sql_user);
+                $stmt_user->bind_param("i", $order_id);
+                $stmt_user->execute();
+                $user_result = $stmt_user->get_result()->fetch_assoc();
+                $stmt_user->close();
+
+                if($user_result) {
+                    $site_title = get_app_setting('site_title', 'Eflex');
+                    $subject = "Update on your order #$order_id from " . $site_title;
+                    $body = "
+                        Hi " . htmlspecialchars($user_result['username']) . ",<br><br>
+                        There's an update on your order with ID #$order_id.<br>
+                        The new status is: <strong>" . htmlspecialchars($new_status) . "</strong>.<br><br>
+                        You can view your order details by logging into your account.<br><br>
+                        Best regards,<br>
+                        The " . $site_title . " Team
+                    ";
+                    send_notification_email($user_result['email'], $subject, $body);
+                }
             }
             $stmt_update->close();
         }
