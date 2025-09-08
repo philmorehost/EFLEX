@@ -66,6 +66,22 @@ $is_connected = $is_configured && !empty($credentials['refresh_token']);
 </div>
 
 <div class="card mt-4">
+    <div class="card-header"><i class="fas fa-link"></i> Authorized Redirect URI</div>
+    <div class="card-body">
+        <p>For the Google connection to work, you must add the following URL to the "Authorized redirect URIs" list in your Google Cloud Console project for your OAuth 2.0 Client ID.</p>
+        <?php
+            $redirect_uri = 'http' . (isset($_SERVER['HTTPS']) ? 's' : '') . '://' . $_SERVER['HTTP_HOST'] . '/admin/gdrive_oauth_callback.php';
+        ?>
+        <div class="input-group">
+            <input type="text" class="form-control" value="<?php echo $redirect_uri; ?>" id="redirect-uri-input" readonly>
+            <button class="btn btn-outline-secondary" type="button" id="copy-uri-btn">
+                <i class="fas fa-copy"></i> Copy
+            </button>
+        </div>
+    </div>
+</div>
+
+<div class="card mt-4">
     <div class="card-header"><i class="fas fa-key"></i> API Credentials</div>
     <div class="card-body">
         <form action="manage_drive.php" method="post">
@@ -84,3 +100,23 @@ $is_connected = $is_configured && !empty($credentials['refresh_token']);
 
 
 <?php include 'includes/footer.php'; ?>
+
+<script>
+document.getElementById('copy-uri-btn').addEventListener('click', function() {
+    const input = document.getElementById('redirect-uri-input');
+    input.select();
+    input.setSelectionRange(0, 99999); // For mobile devices
+    navigator.clipboard.writeText(input.value).then(function() {
+        // Optional: Provide feedback to the user, e.g., change button text
+        const btn = document.getElementById('copy-uri-btn');
+        const originalText = btn.innerHTML;
+        btn.innerHTML = '<i class="fas fa-check"></i> Copied!';
+        setTimeout(() => {
+            btn.innerHTML = originalText;
+        }, 2000);
+    }, function(err) {
+        // Optional: handle error
+        alert('Failed to copy text.');
+    });
+});
+</script>
