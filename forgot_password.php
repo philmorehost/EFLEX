@@ -10,12 +10,9 @@ session_start();
 require_once 'includes/db_connect.php';
 require_once 'includes/helpers.php';
 
-// Manually included PHPMailer files.
-// NOTE: This is a workaround due to environment constraints that prevent running `composer install`.
-// In a standard environment, PHPMailer should be installed via Composer and loaded via the autoloader.
-require_once 'vendor/phpmailer/phpmailer/Exception.php';
-require_once 'vendor/phpmailer/phpmailer/PHPMailer.php';
-require_once 'vendor/phpmailer/phpmailer/SMTP.php';
+// --- Note: The following lines assume PHPMailer is installed via Composer ---
+// You may need to adjust the path based on your installation.
+require_once 'vendor/autoload.php';
 
 $email = "";
 $message = "";

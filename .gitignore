@@ -1,5 +1,5 @@
 # Composer dependencies
-/vendor/
+# /vendor/ # Commented out to allow tracking of PHPMailer
 
 # Credentials
 /admin/secure/gdrive.dat
