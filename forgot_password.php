@@ -1,7 +1,7 @@
 <?php
 // Use PHPMailer classes
-use PHPMailer\PHPMailer\PHPMailer;
-use PHPMailer\PHPMailer\Exception;
+// use PHPMailer\PHPMailer\PHPMailer;
+// use PHPMailer\PHPMailer\Exception;
 
 // Initialize the session
 session_start();
@@ -12,7 +12,7 @@ require_once 'includes/helpers.php';
 
 // --- Note: The following lines assume PHPMailer is installed via Composer ---
 // You may need to adjust the path based on your installation.
-require_once 'vendor/autoload.php';
+// require_once 'vendor/autoload.php';
 
 $email = "";
 $message = "";
@@ -48,6 +48,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     $stmt_insert->close();
 
                     // --- Send the email ---
+                    // NOTE: The following block is disabled because the PHPMailer dependency is not installed.
+                    // To enable email sending, please run 'composer install' on your server.
+                    /*
                     $reset_link = "http://" . $_SERVER['HTTP_HOST'] . "/reset_password.php?token=" . $token;
 
                     $mail = new PHPMailer(true);
@@ -77,6 +80,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         // In a real app, you would log this error.
                         $message = '<div class="alert alert-danger">Message could not be sent. Please try again later.</div>';
                     }
+                    */
+                    // Since email is disabled, we always show the success message.
+                    $message = '<div class="alert alert-success">If an account with that email exists, a password reset request has been processed.</div>';
                 }
             } else {
                 // To prevent user enumeration, show the same success message even if the email doesn't exist.

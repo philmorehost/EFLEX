@@ -1,0 +1,7 @@
+{
+    "name": "lessonnotes/website",
+    "description": "E-commerce platform for lesson notes.",
+    "require": {
+        "phpmailer/phpmailer": "^6.9"
+    }
+}
