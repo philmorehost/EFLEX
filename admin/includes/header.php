@@ -49,7 +49,6 @@ $base_url = "../";
             background-color: #343a40;
             color: white;
             padding-top: 20px;
-            z-index: 1020;
         }
         .sidebar a {
             color: #adb5bd;
@@ -69,64 +68,9 @@ $base_url = "../";
         .ck-editor__editable_inline {
             min-height: 250px;
         }
-        #sidebar-toggle {
-            position: fixed;
-            top: 15px;
-            left: 15px;
-            z-index: 1031;
-            width: 32px;
-            height: 28px;
-            background: none;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            display: none; /* Hidden by default */
-            flex-direction: column;
-            justify-content: space-around;
-            padding: 5px;
-        }
-        #sidebar-toggle span {
-            display: block;
-            width: 100%;
-            height: 2px;
-            background-color: #343a40;
-            border-radius: 2px;
-            transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out;
-        }
-        #sidebar-toggle.is-active span:nth-of-type(1) {
-            transform: translateY(6px) rotate(45deg);
-        }
-        #sidebar-toggle.is-active span:nth-of-type(2) {
-            opacity: 0;
-        }
-        #sidebar-toggle.is-active span:nth-of-type(3) {
-            transform: translateY(-6px) rotate(-45deg);
-        }
-
-        @media (max-width: 991.98px) {
-            .sidebar {
-                left: -250px;
-                transition: left 0.3s ease-in-out;
-            }
-            .content-wrapper {
-                margin-left: 0;
-                width: 100%;
-            }
-            body.sidebar-toggled .sidebar {
-                left: 0;
-            }
-            #sidebar-toggle {
-                display: flex;
-            }
-        }
     </style>
 </head>
-<body id="admin-body">
-
-<button class="d-lg-none" id="sidebar-toggle" aria-label="Toggle sidebar">
-    <span></span>
-    <span></span>
-    <span></span>
-</button>
+<body>
 
 <div class="sidebar">
     <h3 class="text-center">Eflex Admin</h3>

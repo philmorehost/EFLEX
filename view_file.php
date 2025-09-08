@@ -57,19 +57,65 @@ if (isset($_SESSION['role']) && $_SESSION['role'] === 'admin') {
     $stmt_sub->close();
 }
 
-// --- Stream File if Access is Granted ---
+// --- Stream or Display File if Access is Granted ---
 if ($has_access) {
     $file_path = __DIR__ . '/' . $file_info['filepath'];
     if (file_exists($file_path)) {
-        header('Content-Type: ' . $file_info['mimetype']);
-        header('Content-Disposition: inline; filename="' . basename($file_info['original_filename']) . '"');
-        header('Content-Length: ' . filesize($file_path));
+        $mimetype = $file_info['mimetype'];
 
-        ob_clean();
-        flush();
+        // For viewable files, embed in a secure HTML viewer
+        if (strpos($mimetype, 'image/') === 0 || $mimetype === 'text/plain' || $mimetype === 'application/pdf') {
+            include 'includes/header.php'; // Display the website header
 
-        readfile($file_path);
-        exit;
+            echo '<div class="container my-5">';
+            echo '<h3>Viewing: ' . htmlspecialchars($file_info['original_filename']) . '</h3>';
+            echo '<hr>';
+
+            // Secure content wrapper
+            echo '<div class="secure-content" style="height: 80vh;">'; // Give it a height for the embed
+            // Add the overlay for the screenshot deterrent
+            echo '<div class="secure-overlay"><div class="secure-overlay-message"><i class="fas fa-eye-slash"></i><p>Content protected</p></div></div>';
+
+            $content = file_get_contents($file_path);
+            if (strpos($mimetype, 'image/') === 0) {
+                // Embed image using a data URI
+                echo '<img src="data:' . $mimetype . ';base64,' . base64_encode($content) . '" class="img-fluid" alt="' . htmlspecialchars($file_info['original_filename']) . '">';
+            } elseif ($mimetype === 'text/plain') {
+                // Display plain text in a preformatted block
+                echo '<pre style="height: 100%;">' . htmlspecialchars($content) . '</pre>';
+            } elseif ($mimetype === 'application/pdf') {
+                // Embed PDF
+                echo '<embed src="data:application/pdf;base64,' . base64_encode($content) . '" type="application/pdf" width="100%" height="100%">';
+            }
+
+            echo '</div>'; // end .secure-content
+            echo '</div>'; // end .container
+
+            // Add the JavaScript for the screenshot deterrent
+            echo '<script>
+                const overlay = document.querySelector(".secure-overlay");
+                if (overlay) {
+                    window.addEventListener("blur", function() {
+                        overlay.style.display = "flex";
+                    });
+                    window.addEventListener("focus", function() {
+                        overlay.style.display = "none";
+                    });
+                }
+            </script>';
+
+            include 'includes/footer.php'; // Display the website footer
+            exit;
+        } else {
+            // For other file types (PDF, etc.), stream directly
+            header('Content-Type: ' . $mimetype);
+            header('Content-Disposition: inline; filename="' . basename($file_info['original_filename']) . '"');
+            header('Content-Length: ' . filesize($file_path));
+            ob_clean();
+            flush();
+            readfile($file_path);
+            exit;
+        }
     } else {
         http_response_code(404);
         die("File not found on server.");
