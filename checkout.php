@@ -49,7 +49,13 @@ if(!empty($_SESSION['cart'])){
 // --- Order processing logic ---
 if($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['place_order'])){
     $user_id = $_SESSION['id'];
-    $_SESSION['email'] = $_SESSION['email'] ?? 'customer@example.com';
+    $email = trim($_POST['email'] ?? '');
+
+    // Use session email as a fallback if the form field is empty
+    if(empty($email)) {
+        $email = $_SESSION['email'] ?? '';
+    }
+    $_SESSION['email'] = $email; // Update session email for payment handler
 
     if ($total_price == 0) {
         // --- Handle Freemium (Zero-Cost) Orders ---
@@ -173,6 +179,10 @@ include 'includes/header.php';
                     <div class="col-sm-6">
                         <label for="last_name" class="form-label">Last name</label>
                         <input type="text" class="form-control" id="last_name" name="last_name" placeholder="" value="" required>
+                    </div>
+                     <div class="col-12">
+                        <label for="email" class="form-label">Email</label>
+                        <input type="email" class="form-control" id="email" name="email" placeholder="you@example.com" value="<?php echo htmlspecialchars($_SESSION['email'] ?? ''); ?>" required>
                     </div>
                     <div class="col-12">
                         <label for="address" class="form-label">Address</label>
