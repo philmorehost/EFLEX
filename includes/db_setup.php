@@ -215,6 +215,12 @@ function setup_database_tables($mysqli) {
         $mysqli->query("ALTER TABLE `products` ADD `html_content` TEXT DEFAULT NULL AFTER `description`");
     }
 
+    // Check for shipping_address column in orders table
+    $result_sa = $mysqli->query("SHOW COLUMNS FROM `orders` LIKE 'shipping_address'");
+    if($result_sa->num_rows == 0){
+        $mysqli->query("ALTER TABLE `orders` ADD `shipping_address` TEXT DEFAULT NULL AFTER `status`");
+    }
+
     // --- RBAC Schema Migrations ---
     // Modify users.role enum to include 'staff'
     $result_role_enum = $mysqli->query("SHOW COLUMNS FROM `users` WHERE Field = 'role' AND Type LIKE '%staff%'");

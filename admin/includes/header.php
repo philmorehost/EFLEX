@@ -178,6 +178,9 @@ $base_url = "../";
             <a class="nav-link" href="manage_users.php"><i class="fas fa-users"></i> Manage Users</a>
         </li>
         <li class="nav-item">
+            <a class="nav-link" href="manage_roles.php"><i class="fas fa-user-shield"></i> Manage Roles</a>
+        </li>
+        <li class="nav-item">
             <a class="nav-link" href="manage_subscriptions.php"><i class="fas fa-id-card"></i> Manage Subscriptions</a>
         </li>
          <li class="nav-item">

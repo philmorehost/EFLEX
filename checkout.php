@@ -104,11 +104,13 @@ if($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['place_order'])){
             'address' => $_POST['address'] ?? ''
         ];
 
+        $shipping_address = trim($_POST['first_name'] . ' ' . $_POST['last_name'] . "\n" . $_POST['address']);
+
         $mysqli->begin_transaction();
         try {
-            $sql_order = "INSERT INTO orders (user_id, total_amount, payment_method, status) VALUES (?, ?, ?, ?)";
+            $sql_order = "INSERT INTO orders (user_id, total_amount, payment_method, status, shipping_address) VALUES (?, ?, ?, ?, ?)";
             $stmt_order = $mysqli->prepare($sql_order);
-            $stmt_order->bind_param("idss", $user_id, $total_price, $payment_method, $status);
+            $stmt_order->bind_param("idsss", $user_id, $total_price, $payment_method, $status, $shipping_address);
             $stmt_order->execute();
             $order_id = $mysqli->insert_id;
             $_SESSION['latest_order_id'] = $order_id;

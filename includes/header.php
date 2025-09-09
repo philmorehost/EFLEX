@@ -19,6 +19,11 @@ if (!is_dir($proofs_dir)) {
     mkdir($proofs_dir, 0777, true);
 }
 
+$protected_dir = $uploads_dir . '/protected_files';
+if (!is_dir($protected_dir)) {
+    mkdir($protected_dir, 0777, true);
+}
+
 // 2. Include and run database setup/migration
 require_once 'db_connect.php';
 require_once 'helpers.php';

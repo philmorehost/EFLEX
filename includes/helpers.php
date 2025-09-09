@@ -137,47 +137,79 @@ function finalize_successful_order($order_id, $user_id) {
             $item_names[] = $product_result['name'];
             $stmt_product_name->close();
         }
-        $item_list_html = "<ul><li>" . implode("</li><li>", $item_names) . "</li></ul>";
-
-
         $mysqli->commit();
 
         // --- Send notification emails AFTER commit ---
-        $site_title = get_app_setting('site_title', 'Eflex');
+        // Fetch data for email notifications outside of the transaction
+        try {
+            // Get user details
+            $sql_user = "SELECT username, email FROM users WHERE id = ?";
+            $stmt_user = $mysqli->prepare($sql_user);
+            $stmt_user->bind_param("i", $user_id);
+            $stmt_user->execute();
+            $user_result = $stmt_user->get_result()->fetch_assoc();
+            $stmt_user->close();
 
-        // 1. Email to the user
-        $user_subject = "Your Order Confirmation from " . $site_title;
-        $user_body = "
-            Hi " . htmlspecialchars($user_result['username']) . ",<br><br>
-            Thank you for your order! Your payment has been confirmed and your subscription is now active.<br><br>
-            <b>Order Details:</b><br>
-            Order ID: #$order_id<br>
-            Total Amount: " . format_price($order_result['total_amount']) . "<br>
-            Items:<br>
-            $item_list_html
-            <br>
-            You can view your active subscriptions in your account's 'Lesson Notes' section.<br><br>
-            Best regards,<br>
-            The " . $site_title . " Team
-        ";
-        send_notification_email($user_result['email'], $user_subject, $user_body);
+            // Get order total
+            $sql_order_total = "SELECT total_amount FROM orders WHERE id = ?";
+            $stmt_order_total = $mysqli->prepare($sql_order_total);
+            $stmt_order_total->bind_param("i", $order_id);
+            $stmt_order_total->execute();
+            $order_result = $stmt_order_total->get_result()->fetch_assoc();
+            $stmt_order_total->close();
 
-        // 2. Email to the admin
-        $admin_email = get_app_setting('admin_notification_email', get_app_setting('contact_email'));
-        if(!empty($admin_email)) {
-            $admin_subject = "New Order Notification (#$order_id) on " . $site_title;
-            $admin_body = "
-                A new order has been placed and paid for on your website.<br><br>
+            // Re-fetch item names for the email
+            $item_names = [];
+            foreach ($items as $item) {
+                $sql_product_name = "SELECT name FROM products WHERE id = ?";
+                $stmt_product_name = $mysqli->prepare($sql_product_name);
+                $stmt_product_name->bind_param("i", $item['product_id']);
+                $stmt_product_name->execute();
+                $product_result = $stmt_product_name->get_result()->fetch_assoc();
+                $item_names[] = $product_result['name'];
+                $stmt_product_name->close();
+            }
+            $item_list_html = "<ul><li>" . implode("</li><li>", $item_names) . "</li></ul>";
+
+            $site_title = get_app_setting('site_title', 'Eflex');
+
+            // 1. Email to the user
+            $user_subject = "Your Order Confirmation from " . $site_title;
+            $user_body = "
+                Hi " . htmlspecialchars($user_result['username']) . ",<br><br>
+                Thank you for your order! Your payment has been confirmed and your subscription is now active.<br><br>
                 <b>Order Details:</b><br>
                 Order ID: #$order_id<br>
-                Customer: " . htmlspecialchars($user_result['username']) . " (" . htmlspecialchars($user_result['email']) . ")<br>
                 Total Amount: " . format_price($order_result['total_amount']) . "<br>
                 Items:<br>
                 $item_list_html
                 <br>
-                The order has been marked as 'Completed' and the user's subscription has been activated automatically.
+                You can view your active subscriptions in your account's 'Lesson Notes' section.<br><br>
+                Best regards,<br>
+                The " . $site_title . " Team
             ";
-            send_notification_email($admin_email, $admin_subject, $admin_body);
+            send_notification_email($user_result['email'], $user_subject, $user_body);
+
+            // 2. Email to the admin
+            $admin_email = get_app_setting('admin_notification_email', get_app_setting('contact_email'));
+            if(!empty($admin_email)) {
+                $admin_subject = "New Order Notification (#$order_id) on " . $site_title;
+                $admin_body = "
+                    A new order has been placed and paid for on your website.<br><br>
+                    <b>Order Details:</b><br>
+                    Order ID: #$order_id<br>
+                    Customer: " . htmlspecialchars($user_result['username']) . " (" . htmlspecialchars($user_result['email']) . ")<br>
+                    Total Amount: " . format_price($order_result['total_amount']) . "<br>
+                    Items:<br>
+                    $item_list_html
+                    <br>
+                    The order has been marked as 'Completed' and the user's subscription has been activated automatically.
+                ";
+                send_notification_email($admin_email, $admin_subject, $admin_body);
+            }
+        } catch(Exception $e) {
+            // Log email sending failure, but don't break the user flow
+            // error_log("Failed to send order confirmation email for order ID $order_id: " . $e->getMessage());
         }
 
         return ['status' => 'success'];
