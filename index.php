@@ -51,6 +51,10 @@ $premium_products = $premium_products_result->fetch_all(MYSQLI_ASSOC);
         border-bottom-left-radius: 0;
     }
     /* .lead class is no longer used here */
+    .how-it-works-svg {
+        width: 40px;
+        height: 40px;
+    }
 </style>
 <div class="hero-section-search text-center">
     <div class="container">
@@ -110,28 +114,47 @@ $premium_products = $premium_products_result->fetch_all(MYSQLI_ASSOC);
     <div class="row text-center">
         <div class="col-md-3">
             <div class="how-it-works-step">
-                <div class="step-icon"><i class="fas fa-search"></i></div>
+                <div class="step-icon">
+                    <svg class="how-it-works-svg" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                      <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001q.044.06.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1 1 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0"/>
+                    </svg>
+                </div>
                 <h5>1. Browse Classes</h5>
                 <p>Visit our Subscriptions page to see the available lesson note classes.</p>
             </div>
         </div>
         <div class="col-md-3">
             <div class="how-it-works-step">
-                <div class="step-icon"><i class="fas fa-cart-plus"></i></div>
+                <div class="step-icon">
+                    <svg class="how-it-works-svg" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                      <path d="M9 5.5a.5.5 0 0 0-1 0V7H6.5a.5.5 0 0 0 0 1H8v1.5a.5.5 0 0 0 1 0V8h1.5a.5.5 0 0 0 0-1H9z"/>
+                      <path d="M.5 1a.5.5 0 0 0 0 1h1.11l.401 1.607 1.498 7.985A.5.5 0 0 0 4 12h1a2 2 0 1 0 0 4 2 2 0 0 0 0-4h7a2 2 0 1 0 0 4 2 2 0 0 0 0-4h1a.5.5 0 0 0 .491-.408l1.5-8A.5.5 0 0 0 14.5 3H2.89l-.405-1.621A.5.5 0 0 0 2 1zm3.915 10L3.102 4h10.796l-1.313 7zM6 14a1 1 0 1 1-2 0 1 1 0 0 1 2 0m7 0a1 1 0 1 1-2 0 1 1 0 0 1 2 0"/>
+                    </svg>
+                </div>
                 <h5>2. Subscribe</h5>
                 <p>Add your desired class to the cart and proceed to checkout.</p>
             </div>
         </div>
         <div class="col-md-3">
             <div class="how-it-works-step">
-                <div class="step-icon"><i class="fas fa-dollar-sign"></i></div>
+                <div class="step-icon">
+                    <svg class="how-it-works-svg" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                      <path d="M0 4a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2zm2-1a1 1 0 0 0-1 1v1h14V4a1 1 0 0 0-1-1zm13 4H1v5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1z"/>
+                      <path d="M2 10a1 1 0 0 1 1-1h1a1 1 0 0 1 1 1v1a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1z"/>
+                    </svg>
+                </div>
                 <h5>3. Make Payment</h5>
                 <p>Complete your payment using our secure Paystack gateway or via Bank Transfer.</p>
             </div>
         </div>
         <div class="col-md-3">
             <div class="how-it-works-step">
-                <div class="step-icon"><i class="fas fa-key"></i></div>
+                <div class="step-icon">
+                    <svg class="how-it-works-svg" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                      <path d="M0 8a4 4 0 0 1 7.465-2H14a.5.5 0 0 1 .354.146l1.5 1.5a.5.5 0 0 1 0 .708l-1.5 1.5a.5.5 0 0 1-.708 0L13 9.207l-.646.647a.5.5 0 0 1-.708 0L11 9.207l-.646.647a.5.5 0 0 1-.708 0L9 9.207l-.646.647A.5.5 0 0 1 8 10h-.535A4 4 0 0 1 0 8m4-3a3 3 0 1 0 2.712 4.285A.5.5 0 0 1 7.163 9h.63l.853-.854a.5.5 0 0 1 .708 0l.646.647.646-.647a.5.5 0 0 1 .708 0l.646.647.646-.647a.5.5 0 0 1 .708 0l.646.647.793-.793-1-1h-6.63a.5.5 0 0 1-.451-.285A3 3 0 0 0 4 5"/>
+                      <path d="M4 8a1 1 0 1 1-2 0 1 1 0 0 1 2 0"/>
+                    </svg>
+                </div>
                 <h5>4. Get Instant Access</h5>
                 <p>Once payment is confirmed, you get immediate access to your subscribed lesson notes.</p>
             </div>
