@@ -6,20 +6,24 @@ require_once '../includes/db_connect.php';
 $message = "";
 $username = "";
 $email = "";
-$role = "customer";
+$user_type = "customer";
+$role_id = null;
 
 // Handle form submission
 if($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['add_user'])){
     $username = trim($_POST['username']);
     $email = trim($_POST['email']);
     $password = $_POST['password'];
-    $role = $_POST['role'];
+    $user_type = $_POST['user_type'];
+    $role_id = ($user_type === 'staff' && isset($_POST['role_id'])) ? (int)$_POST['role_id'] : null;
 
     // --- Validation ---
     if(empty($username) || empty($email) || empty($password)){
         $message = '<div class="alert alert-danger">Username, email, and password are required.</div>';
     } elseif(!filter_var($email, FILTER_VALIDATE_EMAIL)){
         $message = '<div class="alert alert-danger">Invalid email format.</div>';
+    } elseif($user_type === 'staff' && empty($role_id)) {
+        $message = '<div class="alert alert-danger">A role must be assigned for staff members.</div>';
     } else {
         // Check if username or email already exists
         $sql_check = "SELECT id FROM users WHERE username = ? OR email = ?";
@@ -37,9 +41,9 @@ if($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['add_user'])){
         if(empty($message)){
             $hashed_password = password_hash($password, PASSWORD_DEFAULT);
 
-            $sql_insert = "INSERT INTO users (username, email, password, role) VALUES (?, ?, ?, ?)";
+            $sql_insert = "INSERT INTO users (username, email, password, role, role_id) VALUES (?, ?, ?, ?, ?)";
             if($stmt_insert = $mysqli->prepare($sql_insert)){
-                $stmt_insert->bind_param("ssss", $username, $email, $hashed_password, $role);
+                $stmt_insert->bind_param("ssssi", $username, $email, $hashed_password, $user_type, $role_id);
                 if($stmt_insert->execute()){
                     $_SESSION['user_updated_message'] = "User created successfully.";
                     header("location: manage_users.php");
@@ -52,6 +56,11 @@ if($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['add_user'])){
         }
     }
 }
+
+// Fetch roles for the dropdown
+$roles_result = $mysqli->query("SELECT id, role_name FROM roles ORDER BY role_name ASC");
+$roles = $roles_result->fetch_all(MYSQLI_ASSOC);
+
 ?>
 
 <div class="d-flex justify-content-between align-items-center mb-3">
@@ -81,10 +90,23 @@ if($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['add_user'])){
                 <div class="form-text">Enter a password for the new user.</div>
             </div>
             <div class="mb-3">
-                <label for="role" class="form-label">Role</label>
-                <select name="role" id="role" class="form-select">
-                    <option value="customer" <?php if($role == 'customer') echo 'selected'; ?>>Customer</option>
-                    <option value="admin" <?php if($role == 'admin') echo 'selected'; ?>>Admin</option>
+                <label for="user_type" class="form-label">User Type</label>
+                <select name="user_type" id="user_type" class="form-select">
+                    <option value="customer" <?php if($user_type == 'customer') echo 'selected'; ?>>Customer</option>
+                    <option value="staff" <?php if($user_type == 'staff') echo 'selected'; ?>>Staff</option>
+                    <option value="admin" <?php if($user_type == 'admin') echo 'selected'; ?>>Admin</option>
+                </select>
+            </div>
+
+            <div class="mb-3 d-none" id="role-assignment-container">
+                <label for="role_id" class="form-label">Assign Role</label>
+                <select name="role_id" id="role_id" class="form-select">
+                    <option value="">Select a role...</option>
+                    <?php foreach ($roles as $role): ?>
+                        <option value="<?php echo $role['id']; ?>" <?php if($role_id == $role['id']) echo 'selected'; ?>>
+                            <?php echo htmlspecialchars($role['role_name']); ?>
+                        </option>
+                    <?php endforeach; ?>
                 </select>
             </div>
 
@@ -96,6 +118,27 @@ if($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['add_user'])){
         </form>
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const userTypeSelect = document.getElementById('user_type');
+    const roleContainer = document.getElementById('role-assignment-container');
+
+    function toggleRoleContainer() {
+        if (userTypeSelect.value === 'staff') {
+            roleContainer.classList.remove('d-none');
+        } else {
+            roleContainer.classList.add('d-none');
+        }
+    }
+
+    // Initial check on page load
+    toggleRoleContainer();
+
+    // Listen for changes
+    userTypeSelect.addEventListener('change', toggleRoleContainer);
+});
+</script>
 
 <?php
 // Include admin footer

@@ -4,10 +4,51 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-// Check if the user is logged in and is an admin. If not, redirect them to the homepage.
-if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true || !isset($_SESSION["role"]) || $_SESSION["role"] !== 'admin'){
+// Check if the user is logged in and is an admin or staff. If not, redirect them to the homepage.
+if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true || !in_array($_SESSION['role'], ['admin', 'staff'])){
     header("location: ../index.php");
     exit;
+}
+
+// --- Role-Based Access Control (RBAC) Check ---
+// This check runs on every page that includes this header.
+// It ensures that staff members can only access pages they have permissions for.
+if ($_SESSION['role'] === 'staff') {
+    // Get the current page filename
+    $current_page = basename($_SERVER['PHP_SELF']);
+
+    // Define pages that all staff members can access by default.
+    $always_allowed_pages = ['dashboard.php', 'index.php']; // index.php usually redirects to dashboard
+
+    if (!in_array($current_page, $always_allowed_pages)) {
+        // Fetch the user's role_id from the session. It should have been set on login.
+        $user_role_id = $_SESSION['role_id'] ?? 0;
+
+        // If role_id is not set, deny access as a precaution.
+        if (empty($user_role_id)) {
+            $_SESSION['flash_message'] = ['type' => 'danger', 'message' => 'Access Denied: Your user role is not configured correctly.'];
+            header('Location: dashboard.php');
+            exit;
+        }
+
+        // Check the database for permission
+        $sql_check_perm = "SELECT id FROM role_permissions WHERE role_id = ? AND page_name = ?";
+        $stmt_check_perm = $mysqli->prepare($sql_check_perm);
+        $stmt_check_perm->bind_param("is", $user_role_id, $current_page);
+        $stmt_check_perm->execute();
+        $stmt_check_perm->store_result();
+
+        if ($stmt_check_perm->num_rows === 0) {
+            // No permission found, redirect with an error message
+            $_SESSION['flash_message'] = [
+                'type' => 'danger',
+                'message' => 'Access Denied: You do not have permission to view this page.'
+            ];
+            header('Location: dashboard.php');
+            exit;
+        }
+        $stmt_check_perm->close();
+    }
 }
 
 // Include the database connection and helper functions

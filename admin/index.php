@@ -31,7 +31,7 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
     }
 
     if(empty($username_err) && empty($password_err)){
-        $sql = "SELECT id, username, password, role FROM users WHERE username = ?";
+        $sql = "SELECT id, username, password, role, role_id FROM users WHERE username = ?";
 
         if($stmt = $mysqli->prepare($sql)){
             $stmt->bind_param("s", $param_username);
@@ -41,18 +41,21 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
                 $stmt->store_result();
 
                 if($stmt->num_rows == 1){
-                    $stmt->bind_result($id, $username, $hashed_password, $role);
+                    $stmt->bind_result($id, $username, $hashed_password, $role, $role_id);
                     if($stmt->fetch()){
                         if(password_verify($password, $hashed_password)){
                             // Password is correct, now verify the role
-                            if($role === 'admin'){
-                                // Role is admin, start a new session
+                            if(in_array($role, ['admin', 'staff'])){
+                                // Role is admin or staff, start a new session
                                 session_start();
 
                                 $_SESSION["loggedin"] = true;
                                 $_SESSION["id"] = $id;
                                 $_SESSION["username"] = $username;
                                 $_SESSION["role"] = $role;
+                                if ($role === 'staff') {
+                                    $_SESSION["role_id"] = $role_id;
+                                }
 
                                 header("location: dashboard.php");
                             } else {

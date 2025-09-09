@@ -26,6 +26,19 @@ $order_count = $order_count_result->fetch_assoc()['total'];
 ?>
 
 <h1>Admin Dashboard</h1>
+
+<?php
+// Display flash messages
+if (isset($_SESSION['flash_message'])) {
+    $message = $_SESSION['flash_message'];
+    echo '<div class="alert alert-' . htmlspecialchars($message['type']) . ' alert-dismissible fade show" role="alert">
+            ' . htmlspecialchars($message['message']) . '
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+          </div>';
+    unset($_SESSION['flash_message']);
+}
+?>
+
 <p class="lead">Welcome back, <b><?php echo htmlspecialchars($_SESSION["username"]); ?></b>. Here's a snapshot of your store.</p>
 
 <div class="row">

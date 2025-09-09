@@ -121,6 +121,22 @@ function setup_database_tables($mysqli) {
         PRIMARY KEY (`id`),
         KEY `product_id` (`product_id`),
         CONSTRAINT `fk_product_gdrive_files` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`) ON DELETE CASCADE
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;",
+
+    "roles" => "CREATE TABLE `roles` (
+        `id` int(11) NOT NULL AUTO_INCREMENT,
+        `role_name` varchar(255) NOT NULL,
+        `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
+        PRIMARY KEY (`id`)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;",
+
+    "role_permissions" => "CREATE TABLE `role_permissions` (
+        `id` int(11) NOT NULL AUTO_INCREMENT,
+        `role_id` int(11) NOT NULL,
+        `page_name` varchar(255) NOT NULL,
+        PRIMARY KEY (`id`),
+        KEY `role_id` (`role_id`),
+        CONSTRAINT `fk_role_permissions_role_id` FOREIGN KEY (`role_id`) REFERENCES `roles` (`id`) ON DELETE CASCADE
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;"
     ];
 
@@ -197,6 +213,21 @@ function setup_database_tables($mysqli) {
     $result_hc = $mysqli->query("SHOW COLUMNS FROM `products` LIKE 'html_content'");
     if($result_hc->num_rows == 0){
         $mysqli->query("ALTER TABLE `products` ADD `html_content` TEXT DEFAULT NULL AFTER `description`");
+    }
+
+    // --- RBAC Schema Migrations ---
+    // Modify users.role enum to include 'staff'
+    $result_role_enum = $mysqli->query("SHOW COLUMNS FROM `users` WHERE Field = 'role' AND Type LIKE '%staff%'");
+    if($result_role_enum->num_rows == 0){
+        $mysqli->query("ALTER TABLE `users` MODIFY `role` ENUM('customer','admin','staff') NOT NULL DEFAULT 'customer'");
+    }
+
+    // Add role_id to users table
+    $result_role_id = $mysqli->query("SHOW COLUMNS FROM `users` LIKE 'role_id'");
+    if($result_role_id->num_rows == 0){
+        $mysqli->query("ALTER TABLE `users` ADD `role_id` INT(11) DEFAULT NULL AFTER `role`");
+        // Optional: Add foreign key constraint if desired, but NULLs might complicate it.
+        // $mysqli->query("ALTER TABLE `users` ADD CONSTRAINT `fk_users_role_id` FOREIGN KEY (`role_id`) REFERENCES `roles` (`id`) ON DELETE SET NULL");
     }
 
     // Since settings are key-value, we don't need to alter the table.

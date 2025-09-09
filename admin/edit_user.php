@@ -19,14 +19,17 @@ if($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['update_user'])){
     $user_id = $_POST['user_id'];
     $username = trim($_POST['username']);
     $email = trim($_POST['email']);
-    $role = $_POST['role'];
+    $user_type = $_POST['user_type'];
     $password = $_POST['password'];
+    $role_id = ($user_type === 'staff' && isset($_POST['role_id'])) ? (int)$_POST['role_id'] : null;
 
     // --- Validation ---
     if(empty($username) || empty($email)){
         $message = '<div class="alert alert-danger">Username and email are required.</div>';
     } elseif(!filter_var($email, FILTER_VALIDATE_EMAIL)){
         $message = '<div class="alert alert-danger">Invalid email format.</div>';
+    } elseif($user_type === 'staff' && empty($role_id)) {
+        $message = '<div class="alert alert-danger">A role must be assigned for staff members.</div>';
     } else {
         // Check if username or email already exists for another user
         $sql_check = "SELECT id FROM users WHERE (username = ? OR email = ?) AND id != ?";
@@ -42,7 +45,7 @@ if($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['update_user'])){
     }
 
     // Prevent an admin from changing their own role to non-admin
-    if($user_id == $_SESSION['id'] && $role !== 'admin'){
+    if($user_id == $_SESSION['id'] && $user_type !== 'admin'){
         $message = '<div class="alert alert-warning">You cannot remove your own admin privileges.</div>';
     }
 
@@ -51,14 +54,14 @@ if($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['update_user'])){
         if(!empty($password)){
             // Update with new password
             $hashed_password = password_hash($password, PASSWORD_DEFAULT);
-            $sql_update = "UPDATE users SET username = ?, email = ?, role = ?, password = ? WHERE id = ?";
+            $sql_update = "UPDATE users SET username = ?, email = ?, role = ?, role_id = ?, password = ? WHERE id = ?";
             $stmt_update = $mysqli->prepare($sql_update);
-            $stmt_update->bind_param("ssssi", $username, $email, $role, $hashed_password, $user_id);
+            $stmt_update->bind_param("sssis", $username, $email, $user_type, $role_id, $hashed_password, $user_id);
         } else {
             // Update without changing password
-            $sql_update = "UPDATE users SET username = ?, email = ?, role = ? WHERE id = ?";
+            $sql_update = "UPDATE users SET username = ?, email = ?, role = ?, role_id = ? WHERE id = ?";
             $stmt_update = $mysqli->prepare($sql_update);
-            $stmt_update->bind_param("sssi", $username, $email, $role, $user_id);
+            $stmt_update->bind_param("sssi", $username, $email, $user_type, $role_id, $user_id);
         }
 
         if($stmt_update->execute()){
@@ -73,7 +76,7 @@ if($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['update_user'])){
 }
 
 // Fetch user data for the form
-$sql_user = "SELECT username, email, role FROM users WHERE id = ?";
+$sql_user = "SELECT username, email, role, role_id FROM users WHERE id = ?";
 if($stmt_user = $mysqli->prepare($sql_user)){
     $stmt_user->bind_param("i", $user_id_to_edit);
     $stmt_user->execute();
@@ -81,13 +84,16 @@ if($stmt_user = $mysqli->prepare($sql_user)){
     if($result->num_rows == 1){
         $user = $result->fetch_assoc();
     } else {
-        // User not found, redirect
         $_SESSION['user_updated_message'] = '<div class="alert alert-danger">User not found.</div>';
         header("location: manage_users.php");
         exit;
     }
     $stmt_user->close();
 }
+
+// Fetch roles for the dropdown
+$roles_result = $mysqli->query("SELECT id, role_name FROM roles ORDER BY role_name ASC");
+$roles = $roles_result->fetch_all(MYSQLI_ASSOC);
 ?>
 
 <div class="d-flex justify-content-between align-items-center mb-3">
@@ -120,10 +126,23 @@ if($stmt_user = $mysqli->prepare($sql_user)){
                 <div class="form-text">Leave blank to keep the current password.</div>
             </div>
             <div class="mb-3">
-                <label for="role" class="form-label">Role</label>
-                <select name="role" id="role" class="form-select">
+                <label for="user_type" class="form-label">User Type</label>
+                <select name="user_type" id="user_type" class="form-select">
                     <option value="customer" <?php if($user['role'] == 'customer') echo 'selected'; ?>>Customer</option>
+                    <option value="staff" <?php if($user['role'] == 'staff') echo 'selected'; ?>>Staff</option>
                     <option value="admin" <?php if($user['role'] == 'admin') echo 'selected'; ?>>Admin</option>
+                </select>
+            </div>
+
+            <div class="mb-3 <?php echo ($user['role'] !== 'staff') ? 'd-none' : ''; ?>" id="role-assignment-container">
+                <label for="role_id" class="form-label">Assign Role</label>
+                <select name="role_id" id="role_id" class="form-select">
+                    <option value="">Select a role...</option>
+                    <?php foreach ($roles as $role): ?>
+                        <option value="<?php echo $role['id']; ?>" <?php if($user['role_id'] == $role['id']) echo 'selected'; ?>>
+                            <?php echo htmlspecialchars($role['role_name']); ?>
+                        </option>
+                    <?php endforeach; ?>
                 </select>
             </div>
 
@@ -135,6 +154,25 @@ if($stmt_user = $mysqli->prepare($sql_user)){
         </form>
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const userTypeSelect = document.getElementById('user_type');
+    const roleContainer = document.getElementById('role-assignment-container');
+
+    function toggleRoleContainer() {
+        if (userTypeSelect.value === 'staff') {
+            roleContainer.classList.remove('d-none');
+        } else {
+            roleContainer.classList.add('d-none');
+        }
+    }
+
+    // Initial check on page load is handled by server-side class rendering.
+    // Listen for changes
+    userTypeSelect.addEventListener('change', toggleRoleContainer);
+});
+</script>
 
 <?php
 // Include admin footer
