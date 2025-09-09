@@ -12,7 +12,7 @@ if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true || !in_array(
 }
 
 // --- Handle form submission for updating the product ---
-if($_SERVER["REQUEST_METHOD"] == "POST"){
+if($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['update_product'])){
     $product_id = trim($_POST["id"]);
     $name = trim($_POST["name"]);
     $description = trim($_POST["description"]);
@@ -113,7 +113,7 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
 
         $mysqli->commit();
         $_SESSION['product_updated'] = "Class details updated successfully.";
-        header("location: manage_products.php"); // This is line 147 from the error
+        header("location: manage_products.php");
         exit();
 
     } catch (Exception $e) {
@@ -128,8 +128,8 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
 include 'includes/header.php';
 require_once '../includes/helpers.php';
 
+$user_id_to_edit = trim($_GET["id"]);
 $message = "";
-$product_id = trim($_GET["id"]);
 
 // Display flash messages
 if (isset($_SESSION['flash_message'])) {
@@ -141,7 +141,7 @@ if (isset($_SESSION['flash_message'])) {
 // Fetch current data for the form
 $sql_fetch = "SELECT * FROM products WHERE id = ?";
 $stmt_fetch = $mysqli->prepare($sql_fetch);
-$stmt_fetch->bind_param("i", $product_id);
+$stmt_fetch->bind_param("i", $user_id_to_edit);
 $stmt_fetch->execute();
 $product = $stmt_fetch->get_result()->fetch_assoc();
 $stmt_fetch->close();
@@ -153,7 +153,7 @@ if(!$product) {
 // Fetch existing files for the product
 $sql_files = "SELECT id, original_filename FROM product_local_files WHERE product_id = ?";
 $stmt_files = $mysqli->prepare($sql_files);
-$stmt_files->bind_param("i", $product_id);
+$stmt_files->bind_param("i", $user_id_to_edit);
 $stmt_files->execute();
 $existing_files = $stmt_files->get_result()->fetch_all(MYSQLI_ASSOC);
 $stmt_files->close();
@@ -172,8 +172,8 @@ $categories = $mysqli->query("SELECT * FROM categories ORDER BY name ASC")->fetc
 <div class="card">
     <div class="card-header"><i class="fas fa-edit"></i> Edit Class Details</div>
     <div class="card-body">
-        <form action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>?id=<?php echo $product_id; ?>" method="post" enctype="multipart/form-data">
-            <input type="hidden" name="id" value="<?php echo $product_id; ?>">
+        <form action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>?id=<?php echo $user_id_to_edit; ?>" method="post" enctype="multipart/form-data">
+            <input type="hidden" name="id" value="<?php echo $user_id_to_edit; ?>">
             <input type="hidden" name="current_image" value="<?php echo htmlspecialchars($product['image']); ?>">
 
             <div class="row">

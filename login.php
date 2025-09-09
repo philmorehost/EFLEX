@@ -50,8 +50,7 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
                                 $login_err = 'Administrators must use the <a href="admin/">admin login page</a>.';
                             } else {
                                 // Password is correct and role is not admin, so start a new session
-                                session_start();
-
+                                // session_start() is already called at the top of the file.
                                 $_SESSION["loggedin"] = true;
                                 $_SESSION["id"] = $id;
                                 $_SESSION["username"] = $username;
@@ -73,9 +72,6 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
             $stmt->close();
         }
     }
-    // The connection should not be closed here, as the header and footer may need it.
-    // The connection will be closed automatically at the end of the script execution.
-    // $mysqli->close();
 }
 
 // Include the header

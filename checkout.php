@@ -97,14 +97,7 @@ if($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['place_order'])){
         $status = ($payment_method === 'bank_transfer') ? 'Awaiting Payment' : 'Pending';
         $_SESSION['total_amount'] = $total_price;
 
-        // Store customer details in session for the payment handler
-        $_SESSION['checkout_details'] = [
-            'first_name' => $_POST['first_name'] ?? '',
-            'last_name' => $_POST['last_name'] ?? '',
-            'address' => $_POST['address'] ?? ''
-        ];
-
-        $shipping_address = trim($_POST['first_name'] . ' ' . $_POST['last_name'] . "\n" . $_POST['address']);
+        $shipping_address = trim(($_POST['first_name'] ?? '') . ' ' . ($_POST['last_name'] ?? '') . "\n" . ($_POST['address'] ?? ''));
 
         $mysqli->begin_transaction();
         try {

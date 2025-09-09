@@ -1,17 +1,20 @@
 <?php
-// --- This part must be at the very top, before any HTML output ---
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-}
+// Include admin header
+include 'includes/header.php';
 require_once '../includes/db_connect.php';
 
-// Check if user is logged in and has permission to be here.
-if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true || !in_array($_SESSION['role'], ['admin', 'staff'])){
-    header("location: ../index.php");
+$message = "";
+$user_id_to_edit = 0;
+$user = null;
+
+// Check if user ID is provided
+if(!isset($_GET['id']) || empty($_GET['id'])){
+    header("location: manage_users.php");
     exit;
 }
+$user_id_to_edit = $_GET['id'];
 
-// --- Handle form submission for updating the user ---
+// Handle form submission
 if($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['update_user'])){
     $user_id = $_POST['user_id'];
     $username = trim($_POST['username']);
@@ -21,38 +24,41 @@ if($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['update_user'])){
     $role_id = ($user_type === 'staff' && isset($_POST['role_id'])) ? (int)$_POST['role_id'] : null;
 
     // --- Validation ---
-    $message = '';
     if(empty($username) || empty($email)){
-        $message = 'Username and email are required.';
+        $message = '<div class="alert alert-danger">Username and email are required.</div>';
     } elseif(!filter_var($email, FILTER_VALIDATE_EMAIL)){
-        $message = 'Invalid email format.';
+        $message = '<div class="alert alert-danger">Invalid email format.</div>';
     } elseif($user_type === 'staff' && empty($role_id)) {
-        $message = 'A role must be assigned for staff members.';
+        $message = '<div class="alert alert-danger">A role must be assigned for staff members.</div>';
     } else {
+        // Check if username or email already exists for another user
         $sql_check = "SELECT id FROM users WHERE (username = ? OR email = ?) AND id != ?";
         if($stmt_check = $mysqli->prepare($sql_check)){
             $stmt_check->bind_param("ssi", $username, $email, $user_id);
             $stmt_check->execute();
             $stmt_check->store_result();
             if($stmt_check->num_rows > 0){
-                $message = 'Username or email already taken by another user.';
+                $message = '<div class="alert alert-danger">Username or email already taken by another user.</div>';
             }
             $stmt_check->close();
         }
     }
 
+    // Prevent an admin from changing their own role to non-admin
     if($user_id == $_SESSION['id'] && $user_type !== 'admin'){
-        $message = 'You cannot remove your own admin privileges.';
+        $message = '<div class="alert alert-warning">You cannot remove your own admin privileges.</div>';
     }
 
     // If no errors, proceed to update
     if(empty($message)){
         if(!empty($password)){
+            // Update with new password
             $hashed_password = password_hash($password, PASSWORD_DEFAULT);
             $sql_update = "UPDATE users SET username = ?, email = ?, role = ?, role_id = ?, password = ? WHERE id = ?";
             $stmt_update = $mysqli->prepare($sql_update);
             $stmt_update->bind_param("sssisi", $username, $email, $user_type, $role_id, $hashed_password, $user_id);
         } else {
+            // Update without changing password
             $sql_update = "UPDATE users SET username = ?, email = ?, role = ?, role_id = ? WHERE id = ?";
             $stmt_update = $mysqli->prepare($sql_update);
             $stmt_update->bind_param("sssii", $username, $email, $user_type, $role_id, $user_id);
@@ -63,47 +69,31 @@ if($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['update_user'])){
             header("location: manage_users.php");
             exit;
         } else {
-            $message = 'Error updating user. Please try again.';
+            $message = '<div class="alert alert-danger">Error updating user. Please try again.</div>';
         }
         $stmt_update->close();
     }
-
-    // If there was a validation error, set it as a flash message and redirect
-    if(!empty($message)) {
-        $_SESSION['flash_message'] = ['type' => 'danger', 'message' => $message];
-        header("location: edit_user.php?id=" . $user_id);
-        exit();
-    }
-}
-
-// --- This part is for displaying the page (GET request) ---
-include 'includes/header.php';
-require_once '../includes/helpers.php';
-
-$user_id_to_edit = trim($_GET["id"]);
-$message = "";
-
-// Display flash messages
-if (isset($_SESSION['flash_message'])) {
-    $flash = $_SESSION['flash_message'];
-    $message = '<div class="alert alert-'.htmlspecialchars($flash['type']).'">'.htmlspecialchars($flash['message']).'</div>';
-    unset($_SESSION['flash_message']);
 }
 
 // Fetch user data for the form
 $sql_user = "SELECT username, email, role, role_id FROM users WHERE id = ?";
-$stmt_user = $mysqli->prepare($sql_user);
-$stmt_user->bind_param("i", $user_id_to_edit);
-$stmt_user->execute();
-$user = $stmt_user->get_result()->fetch_assoc();
-$stmt_user->close();
-
-if(!$user) {
-    echo "User not found."; exit;
+if($stmt_user = $mysqli->prepare($sql_user)){
+    $stmt_user->bind_param("i", $user_id_to_edit);
+    $stmt_user->execute();
+    $result = $stmt_user->get_result();
+    if($result->num_rows == 1){
+        $user = $result->fetch_assoc();
+    } else {
+        $_SESSION['user_updated_message'] = '<div class="alert alert-danger">User not found.</div>';
+        header("location: manage_users.php");
+        exit;
+    }
+    $stmt_user->close();
 }
 
 // Fetch roles for the dropdown
-$roles = $mysqli->query("SELECT id, role_name FROM roles ORDER BY role_name ASC")->fetch_all(MYSQLI_ASSOC);
+$roles_result = $mysqli->query("SELECT id, role_name FROM roles ORDER BY role_name ASC");
+$roles = $roles_result->fetch_all(MYSQLI_ASSOC);
 ?>
 
 <div class="d-flex justify-content-between align-items-center mb-3">
@@ -184,4 +174,7 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 </script>
 
-<?php include 'includes/footer.php'; ?>
+<?php
+// Include admin footer
+include 'includes/footer.php';
+?>
