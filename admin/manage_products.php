@@ -1,12 +1,12 @@
 <?php
-// Include admin header
-include 'includes/header.php';
+// --- This part must be at the very top, before any HTML output ---
+// Initialize session and connect to DB because we might need to redirect.
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
 require_once '../includes/db_connect.php';
-require_once '../includes/helpers.php';
 
-$message = "";
-
-// Handle Delete Product
+// Handle Delete Product action before any content is rendered
 if(isset($_GET['delete'])){
     $id_to_delete = $_GET['delete'];
 
@@ -33,6 +33,13 @@ if(isset($_GET['delete'])){
         $stmt_delete_links->execute();
         $stmt_delete_links->close();
 
+        // Also delete gdrive files links
+        $sql_delete_gdrive = "DELETE FROM product_gdrive_files WHERE product_id = ?";
+        $stmt_delete_gdrive = $mysqli->prepare($sql_delete_gdrive);
+        $stmt_delete_gdrive->bind_param("i", $id_to_delete);
+        $stmt_delete_gdrive->execute();
+        $stmt_delete_gdrive->close();
+
         // 3. Get and delete the main product image from server
         $sql_img = "SELECT image FROM products WHERE id = ?";
         $stmt_img = $mysqli->prepare($sql_img);
@@ -58,10 +65,27 @@ if(isset($_GET['delete'])){
 
     } catch (Exception $e) {
         $mysqli->rollback();
-        $message = '<div class="alert alert-danger">Error deleting class: ' . $e->getMessage() . '</div>';
+        // We'll set a session message because we're about to include the header
+        // which might prevent setting the message variable directly.
+        $_SESSION['flash_message'] = [
+            'type' => 'danger',
+            'message' => 'Error deleting class: ' . $e->getMessage()
+        ];
     }
 }
 
+// Now that all logic that might cause a redirect is done, we can include the header.
+include 'includes/header.php';
+require_once '../includes/helpers.php';
+
+$message = "";
+
+// Display flash messages
+if (isset($_SESSION['flash_message'])) {
+    $flash = $_SESSION['flash_message'];
+    $message = '<div class="alert alert-'.htmlspecialchars($flash['type']).'">'.htmlspecialchars($flash['message']).'</div>';
+    unset($_SESSION['flash_message']);
+}
 if(isset($_GET['delete_success'])){
     $message = '<div class="alert alert-success">Class deleted successfully.</div>';
 }
@@ -113,7 +137,8 @@ $total_pages = ceil($total_records / $records_per_page);
 
 // Fetch products for the current page
 $sql = "SELECT p.id, p.name, p.price, p.duration_days, p.image, c.name as category_name,
-               (SELECT COUNT(*) FROM product_local_files plf WHERE plf.product_id = p.id) as file_count
+               (SELECT COUNT(*) FROM product_local_files plf WHERE plf.product_id = p.id) +
+               (SELECT COUNT(*) FROM product_gdrive_files pgf WHERE pgf.product_id = p.id) as file_count
         " . $sql_from_join . $sql_where . "
         ORDER BY p.name ASC
         LIMIT ? OFFSET ?";
