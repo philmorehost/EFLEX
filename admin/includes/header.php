@@ -6,14 +6,11 @@ if (session_status() === PHP_SESSION_NONE) {
 
 // Check if the user is logged in and is an admin. If not, redirect them to the homepage.
 if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true || !isset($_SESSION["role"]) || $_SESSION["role"] !== 'admin'){
-    // A little security through obscurity. If they aren't an admin, just send them to the homepage.
-    // They don't need to know an admin section exists.
     header("location: ../index.php");
     exit;
 }
 
 // Include the database connection and helper functions
-// The path is relative to the admin folder, so we go up one level.
 require_once __DIR__ . '/../../includes/db_connect.php';
 require_once __DIR__ . '/../../includes/helpers.php';
 
@@ -29,13 +26,14 @@ $base_url = "../";
     <!-- Bootstrap CSS -->
     <link href="<?php echo $base_url; ?>css/bootstrap.min.css" rel="stylesheet">
     <!-- FontAwesome CSS -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.0/css/all.min.css" integrity="sha512-iBBXm8fW90+nuLcSKlbmrPcLa0OT92xO1BIsZ+ywDWZCvqsWgccV3gFoRBv0z+8dLJgyAHIhR35VZc2oM/gI1w==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <!-- Custom Admin CSS -->
     <style>
         body {
             display: flex;
             min-height: 100vh;
             flex-direction: column;
+            background-color: #f8f9fa;
         }
         .main-content {
             flex: 1;
@@ -49,6 +47,8 @@ $base_url = "../";
             background-color: #343a40;
             color: white;
             padding-top: 20px;
+            z-index: 1030; /* Higher than navbar */
+            transition: transform 0.3s ease-in-out;
         }
         .sidebar a {
             color: #adb5bd;
@@ -64,15 +64,60 @@ $base_url = "../";
             margin-left: 250px;
             padding: 20px;
             width: calc(100% - 250px);
+            transition: margin-left 0.3s ease-in-out;
+        }
+        .admin-header {
+            display: none; /* Hidden by default, shown on mobile */
+            background-color: #fff;
+            padding: 10px 15px;
+            border-bottom: 1px solid #dee2e6;
+        }
+        .sidebar-toggle-btn {
+            font-size: 1.5rem;
+            background: none;
+            border: none;
+            color: #343a40;
         }
         .ck-editor__editable_inline {
             min-height: 250px;
+        }
+
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            z-index: 1020; /* Below sidebar, above content */
+            display: none;
+        }
+        .overlay.is-active {
+            display: block;
+        }
+
+        /* Responsive Styles */
+        @media (max-width: 991.98px) {
+            .sidebar {
+                transform: translateX(-100%);
+            }
+            .sidebar.is-open {
+                transform: translateX(0);
+            }
+            .content-wrapper {
+                margin-left: 0;
+                width: 100%;
+            }
+            .admin-header {
+                display: flex;
+                align-items: center;
+            }
         }
     </style>
 </head>
 <body>
 
-<div class="sidebar">
+<div class="sidebar" id="admin-sidebar">
     <h3 class="text-center">Eflex Admin</h3>
     <hr style="background-color: #fff;">
     <ul class="nav flex-column">
@@ -107,5 +152,11 @@ $base_url = "../";
     </ul>
 </div>
 
-<div class="content-wrapper">
-    <div class="container-fluid">
+<div class="content-wrapper" id="content-wrapper">
+    <header class="admin-header">
+        <button class="sidebar-toggle-btn" id="sidebar-toggle">
+            <i class="fas fa-bars"></i>
+        </button>
+        <h4 class="ms-3 mb-0">Admin Menu</h4>
+    </header>
+    <div class="container-fluid pt-3">
