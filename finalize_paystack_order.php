@@ -37,7 +37,8 @@ if ($result && $result->status && $result->data->status == 'success') {
     // Payment was successful.
     $metadata = $result->data->metadata;
     $order_id = $metadata->order_id ?? 0;
-    $user_id = $metadata->user_id ?? 0;
+    // Use the session ID of the currently logged-in user for security.
+    $user_id = $_SESSION['id'] ?? 0;
 
     if ($order_id > 0 && $user_id > 0) {
         // Use the centralized function to finalize the order
