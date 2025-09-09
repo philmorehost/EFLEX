@@ -13,107 +13,97 @@ if (isset($_SESSION['user_role_id'])) {
         $is_super_admin = true;
     }
 }
-
 if (!$is_super_admin) {
-    // User is not a Super Admin, display access denied message
     echo '<div class="container-fluid"><div class="alert alert-danger"><strong>Access Denied:</strong> You do not have permission to view this page.</div></div>';
     require_once __DIR__ . '/../../templates/footer.php';
     exit();
 }
-// --- End Access Control ---
 
+// --- Form Handling ---
 $errors = $_SESSION['errors'] ?? [];
 $success = $_SESSION['success'] ?? '';
 unset($_SESSION['errors'], $_SESSION['success']);
 
-$pdo = require __DIR__ . '/../../config/database.php';
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $action = $_POST['action'] ?? '';
 
-// Handle Create User form submission
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'create_user') {
-    $name = trim($_POST['name']);
-    $email = trim($_POST['email']);
-    $password = $_POST['password'];
-    $role_id = $_POST['role_id'];
-    $validation_errors = [];
+    // --- Handle Create User ---
+    if ($action === 'create_user') {
+        $name = trim($_POST['name']);
+        $email = trim($_POST['email']);
+        $password = $_POST['password'];
+        $role_id = $_POST['role_id'];
+        $validation_errors = [];
 
-    if (empty($name)) $validation_errors[] = 'Name is required.';
-    if (!filter_var($email, FILTER_VALIDATE_EMAIL)) $validation_errors[] = 'A valid email is required.';
-    if (empty($password)) $validation_errors[] = 'Password is required.';
-    if (empty($role_id)) $validation_errors[] = 'Role is required.';
+        if (empty($name)) $validation_errors[] = 'Name is required.';
+        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) $validation_errors[] = 'A valid email is required.';
+        if (empty($password)) $validation_errors[] = 'Password is required.';
+        if (empty($role_id)) $validation_errors[] = 'Role is required.';
 
-    if (empty($validation_errors)) {
-        $stmt = $pdo->prepare("SELECT id FROM users WHERE email = ?");
-        $stmt->execute([$email]);
-        if ($stmt->fetch()) {
-            $validation_errors[] = 'An account with this email already exists.';
-        } else {
-            $hashed_password = password_hash($password, PASSWORD_DEFAULT);
-            $sql = "INSERT INTO users (name, email, password, role_id) VALUES (?, ?, ?, ?)";
-            $stmt = $pdo->prepare($sql);
-            if ($stmt->execute([$name, $email, $hashed_password, $role_id])) {
-                $_SESSION['success'] = 'User created successfully!';
+        if (empty($validation_errors)) {
+            $stmt = $pdo->prepare("SELECT id FROM users WHERE email = ?");
+            $stmt->execute([$email]);
+            if ($stmt->fetch()) {
+                $validation_errors[] = 'An account with this email already exists.';
             } else {
-                $validation_errors[] = 'Failed to create user.';
+                $hashed_password = password_hash($password, PASSWORD_DEFAULT);
+                $sql = "INSERT INTO users (name, email, password, role_id) VALUES (?, ?, ?, ?)";
+                $stmt = $pdo->prepare($sql);
+                if ($stmt->execute([$name, $email, $hashed_password, $role_id])) {
+                    $_SESSION['success'] = 'User created successfully!';
+                } else {
+                    $validation_errors[] = 'Failed to create user.';
+                }
             }
         }
+        if (!empty($validation_errors)) $_SESSION['errors'] = $validation_errors;
     }
 
-    if (!empty($validation_errors)) {
-        $_SESSION['errors'] = $validation_errors;
+    // --- Handle Delete User ---
+    if ($action === 'delete_user') {
+        $user_id_to_delete = $_POST['user_id'];
+        if ($user_id_to_delete == $_SESSION['user_id']) {
+            $_SESSION['errors'] = ["You cannot delete your own account."];
+        } else {
+            $stmt = $pdo->prepare("DELETE FROM users WHERE id = ?");
+            if ($stmt->execute([$user_id_to_delete])) {
+                $_SESSION['success'] = 'User deleted successfully!';
+            } else {
+                $_SESSION['errors'] = ['Failed to delete user.'];
+            }
+        }
     }
 
     header("Location: users.php");
     exit();
 }
 
-// Fetch data for the page
+// --- Fetch Page Data ---
 try {
-    // Fetch all users and their roles
-    $user_sql = "SELECT u.id, u.name, u.email, r.role_name FROM users u JOIN roles r ON u.role_id = r.id ORDER BY u.id ASC";
-    $users = $pdo->query($user_sql)->fetchAll(PDO::FETCH_ASSOC);
-
-    // Fetch all available roles for the create form
+    $users = $pdo->query("SELECT u.id, u.name, u.email, r.role_name FROM users u JOIN roles r ON u.role_id = r.id ORDER BY u.id ASC")->fetchAll(PDO::FETCH_ASSOC);
     $roles = $pdo->query("SELECT id, role_name FROM roles ORDER BY role_name ASC")->fetchAll(PDO::FETCH_ASSOC);
-
 } catch (PDOException $e) {
     die("Database error: " . $e->getMessage());
 }
 ?>
 
 <div class="container-fluid">
-    <!-- Page Heading -->
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h1 class="h3 mb-0 text-gray-800">User Management</h1>
-        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createUserModal">
-            <i class="fas fa-plus me-2"></i>Create New User
-        </button>
+        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createUserModal"><i class="fas fa-plus me-2"></i>Create New User</button>
     </div>
 
-    <!-- Display session messages -->
-    <?php if ($success): ?>
-        <div class="alert alert-success"><?php echo htmlspecialchars($success); ?></div>
-    <?php endif; ?>
+    <?php if ($success): ?><div class="alert alert-success"><?php echo htmlspecialchars($success); ?></div><?php endif; ?>
     <?php if (!empty($errors)): ?>
-        <div class="alert alert-danger">
-            <ul>
-                <?php foreach ($errors as $error): ?>
-                    <li><?php echo htmlspecialchars($error); ?></li>
-                <?php endforeach; ?>
-            </ul>
-        </div>
+        <div class="alert alert-danger"><ul><?php foreach ($errors as $error): ?><li><?php echo htmlspecialchars($error); ?></li><?php endforeach; ?></ul></div>
     <?php endif; ?>
 
-    <!-- Users Table -->
     <div class="card shadow mb-4">
-        <div class="card-header py-3">
-            <h6 class="m-0 fw-bold text-primary">All System Users</h6>
-        </div>
+        <div class="card-header py-3"><h6 class="m-0 fw-bold text-primary">All System Users</h6></div>
         <div class="card-body">
             <div class="table-responsive">
                 <table class="table table-bordered table-hover" width="100%" cellspacing="0">
-                    <thead class="table-light">
-                        <tr><th>ID</th><th>Name</th><th>Email</th><th>Role</th><th>Actions</th></tr>
-                    </thead>
+                    <thead class="table-light"><tr><th>ID</th><th>Name</th><th>Email</th><th>Role</th><th>Actions</th></tr></thead>
                     <tbody>
                         <?php foreach ($users as $user): ?>
                             <tr>
@@ -122,16 +112,13 @@ try {
                                 <td><?php echo htmlspecialchars($user['email']); ?></td>
                                 <td>
                                     <?php
-                                    $role_class = 'bg-secondary';
-                                    if ($user['role_name'] === 'Super Admin') $role_class = 'bg-danger';
-                                    if ($user['role_name'] === 'Admin') $role_class = 'bg-warning text-dark';
-                                    if ($user['role_name'] === 'Staff') $role_class = 'bg-info text-dark';
-                                    ?>
-                                    <span class="badge <?php echo $role_class; ?>"><?php echo htmlspecialchars($user['role_name']); ?></span>
+                                    $rc = 'bg-secondary';
+                                    if ($user['role_name'] === 'Super Admin') $rc = 'bg-danger'; elseif ($user['role_name'] === 'Admin') $rc = 'bg-warning text-dark'; elseif ($user['role_name'] === 'Staff') $rc = 'bg-info text-dark';
+                                    ?><span class="badge <?php echo $rc; ?>"><?php echo htmlspecialchars($user['role_name']); ?></span>
                                 </td>
                                 <td>
-                                    <a href="#" class="btn btn-sm btn-warning"><i class="fas fa-edit"></i> Edit</a>
-                                    <a href="#" class="btn btn-sm btn-danger"><i class="fas fa-trash"></i> Delete</a>
+                                    <a href="edit_user.php?id=<?php echo $user['id']; ?>" class="btn btn-sm btn-warning"><i class="fas fa-edit"></i> Edit</a>
+                                    <button type="button" class="btn btn-sm btn-danger delete-user-btn" data-bs-toggle="modal" data-bs-target="#deleteUserModal" data-user-id="<?php echo $user['id']; ?>" data-user-name="<?php echo htmlspecialchars($user['name']); ?>"><i class="fas fa-trash"></i> Delete</button>
                                 </td>
                             </tr>
                         <?php endforeach; ?>
@@ -143,45 +130,25 @@ try {
 </div>
 
 <!-- Create User Modal -->
-<div class="modal fade" id="createUserModal" tabindex="-1" aria-labelledby="createUserModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="createUserModalLabel">Create New User</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <form action="users.php" method="POST">
-                    <input type="hidden" name="action" value="create_user">
-                    <div class="mb-3">
-                        <label for="name" class="form-label">Full Name</label>
-                        <input type="text" class="form-control" id="name" name="name" required>
-                    </div>
-                    <div class="mb-3">
-                        <label for="email" class="form-label">Email Address</label>
-                        <input type="email" class="form-control" id="email" name="email" required>
-                    </div>
-                    <div class="mb-3">
-                        <label for="password" class="form-label">Password</label>
-                        <input type="password" class="form-control" id="password" name="password" required>
-                    </div>
-                    <div class="mb-3">
-                        <label for="role_id" class="form-label">Role</label>
-                        <select class="form-select" id="role_id" name="role_id" required>
-                            <option value="">Select a role...</option>
-                            <?php foreach ($roles as $role): ?>
-                                <option value="<?php echo htmlspecialchars($role['id']); ?>"><?php echo htmlspecialchars($role['role_name']); ?></option>
-                            <?php endforeach; ?>
-                        </select>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                        <button type="submit" class="btn btn-primary">Create User</button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-</div>
+<div class="modal fade" id="createUserModal" tabindex="-1"><div class="modal-dialog"><div class="modal-content"><div class="modal-header"><h5 class="modal-title">Create New User</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><form action="users.php" method="POST"><input type="hidden" name="action" value="create_user"><div class="mb-3"><label for="name" class="form-label">Full Name</label><input type="text" class="form-control" name="name" required></div><div class="mb-3"><label for="email" class="form-label">Email</label><input type="email" class="form-control" name="email" required></div><div class="mb-3"><label for="password" class="form-label">Password</label><input type="password" class="form-control" name="password" required></div><div class="mb-3"><label for="role_id" class="form-label">Role</label><select class="form-select" name="role_id" required><option value="">Select role...</option><?php foreach ($roles as $role): ?><option value="<?php echo $role['id']; ?>"><?php echo htmlspecialchars($role['role_name']); ?></option><?php endforeach; ?></select></div><div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button><button type="submit" class="btn btn-primary">Create User</button></div></form></div></div></div></div>
+
+<!-- Delete User Modal -->
+<div class="modal fade" id="deleteUserModal" tabindex="-1"><div class="modal-dialog"><div class="modal-content"><div class="modal-header"><h5 class="modal-title">Confirm Deletion</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><p>Are you sure you want to delete the user: <strong id="deleteUserName"></strong>?</p><p>This action cannot be undone.</p></div><div class="modal-footer"><form action="users.php" method="POST"><input type="hidden" name="action" value="delete_user"><input type="hidden" name="user_id" id="deleteUserId"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button><button type="submit" class="btn btn-danger">Delete User</button></form></div></div></div></div>
 
 <?php require_once __DIR__ . '/../../templates/footer.php'; ?>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    var deleteUserModal = document.getElementById('deleteUserModal');
+    deleteUserModal.addEventListener('show.bs.modal', function (event) {
+        var button = event.relatedTarget;
+        var userId = button.getAttribute('data-user-id');
+        var userName = button.getAttribute('data-user-name');
+
+        var modalUserName = deleteUserModal.querySelector('#deleteUserName');
+        var modalUserIdInput = deleteUserModal.querySelector('#deleteUserId');
+
+        modalUserName.textContent = userName;
+        modalUserIdInput.value = userId;
+    });
+});
+</script>
