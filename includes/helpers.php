@@ -216,8 +216,8 @@ function finalize_successful_order($order_id, $user_id) {
 
     } catch (Exception $e) {
         $mysqli->rollback();
-        // In a real application, you'd log the error message $e->getMessage()
-        return ['status' => 'error', 'message' => 'Failed to finalize order. Please contact support.'];
+        // Temporarily expose the detailed error message for debugging.
+        return ['status' => 'error', 'message' => 'Failed to finalize order. Details: ' . $e->getMessage()];
     }
 }
 
