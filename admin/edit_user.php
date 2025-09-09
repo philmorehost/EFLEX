@@ -56,12 +56,12 @@ if($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['update_user'])){
             $hashed_password = password_hash($password, PASSWORD_DEFAULT);
             $sql_update = "UPDATE users SET username = ?, email = ?, role = ?, role_id = ?, password = ? WHERE id = ?";
             $stmt_update = $mysqli->prepare($sql_update);
-            $stmt_update->bind_param("sssis", $username, $email, $user_type, $role_id, $hashed_password, $user_id);
+            $stmt_update->bind_param("sssisi", $username, $email, $user_type, $role_id, $hashed_password, $user_id);
         } else {
             // Update without changing password
             $sql_update = "UPDATE users SET username = ?, email = ?, role = ?, role_id = ? WHERE id = ?";
             $stmt_update = $mysqli->prepare($sql_update);
-            $stmt_update->bind_param("sssi", $username, $email, $user_type, $role_id, $user_id);
+            $stmt_update->bind_param("sssii", $username, $email, $user_type, $role_id, $user_id);
         }
 
         if($stmt_update->execute()){
