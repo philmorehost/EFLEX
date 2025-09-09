@@ -180,8 +180,8 @@ $categories = $result_categories->fetch_all(MYSQLI_ASSOC);
                 </div>
                 <div class="col-md-4">
                     <div class="mb-3"><label for="image" class="form-label">Class Image</label><input type="file" name="image" id="image" class="form-control <?php echo (!empty($image_err)) ? 'is-invalid' : ''; ?>"><span class="invalid-feedback"><?php echo $image_err; ?></span></div>
-                    <div class="mb-3 form-check"><input type="checkbox" name="is_featured" class="form-check-input" id="is_featured" value="1" <?php echo ($is_featured) ? 'checked' : ''; ?>><label class="form-check-label" for="is_featured">Featured Class</label></div>
-                    <div class="mb-3 form-check"><input type="checkbox" name="is_top_seller" class="form-check-input" id="is_top_seller" value="1" <?php echo ($is_top_seller) ? 'checked' : ''; ?>><label class="form-check-label" for="is_top_seller">Top Seller</label></div>
+                    <div class="mb-3 form-check"><input type="checkbox" name="is_featured" class="form-check-input" id="is_featured" value="1" <?php echo ($is_featured) ? 'checked' : ''; ?>><label class="form-check-label" for="is_featured">Premium</label></div>
+                    <div class="mb-3 form-check"><input type="checkbox" name="is_top_seller" class="form-check-input" id="is_top_seller" value="1" <?php echo ($is_top_seller) ? 'checked' : ''; ?>><label class="form-check-label" for="is_top_seller">Freemium</label></div>
                 </div>
             </div>
             <hr>

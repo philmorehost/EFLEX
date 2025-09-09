@@ -79,7 +79,7 @@ $premium_products = $premium_products_result->fetch_all(MYSQLI_ASSOC);
             <h2 class="text-center mb-4">Freemium Classes</h2>
             <div class="row">
                 <?php foreach($freemium_products as $class): ?>
-                    <div class="col-md-6 mb-4">
+                    <div class="col-6 mb-4">
                         <?php include 'includes/product_card.php'; ?>
                     </div>
                 <?php endforeach; ?>
@@ -93,7 +93,7 @@ $premium_products = $premium_products_result->fetch_all(MYSQLI_ASSOC);
             <h2 class="text-center mb-4">Premium Classes</h2>
             <div class="row">
                 <?php foreach($premium_products as $class): ?>
-                    <div class="col-md-6 mb-4">
+                    <div class="col-6 mb-4">
                         <?php include 'includes/product_card.php'; ?>
                     </div>
                 <?php endforeach; ?>
@@ -110,28 +110,28 @@ $premium_products = $premium_products_result->fetch_all(MYSQLI_ASSOC);
     <div class="row text-center">
         <div class="col-md-3">
             <div class="how-it-works-step">
-                <div class="step-icon"><i class="fas fa-th-list"></i></div>
+                <div class="step-icon"><i class="fas fa-search"></i></div>
                 <h5>1. Browse Classes</h5>
                 <p>Visit our Subscriptions page to see the available lesson note classes.</p>
             </div>
         </div>
         <div class="col-md-3">
             <div class="how-it-works-step">
-                <div class="step-icon"><i class="fas fa-shopping-cart"></i></div>
+                <div class="step-icon"><i class="fas fa-cart-plus"></i></div>
                 <h5>2. Subscribe</h5>
                 <p>Add your desired class to the cart and proceed to checkout.</p>
             </div>
         </div>
         <div class="col-md-3">
             <div class="how-it-works-step">
-                <div class="step-icon"><i class="fas fa-credit-card"></i></div>
+                <div class="step-icon"><i class="fas fa-dollar-sign"></i></div>
                 <h5>3. Make Payment</h5>
                 <p>Complete your payment using our secure Paystack gateway or via Bank Transfer.</p>
             </div>
         </div>
         <div class="col-md-3">
             <div class="how-it-works-step">
-                <div class="step-icon"><i class="fas fa-book-reader"></i></div>
+                <div class="step-icon"><i class="fas fa-key"></i></div>
                 <h5>4. Get Instant Access</h5>
                 <p>Once payment is confirmed, you get immediate access to your subscribed lesson notes.</p>
             </div>
