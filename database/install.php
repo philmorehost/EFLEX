@@ -155,6 +155,30 @@ try {
     $conn->exec("INSERT IGNORE INTO `roles` (role_name) VALUES ('Super Admin'), ('Admin'), ('Staff'), ('User');");
     echo "Default roles ('Super Admin', 'Admin', 'Staff', 'User') created or already exist.<br>";
 
+    // --- Create a default Super Admin user ---
+    $admin_email = 'superadmin@example.com';
+    $admin_password = 'password'; // NOTE: In a real-world scenario, a stronger default or a prompt would be better.
+
+    // Get the Super Admin role ID
+    $stmt = $conn->query("SELECT id FROM roles WHERE role_name = 'Super Admin'");
+    $super_admin_role_id = $stmt->fetchColumn();
+
+    if ($super_admin_role_id) {
+        // Hash the password
+        $hashed_password = password_hash($admin_password, PASSWORD_DEFAULT);
+
+        // Use INSERT IGNORE to avoid errors on re-running the script
+        $sql = "INSERT IGNORE INTO users (name, email, password, role_id) VALUES (?, ?, ?, ?)";
+        $stmt = $conn->prepare($sql);
+        $stmt->execute(['Super Admin', $admin_email, $hashed_password, $super_admin_role_id]);
+
+        echo "Default Super Admin account created or already exists.<br>";
+        echo "-> <strong>Email:</strong> " . htmlspecialchars($admin_email) . "<br>";
+        echo "-> <strong>Password:</strong> " . htmlspecialchars($admin_password) . "<br>";
+    } else {
+        echo "<strong style='color:red;'>Could not find 'Super Admin' role to create default user.</strong><br>";
+    }
+
     echo "<br><strong>Installation complete. Please delete this file for security.</strong>";
 
 } catch(PDOException $e) {
