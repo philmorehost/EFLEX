@@ -46,13 +46,19 @@ document.addEventListener('DOMContentLoaded', function() {
     <?php if (!$is_freemium): ?>
         const messageContainer = document.getElementById('message-container');
         const urlParams = new URLSearchParams(window.location.search);
-        const reference = urlParams.get('reference'); // Paystack uses 'reference'
+        const reference = urlParams.get('reference');
+        const order_id = urlParams.get('order_id');
+        const user_id = urlParams.get('user_id');
 
-        if (reference) {
+        if (reference && order_id && user_id) {
             fetch('finalize_paystack_order.php', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ reference: reference })
+                body: JSON.stringify({
+                    reference: reference,
+                    order_id: order_id,
+                    user_id: user_id
+                })
             })
             .then(response => response.json())
             .then(data => {

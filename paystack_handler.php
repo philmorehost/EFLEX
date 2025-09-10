@@ -33,7 +33,8 @@ if ($total_amount <= 0 || empty($user_email) || $order_id == 0) {
 
 
 // The callback URL is where Paystack redirects the user's browser after payment
-$callback_url = 'http://' . $_SERVER['HTTP_HOST'] . '/order_success.php?order_id=' . $order_id;
+$user_id = $_SESSION['id'];
+$callback_url = 'http' . (isset($_SERVER['HTTPS']) ? 's' : '') . '://' . $_SERVER['HTTP_HOST'] . '/order_success.php?order_id=' . $order_id . '&user_id=' . $user_id;
 
 // Get customer details from session
 $checkout_details = $_SESSION['checkout_details'] ?? [];
