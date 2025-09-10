@@ -11,10 +11,12 @@ if ($user_role === 'User') {
     // --- Student Dashboard View ---
     try {
         $user_id = $_SESSION['user_id'];
-        $sql = "SELECT ut.id as user_test_id, t.test_name, t.duration, ut.status
+        $sql = "SELECT ut.id as user_test_id, t.test_name, t.duration, ut.status, es.scheduled_time
                 FROM user_tests ut
                 JOIN tests t ON ut.test_id = t.id
+                LEFT JOIN exam_schedules es ON ut.test_id = es.test_id
                 WHERE ut.user_id = ?
+                GROUP BY ut.id
                 ORDER BY ut.id DESC";
         $stmt = $pdo->prepare($sql);
         $stmt->execute([$user_id]);

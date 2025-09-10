@@ -42,15 +42,22 @@
                                         <span class="badge <?php echo $badge_class; ?>"><?php echo ucfirst($status); ?></span>
                                     </td>
                                     <td>
-                                        <?php if ($test['status'] === 'pending'): ?>
-                                            <a href="<?php echo BASE_URL; ?>/take_test.php?id=<?php echo $test['user_test_id']; ?>" class="btn btn-sm btn-success">
-                                                <i class="fas fa-play-circle me-1"></i>Start Test
-                                            </a>
-                                        <?php elseif ($test['status'] === 'completed'): ?>
-                                            <a href="<?php echo BASE_URL; ?>/results.php?id=<?php echo $test['user_test_id']; ?>" class="btn btn-sm btn-info">View Results</a>
-                                        <?php else: ?>
-                                            -
-                                        <?php endif; ?>
+                                        <?php
+                                        $is_scheduled = !empty($test['scheduled_time']);
+                                        $is_future = $is_scheduled && (strtotime($test['scheduled_time']) > time());
+
+                                        if ($test['status'] === 'pending') {
+                                            if ($is_future) {
+                                                echo '<button class="btn btn-sm btn-success" disabled>Scheduled for ' . date('M j, Y H:i', strtotime($test['scheduled_time'])) . '</button>';
+                                            } else {
+                                                echo '<a href="' . BASE_URL . '/take_test.php?id=' . $test['user_test_id'] . '" class="btn btn-sm btn-success"><i class="fas fa-play-circle me-1"></i>Start Test</a>';
+                                            }
+                                        } elseif ($test['status'] === 'completed') {
+                                            echo '<a href="' . BASE_URL . '/results.php?id=' . $test['user_test_id'] . '" class="btn btn-sm btn-info">View Results</a>';
+                                        } else {
+                                            echo '-';
+                                        }
+                                        ?>
                                     </td>
                                 </tr>
                             <?php endforeach; ?>

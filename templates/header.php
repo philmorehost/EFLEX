@@ -81,7 +81,7 @@ $user_role = $_SESSION['user_role'] ?? '';
             <a class="nav-link" href="<?php echo BASE_URL; ?>/admin/assign_test.php"><i class="fa fa-fw fa-user-check"></i>Assign Test</a>
         </li>
         <li class="nav-item">
-            <a class="nav-link" href="#"><i class="fa fa-fw fa-clipboard-list"></i>Manage Tests</a>
+            <a class="nav-link" href="<?php echo BASE_URL; ?>/admin/manage_tests.php"><i class="fa fa-fw fa-clipboard-list"></i>Manage Tests</a>
         </li>
         <?php endif; ?>
 
