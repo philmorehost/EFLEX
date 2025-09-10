@@ -23,6 +23,9 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
                 $stmt_icon->bind_param("ss", $key, $value);
                 $stmt_icon->execute();
                 $stmt_icon->close();
+            } else {
+                $error_info = $_FILES[$input_name]['error'];
+                $message .= '<div class="alert alert-danger">Failed to upload PWA icon ' . htmlspecialchars($filename) . '. Please check file permissions on the server. PHP Error Code: ' . $error_info . '</div>';
             }
         }
     }
@@ -82,6 +85,12 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
     <div class="card mb-4">
         <div class="card-header"><i class="fas fa-mobile-alt"></i> PWA (Progressive Web App) Settings</div>
         <div class="card-body">
+            <div class="form-check form-switch mb-3">
+                <input class="form-check-input" type="checkbox" name="pwa_enabled" id="pwa_enabled" value="1" <?php echo (get_app_setting('pwa_enabled') == 1) ? 'checked' : ''; ?>>
+                <label class="form-check-label" for="pwa_enabled">Enable PWA Functionality</label>
+                <div class="form-text">When enabled, the website will act as a Progressive Web App, allowing users to "install" it to their home screen and enabling offline features.</div>
+            </div>
+            <hr>
             <div class="row">
                 <div class="col-md-6 mb-3"><label for="pwa_name" class="form-label">App Name</label><input type="text" name="pwa_name" class="form-control" id="pwa_name" value="<?php echo get_app_setting('pwa_name', get_app_setting('site_title')); ?>"></div>
                 <div class="col-md-6 mb-3"><label for="pwa_short_name" class="form-label">App Short Name</label><input type="text" name="pwa_short_name" class="form-control" id="pwa_short_name" value="<?php echo get_app_setting('pwa_short_name', get_app_setting('site_title')); ?>"></div>

@@ -86,3 +86,49 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
 });
+
+// --- PWA Installation Prompt ---
+if (window.pwaEnabled) {
+    let deferredPrompt;
+    const pwaInstallModalEl = document.getElementById('pwa-install-modal');
+    const pwaInstallModal = pwaInstallModalEl ? new bootstrap.Modal(pwaInstallModalEl) : null;
+    const installButton = document.getElementById('pwa-install-button');
+
+    window.addEventListener('beforeinstallprompt', (e) => {
+        // Prevent the mini-infobar from appearing on mobile
+        e.preventDefault();
+        // Stash the event so it can be triggered later.
+        deferredPrompt = e;
+        // Show the custom install prompt.
+        if (pwaInstallModal) {
+            pwaInstallModal.show();
+        }
+    });
+
+    if (installButton) {
+        installButton.addEventListener('click', async () => {
+            // Hide the app provided install promotion
+            if (pwaInstallModal) {
+                pwaInstallModal.hide();
+            }
+            // Show the install prompt
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                // Wait for the user to respond to the prompt
+                const { outcome } = await deferredPrompt.userChoice;
+                console.log(`User response to the install prompt: ${outcome}`);
+                // We've used the prompt, and can't use it again, throw it away
+                deferredPrompt = null;
+            }
+        });
+    }
+
+    window.addEventListener('appinstalled', () => {
+        // Hide the install prompt
+        if (pwaInstallModal) {
+            pwaInstallModal.hide();
+        }
+        deferredPrompt = null;
+        console.log('PWA was installed');
+    });
+}

@@ -53,6 +53,25 @@
     </div>
 </footer>
 
+<!-- PWA Install Prompt Modal -->
+<div class="modal fade" id="pwa-install-modal" tabindex="-1" aria-labelledby="pwaInstallModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="pwaInstallModalLabel">Install Our App</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" id="pwa-dismiss-button"></button>
+            </div>
+            <div class="modal-body">
+                <p>For a better experience, install our app on your device. It's fast, reliable, and you can use it offline.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Not Now</button>
+                <button type="button" class="btn btn-primary" id="pwa-install-button">Install</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- Bootstrap JS Bundle with Popper -->
 <script src="js/bootstrap.bundle.min.js"></script>
 <!-- Custom JS -->

@@ -54,6 +54,28 @@ if(isset($_SESSION['cart']) && is_array($_SESSION['cart'])){
     <link href="css/bootstrap.min.css" rel="stylesheet">
     <!-- Custom CSS -->
     <link href="css/custom_style.css" rel="stylesheet">
+
+    <?php if (get_app_setting('pwa_enabled') == 1): ?>
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="manifest.php">
+    <script>
+        // Set a flag to be used by our main.js script
+        window.pwaEnabled = true;
+
+        // Register the Service Worker
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js')
+                    .then(registration => {
+                        console.log('Service Worker registered: ', registration);
+                    })
+                    .catch(registrationError => {
+                        console.log('Service Worker registration failed: ', registrationError);
+                    });
+            });
+        }
+    </script>
+    <?php endif; ?>
 </head>
 <body>
 
