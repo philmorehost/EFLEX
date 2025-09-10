@@ -92,6 +92,23 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
     </div>
 
     <div class="card mb-4">
+        <div class="card-header"><i class="fas fa-link"></i> Flutterwave Configuration URLs</div>
+        <div class="card-body">
+             <p>To ensure payments are processed correctly, you must add the following URL to your Flutterwave dashboard under <strong>Settings &rarr; Webhooks</strong>.</p>
+            <div class="mb-3">
+                <label for="flutterwave_redirect_url" class="form-label">Redirect URL / Webhook URL</label>
+                <div class="input-group">
+                    <input type="text" class="form-control" value="<?php echo $base_domain; ?>/flutterwave_callback.php" id="flutterwave_redirect_url" readonly>
+                    <button class="btn btn-outline-secondary copy-btn" type="button" data-clipboard-target="#flutterwave_redirect_url">
+                        <i class="fas fa-copy"></i> Copy
+                    </button>
+                </div>
+                <div class="form-text">Enter this in the "Redirect URL" field and the "Webhook URL" field on your Flutterwave settings page.</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card mb-4">
         <div class="card-header"><i class="fas fa-link"></i> Paystack Configuration URLs</div>
         <div class="card-body">
             <p>To ensure payments are processed correctly, you must add the following URLs to your Paystack dashboard under <strong>Settings &rarr; API Keys & Webhooks</strong>.</p>
