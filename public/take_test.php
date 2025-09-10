@@ -22,7 +22,13 @@ try {
     $user_test = $stmt->fetch(PDO::FETCH_ASSOC);
 
     if (!$user_test) die("Access Denied: This test is not assigned to you.");
-    if ($user_test['status'] === 'completed') die("This test has already been completed.");
+    if ($user_test['status'] === 'completed') {
+        header("Location: results.php?id=" . $user_test_id); // Redirect to results if already completed
+        exit();
+    }
+    if ($user_test['status'] === 'stopped') {
+        die("This test has been stopped by an administrator. Reason: " . htmlspecialchars($user_test['stop_reason']));
+    }
 
     // --- Start Test if Pending ---
     if ($user_test['status'] === 'pending') {
@@ -113,7 +119,7 @@ $user_answers = $_SESSION['user_answers'][$user_test_id] ?? [];
 
 // --- Calculate Time Remaining ---
 $start_timestamp = strtotime($user_test['start_time']);
-$duration_seconds = $user_test['duration'] * 60;
+$duration_seconds = ($user_test['duration'] + $user_test['extra_time_added']) * 60;
 $end_timestamp = $start_timestamp + $duration_seconds;
 $time_remaining = $end_timestamp - time();
 ?>

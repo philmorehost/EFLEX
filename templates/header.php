@@ -83,6 +83,9 @@ $user_role = $_SESSION['user_role'] ?? '';
         <li class="nav-item">
             <a class="nav-link" href="<?php echo BASE_URL; ?>/admin/manage_tests.php"><i class="fa fa-fw fa-clipboard-list"></i>Manage Tests</a>
         </li>
+        <li class="nav-item">
+            <a class="nav-link" href="<?php echo BASE_URL; ?>/admin/live_exams.php"><i class="fa fa-fw fa-desktop"></i>Live Monitoring</a>
+        </li>
         <?php endif; ?>
 
         <?php if ($user_role === 'Super Admin'): ?>
