@@ -174,6 +174,36 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
     </div>
 
     <div class="card mb-4">
+        <div class="card-header"><i class="fas fa-toggle-on"></i> Payment Gateway Settings</div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" name="paystack_enabled" id="paystack_enabled" value="1" <?php echo (get_app_setting('paystack_enabled') == 1) ? 'checked' : ''; ?>>
+                        <label class="form-check-label" for="paystack_enabled">Enable Paystack</label>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" name="flutterwave_enabled" id="flutterwave_enabled" value="1" <?php echo (get_app_setting('flutterwave_enabled') == 1) ? 'checked' : ''; ?>>
+                        <label class="form-check-label" for="flutterwave_enabled">Enable Flutterwave</label>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card mb-4">
+        <div class="card-header"><i class="fas fa-key"></i> Flutterwave API Keys</div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6 mb-3"><label for="flutterwave_public_key" class="form-label">Flutterwave Public Key</label><input type="text" name="flutterwave_public_key" class="form-control" id="flutterwave_public_key" value="<?php echo get_app_setting('flutterwave_public_key'); ?>"></div>
+                <div class="col-md-6 mb-3"><label for="flutterwave_secret_key" class="form-label">Flutterwave Secret Key</label><input type="password" name="flutterwave_secret_key" class="form-control" id="flutterwave_secret_key" value="<?php echo get_app_setting('flutterwave_secret_key'); ?>"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card mb-4">
         <div class="card-header"><i class="fas fa-key"></i> Paystack API Keys</div>
         <div class="card-body">
             <div class="row">

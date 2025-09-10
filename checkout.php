@@ -129,6 +129,8 @@ if($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['place_order'])){
                 header("location: order_details_bank.php");
             } elseif ($payment_method === 'paystack') {
                 header("location: paystack_handler.php");
+            } elseif ($payment_method === 'flutterwave') {
+                header("location: flutterwave_handler.php");
             }
             exit();
 
@@ -197,16 +199,33 @@ include 'includes/header.php';
 
             <?php if($total_price > 0): ?>
                 <div class="my-3">
+                    <?php
+                        $paystack_enabled = get_app_setting('paystack_enabled');
+                        $flutterwave_enabled = get_app_setting('flutterwave_enabled');
+                        $first_gateway = true;
+                    ?>
                     <div class="form-check">
-                        <input id="bank_transfer" name="payment_method" type="radio" class="form-check-input" value="bank_transfer" required checked>
+                        <input id="bank_transfer" name="payment_method" type="radio" class="form-check-input" value="bank_transfer" required <?php if($first_gateway) { echo 'checked'; $first_gateway = false; } ?>>
                         <label class="form-check-label" for="bank_transfer">Bank Transfer</label>
                     </div>
+
+                    <?php if($paystack_enabled): ?>
                      <div class="form-check">
-                        <input class="form-check-input" type="radio" name="payment_method" id="paystack" value="paystack" required>
+                        <input class="form-check-input" type="radio" name="payment_method" id="paystack" value="paystack" required <?php if($first_gateway) { echo 'checked'; $first_gateway = false; } ?>>
                         <label class="form-check-label" for="paystack">
                             Pay with Paystack (Credit/Debit Card)
                         </label>
                     </div>
+                    <?php endif; ?>
+
+                    <?php if($flutterwave_enabled): ?>
+                     <div class="form-check">
+                        <input class="form-check-input" type="radio" name="payment_method" id="flutterwave" value="flutterwave" required <?php if($first_gateway) { echo 'checked'; $first_gateway = false; } ?>>
+                        <label class="form-check-label" for="flutterwave">
+                            Pay with Flutterwave (Card, Bank, etc)
+                        </label>
+                    </div>
+                    <?php endif; ?>
                 </div>
                 <hr class="my-4">
                 <button class="w-100 btn btn-primary btn-lg" type="submit" name="place_order">Place Order</button>

@@ -40,8 +40,18 @@ $callback_url = 'http' . (isset($_SERVER['HTTPS']) ? 's' : '') . '://' . $_SERVE
 $checkout_details = $_SESSION['checkout_details'] ?? [];
 $full_name = trim(($checkout_details['first_name'] ?? '') . ' ' . ($checkout_details['last_name'] ?? ''));
 
+// Create a unique transaction reference for Paystack
+$reference = 'psk-' . $order_id . '-' . time();
+
+// Update the order with the transaction reference
+$stmt_update_ref = $mysqli->prepare("UPDATE orders SET transaction_ref = ? WHERE id = ?");
+$stmt_update_ref->bind_param("si", $reference, $order_id);
+$stmt_update_ref->execute();
+$stmt_update_ref->close();
+
 $post_data = [
     'email' => $user_email,
+    'reference' => $reference,
     'amount' => $total_amount * 100, // Paystack requires amount in kobo/cents
     'callback_url' => $callback_url,
     'metadata' => [

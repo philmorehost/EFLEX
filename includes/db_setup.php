@@ -221,6 +221,12 @@ function setup_database_tables($mysqli) {
         $mysqli->query("ALTER TABLE `orders` ADD `shipping_address` TEXT DEFAULT NULL AFTER `status`");
     }
 
+    // Check for transaction_ref column in orders table
+    $result_tr = $mysqli->query("SHOW COLUMNS FROM `orders` LIKE 'transaction_ref'");
+    if($result_tr->num_rows == 0){
+        $mysqli->query("ALTER TABLE `orders` ADD `transaction_ref` VARCHAR(255) DEFAULT NULL AFTER `status`");
+    }
+
     // Check for shipping_address column in orders table
     $result_sa = $mysqli->query("SHOW COLUMNS FROM `orders` LIKE 'shipping_address'");
     if($result_sa->num_rows == 0){
