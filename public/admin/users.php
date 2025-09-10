@@ -3,23 +3,10 @@ session_start();
 require_once __DIR__ . '/../../templates/header.php';
 
 // --- Role-based Access Control ---
-$pdo = require __DIR__ . '/../../config/database.php';
-$is_super_admin = false;
-if (isset($_SESSION['user_role_id'])) {
-    $stmt = $pdo->prepare("SELECT role_name FROM roles WHERE id = ?");
-    $stmt->execute([$_SESSION['user_role_id']]);
-    $role = $stmt->fetchColumn();
-    if ($role === 'Super Admin') {
-        $is_super_admin = true;
-    }
-}
-if (!$is_super_admin) {
-    echo '<div class="container-fluid"><div class="alert alert-danger"><strong>Access Denied:</strong> You do not have permission to view this page.</div></div>';
-    require_once __DIR__ . '/../../templates/footer.php';
-    exit();
-}
+require_once __DIR__ . '/../../app/auth.php';
+enforce_access(['Super Admin']);
+// --- End Access Control ---
 
-// --- Form Handling ---
 $errors = $_SESSION['errors'] ?? [];
 $success = $_SESSION['success'] ?? '';
 unset($_SESSION['errors'], $_SESSION['success']);
