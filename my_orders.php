@@ -13,6 +13,7 @@ if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true){
 // Include the header and database connection
 include 'includes/header.php';
 require_once 'includes/db_connect.php';
+require_once 'includes/helpers.php';
 
 $user_id = $_SESSION['id'];
 
@@ -85,7 +86,7 @@ function get_status_badge_user($status) {
                                     <tr>
                                         <td>#<?php echo $order['id']; ?></td>
                                         <td><?php echo date("M j, Y", strtotime($order['created_at'])); ?></td>
-                                        <td>$<?php echo number_format($order['total_amount'], 2); ?></td>
+                                        <td><?php echo format_price($order['total_amount']); ?></td>
                                         <td><span class="badge <?php echo get_status_badge_user($order['status']); ?>"><?php echo htmlspecialchars(ucfirst($order['status'])); ?></span></td>
                                         <td class="text-end">
                                             <a href="view_order.php?id=<?php echo $order['id']; ?>" class="btn btn-sm btn-info">View Details</a>
