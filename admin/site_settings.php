@@ -234,7 +234,15 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
         <div class="card-header"><i class="fas fa-clock"></i> Cron Job Setup</div>
         <div class="card-body">
             <p>To automatically handle expired subscriptions, you need to set up a cron job on your server.</p>
-            <pre class="bg-light p-3 rounded"><code>* * * * * /usr/bin/php <?php echo realpath(__DIR__ . '/../cron/expire_subscriptions.php'); ?></code></pre>
+            <pre class="bg-light p-3 rounded"><code>* * * * * /usr/bin/php <?php
+                $cron_file_path = __DIR__ . '/../cron/expire_subscriptions.php';
+                $resolved_path = realpath($cron_file_path);
+                if ($resolved_path) {
+                    echo $resolved_path;
+                } else {
+                    echo "[ERROR: Cron script not found at " . htmlspecialchars($cron_file_path) . "]";
+                }
+            ?></code></pre>
         </div>
     </div>
 

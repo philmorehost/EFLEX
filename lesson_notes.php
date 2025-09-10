@@ -17,14 +17,14 @@ $files_for_class = [];
 $class_name = '';
 $view_file_id = isset($_GET['view']) ? (int)$_GET['view'] : 0;
 
-// 1. Get all active subscriptions for the user that have content (either files or HTML)
+// 1. Get all active subscriptions for the user.
+// The check for whether a subscription has content is handled by the UI logic later on.
 $sql_sub = "SELECT DISTINCT p.id, p.name
             FROM user_subscriptions us
             JOIN products p ON us.product_id = p.id
             WHERE us.user_id = ?
               AND us.status = 'active'
-              AND (us.expires_at IS NULL OR us.expires_at >= CURDATE())
-              AND (EXISTS(SELECT 1 FROM product_local_files plf WHERE plf.product_id = p.id) OR p.html_content IS NOT NULL AND p.html_content != '')";
+              AND (us.expires_at IS NULL OR us.expires_at >= CURDATE())";
 
 if ($stmt_sub = $mysqli->prepare($sql_sub)) {
     $stmt_sub->bind_param("i", $user_id);
