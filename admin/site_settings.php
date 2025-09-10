@@ -36,19 +36,37 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
         $value = '';
         $stmt->bind_param("ss", $key, $value);
 
+        // --- Handle all standard text/textarea inputs ---
+        $toggles = ['paystack_enabled', 'pwa_enabled']; // Define all toggle keys
         foreach($_POST as $post_key => $post_value){
-            if ($post_key === 'save_settings') continue;
+            // Skip the save button and the toggles, which are handled separately
+            if ($post_key === 'save_settings' || in_array($post_key, $toggles)) {
+                continue;
+            }
             $key = $post_key;
             $value = trim($post_value);
             $stmt->execute();
         }
+
+        // --- Explicitly handle all toggle switches ---
+        // This ensures that if a checkbox is unchecked, its value is saved as '0'.
+        foreach ($toggles as $toggle_key) {
+            $key = $toggle_key;
+            $value = isset($_POST[$toggle_key]) ? '1' : '0';
+            $stmt->execute();
+        }
+
         $stmt->close();
 
         // Force settings to be reloaded on next page load
         global $app_settings;
         $app_settings = null;
 
-        $message = '<div class="alert alert-success">Settings saved successfully.</div>';
+        // Check if any specific error messages were added during file uploads
+        if (empty($message)) {
+            $message = '<div class="alert alert-success">Settings saved successfully.</div>';
+        }
+
     } else {
         $message = '<div class="alert alert-danger">Error preparing statement to save settings.</div>';
     }
@@ -102,22 +120,6 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
         </div>
     </div>
 
-    <div class="card mb-4">
-        <div class="card-header"><i class="fas fa-link"></i> Flutterwave Configuration URLs</div>
-        <div class="card-body">
-             <p>To ensure payments are processed correctly, you must add the following URL to your Flutterwave dashboard under <strong>Settings &rarr; Webhooks</strong>.</p>
-            <div class="mb-3">
-                <label for="flutterwave_redirect_url" class="form-label">Redirect URL / Webhook URL</label>
-                <div class="input-group">
-                    <input type="text" class="form-control" value="<?php echo $base_domain; ?>/flutterwave_callback.php" id="flutterwave_redirect_url" readonly>
-                    <button class="btn btn-outline-secondary copy-btn" type="button" data-clipboard-target="#flutterwave_redirect_url">
-                        <i class="fas fa-copy"></i> Copy
-                    </button>
-                </div>
-                <div class="form-text">Enter this in the "Redirect URL" field and the "Webhook URL" field on your Flutterwave settings page.</div>
-            </div>
-        </div>
-    </div>
 
     <div class="card mb-4">
         <div class="card-header"><i class="fas fa-link"></i> Paystack Configuration URLs</div>
@@ -209,22 +211,6 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
                         <label class="form-check-label" for="paystack_enabled">Enable Paystack</label>
                     </div>
                 </div>
-                <div class="col-md-6">
-                    <div class="form-check form-switch">
-                        <input class="form-check-input" type="checkbox" name="flutterwave_enabled" id="flutterwave_enabled" value="1" <?php echo (get_app_setting('flutterwave_enabled') == 1) ? 'checked' : ''; ?>>
-                        <label class="form-check-label" for="flutterwave_enabled">Enable Flutterwave</label>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="card mb-4">
-        <div class="card-header"><i class="fas fa-key"></i> Flutterwave API Keys</div>
-        <div class="card-body">
-            <div class="row">
-                <div class="col-md-6 mb-3"><label for="flutterwave_public_key" class="form-label">Flutterwave Public Key</label><input type="text" name="flutterwave_public_key" class="form-control" id="flutterwave_public_key" value="<?php echo get_app_setting('flutterwave_public_key'); ?>"></div>
-                <div class="col-md-6 mb-3"><label for="flutterwave_secret_key" class="form-label">Flutterwave Secret Key</label><input type="password" name="flutterwave_secret_key" class="form-control" id="flutterwave_secret_key" value="<?php echo get_app_setting('flutterwave_secret_key'); ?>"></div>
             </div>
         </div>
     </div>
