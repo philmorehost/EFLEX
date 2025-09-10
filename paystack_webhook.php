@@ -1,6 +1,5 @@
 <?php
 // This script handles secure, server-to-server communication from Paystack.
-// It should not be browsed to directly by a user.
 
 require_once 'includes/db_connect.php';
 require_once 'includes/helpers.php';
@@ -10,73 +9,49 @@ $paystack_secret_key = get_app_setting('paystack_secret_key');
 
 // Only process POST requests
 if (strtoupper($_SERVER['REQUEST_METHOD']) != 'POST') {
+    http_response_code(405); // Method Not Allowed
     exit();
 }
 
 // Get the request's body
 $input = @file_get_contents("php://input");
 
-// Validate event came from Paystack
-if(!isset($_SERVER['HTTP_X_PAYSTACK_SIGNATURE']) || ($_SERVER['HTTP_X_PAYSTACK_SIGNATURE'] !== hash_hmac('sha512', $input, $paystack_secret_key))){
-  // Invalid request
-  http_response_code(401);
-  exit();
+// Validate that the event came from Paystack
+if (!isset($_SERVER['HTTP_X_PAYSTACK_SIGNATURE']) || ($_SERVER['HTTP_X_PAYSTACK_SIGNATURE'] !== hash_hmac('sha512', $input, $paystack_secret_key))) {
+    // Invalid request
+    http_response_code(401); // Unauthorized
+    exit();
 }
 
-// Acknowledge receipt of the event
+// Acknowledge receipt of the event immediately to prevent Paystack from retrying.
 http_response_code(200);
 
 $event = json_decode($input);
 
+// Process only successful charge events
 if ($event && $event->event == 'charge.success') {
-    $metadata = $event->data->metadata;
-    $order_id = $metadata->order_id;
-    $user_id = $metadata->user_id;
+    $metadata = $event->data->metadata ?? null;
+    $order_id = $metadata->order_id ?? null;
+    $user_id = $metadata->user_id ?? null;
 
-    // First, update the main order status to 'Completed'
-    $sql_order = "UPDATE orders SET status = 'Completed' WHERE id = ?";
-    if($stmt_order = $mysqli->prepare($sql_order)){
-        $stmt_order->bind_param("i", $order_id);
-        $stmt_order->execute();
-        $stmt_order->close();
-    }
+    if ($order_id && $user_id) {
+        // Use the centralized, robust function to finalize the order.
+        // This ensures consistent processing for both webhooks and browser callbacks.
+        $finalization_result = finalize_successful_order((int)$order_id, (int)$user_id);
 
-    // Fetch the items from the order to find out which subscription classes were purchased
-    $sql_items = "SELECT product_id FROM order_items WHERE order_id = ?";
-    if($stmt_items = $mysqli->prepare($sql_items)){
-        $stmt_items->bind_param("i", $order_id);
-        $stmt_items->execute();
-        $result_items = $stmt_items->get_result();
-
-        while($item = $result_items->fetch_assoc()){
-            $product_id = $item['product_id'];
-
-            // For each item, get its duration to calculate the expiry date
-            $sql_product = "SELECT duration_days FROM products WHERE id = ? AND google_drive_folder_id IS NOT NULL AND google_drive_folder_id != ''";
-            if($stmt_prod = $mysqli->prepare($sql_product)){
-                $stmt_prod->bind_param("i", $product_id);
-                $stmt_prod->execute();
-                $result_prod = $stmt_prod->get_result();
-
-                if($prod_details = $result_prod->fetch_assoc()){
-                    // This is a subscription class. Activate it.
-                    $duration_days = (int)$prod_details['duration_days'];
-                    $expires_at = date('Y-m-d H:i:s', strtotime("+$duration_days days"));
-
-                    // Add the new subscription to the user_subscriptions table
-                    $sql_insert_sub = "INSERT INTO user_subscriptions (user_id, product_id, order_id, status, expires_at) VALUES (?, ?, ?, 'active', ?)";
-                    if($stmt_insert = $mysqli->prepare($sql_insert_sub)){
-                        $stmt_insert->bind_param("iiis", $user_id, $product_id, $order_id, $expires_at);
-                        $stmt_insert->execute();
-                        $stmt_insert->close();
-                    }
-                }
-                $stmt_prod->close();
-            }
+        if ($finalization_result['status'] !== 'success') {
+            // The webhook has already told Paystack "200 OK", but we need to log the failure
+            // so the site administrator can investigate.
+            error_log(
+                "Paystack webhook failed to finalize Order ID: $order_id for User ID: $user_id. Reason: " .
+                ($finalization_result['message'] ?? 'Unknown')
+            );
         }
-        $stmt_items->close();
+    } else {
+        // Log an error if the metadata is missing, which is essential for processing.
+        error_log("Paystack webhook received 'charge.success' event with missing order_id or user_id in metadata. Input: " . $input);
     }
 }
 
+// Exit peacefully. The response code has already been set.
 exit();
-?>
