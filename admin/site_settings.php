@@ -2,6 +2,8 @@
 // Include admin header
 include 'includes/header.php';
 
+$base_domain = 'http' . (isset($_SERVER['HTTPS']) ? 's' : '') . '://' . $_SERVER['HTTP_HOST'];
+
 $message = "";
 
 // Handle form submission
@@ -112,8 +114,6 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
         <div class="card-header"><i class="fas fa-link"></i> Paystack Configuration URLs</div>
         <div class="card-body">
             <p>To ensure payments are processed correctly, you must add the following URLs to your Paystack dashboard under <strong>Settings &rarr; API Keys & Webhooks</strong>.</p>
-
-            <?php $base_domain = 'http' . (isset($_SERVER['HTTPS']) ? 's' : '') . '://' . $_SERVER['HTTP_HOST']; ?>
 
             <div class="mb-3">
                 <label for="callback_url" class="form-label">Callback URL</label>
