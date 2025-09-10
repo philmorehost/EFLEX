@@ -90,6 +90,12 @@ $user_role = $_SESSION['user_role'] ?? '';
         <li class="nav-item">
             <a class="nav-link" href="<?php echo BASE_URL; ?>/admin/users.php"><i class="fa fa-fw fa-users"></i>User Management</a>
         </li>
+        <li class="nav-item">
+            <a class="nav-link" href="<?php echo BASE_URL; ?>/admin/bulk_email.php"><i class="fa fa-fw fa-envelope"></i>Bulk Email</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" href="<?php echo BASE_URL; ?>/admin/settings.php"><i class="fa fa-fw fa-cog"></i>System Settings</a>
+        </li>
         <?php endif; ?>
 
         <li class="sidebar-heading mt-3">User</li>

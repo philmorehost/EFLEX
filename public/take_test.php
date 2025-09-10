@@ -4,6 +4,7 @@ session_start();
 // --- Core Includes & Access Control ---
 require_once __DIR__ . '/../config/config.php';
 $pdo = require __DIR__ . '/../config/database.php';
+require_once __DIR__ . '/../app/helpers.php';
 
 if (!isset($_SESSION['user_id'])) {
     header('Location: login.php');
@@ -92,11 +93,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt = $pdo->prepare("UPDATE user_tests SET score = ?, status = 'completed', end_time = ? WHERE id = ?");
         $stmt->execute([$score, $end_time, $user_test_id]);
 
-        // 3. Clean up session
+        // 3. Notify admins
+        $student_name = $_SESSION['user_name'] ?? 'A student';
+        notify_admins($pdo, "Test Completion: '$student_name' has completed the test '{$user_test['test_name']}' with a score of " . number_format($score, 2) . "%.");
+
+        // 4. Clean up session
         unset($_SESSION['test_questions'][$user_test_id]);
         unset($_SESSION['user_answers'][$user_test_id]);
 
-        // 4. Redirect to results page
+        // 5. Redirect to results page
         header("Location: results.php?id=$user_test_id");
         exit();
     }
