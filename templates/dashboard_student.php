@@ -47,7 +47,7 @@
                                                 <i class="fas fa-play-circle me-1"></i>Start Test
                                             </a>
                                         <?php elseif ($test['status'] === 'completed'): ?>
-                                            <a href="#" class="btn btn-sm btn-info">View Results</a>
+                                            <a href="<?php echo BASE_URL; ?>/results.php?id=<?php echo $test['user_test_id']; ?>" class="btn btn-sm btn-info">View Results</a>
                                         <?php else: ?>
                                             -
                                         <?php endif; ?>

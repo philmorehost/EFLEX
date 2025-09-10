@@ -108,7 +108,8 @@ try {
         `selected_answer` TEXT,
         `is_correct` BOOLEAN,
         FOREIGN KEY (`user_test_id`) REFERENCES `user_tests`(`id`) ON DELETE CASCADE,
-        FOREIGN KEY (`question_id`) REFERENCES `questions`(`id`) ON DELETE CASCADE
+        FOREIGN KEY (`question_id`) REFERENCES `questions`(`id`) ON DELETE CASCADE,
+        UNIQUE KEY `user_test_question` (`user_test_id`, `question_id`)
     ) ENGINE=InnoDB;
 
     CREATE TABLE IF NOT EXISTS `exam_schedules` (
