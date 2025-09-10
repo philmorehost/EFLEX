@@ -147,6 +147,15 @@ try {
         `setting_key` VARCHAR(255) NOT NULL UNIQUE,
         `setting_value` TEXT
     ) ENGINE=InnoDB;
+
+    CREATE TABLE IF NOT EXISTS `password_resets` (
+        `id` INT AUTO_INCREMENT PRIMARY KEY,
+        `email` VARCHAR(255) NOT NULL,
+        `token` VARCHAR(255) NOT NULL,
+        `expires_at` INT NOT NULL,
+        `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        INDEX `email_index` (`email`)
+    ) ENGINE=InnoDB;
     ";
 
     $conn->exec($sql);

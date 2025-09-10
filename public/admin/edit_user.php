@@ -4,7 +4,7 @@ require_once __DIR__ . '/../../templates/header.php';
 
 // --- Role-based Access Control ---
 require_once __DIR__ . '/../../app/auth.php';
-enforce_access(['Super Admin']);
+enforce_access(['Super Admin', 'Admin']);
 // --- End Access Control ---
 
 $pdo = require __DIR__ . '/../../config/database.php';
@@ -71,13 +71,24 @@ try {
     $stmt->execute([$user_id]);
     $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
-    $roles = $pdo->query("SELECT id, role_name FROM roles")->fetchAll(PDO::FETCH_ASSOC);
-
     if (!$user) {
         $_SESSION['errors'] = ["User not found."];
         header("Location: users.php");
         exit();
     }
+
+    // --- Secondary Permission Check ---
+    if ($_SESSION['user_role'] === 'Admin') {
+        $stmt = $pdo->prepare("SELECT r.role_name FROM users u JOIN roles r ON u.role_id = r.id WHERE u.id = ?");
+        $stmt->execute([$user_id]);
+        $target_user_role = $stmt->fetchColumn();
+        if ($target_user_role === 'Super Admin' || $target_user_role === 'Admin') {
+            enforce_access(['Super Admin']); // Effectively denies access for the Admin
+        }
+    }
+
+    $roles = $pdo->query("SELECT id, role_name FROM roles")->fetchAll(PDO::FETCH_ASSOC);
+
 } catch (PDOException $e) {
     die("Database error: " . $e->getMessage());
 }
