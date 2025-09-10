@@ -3,7 +3,8 @@
 
 // This is a basic check to ensure user is logged in.
 if (!isset($_SESSION['user_id'])) {
-    header('Location: login.php');
+    // Redirect to an absolute URL for login
+    header('Location: ' . BASE_URL . '/login.php');
     exit();
 }
 
@@ -12,6 +13,7 @@ $user_role_id = $_SESSION['user_role_id'] ?? null;
 
 // Fetch the user's role name if not already in session
 if (!isset($_SESSION['user_role']) && $user_role_id) {
+    // This require should be absolute from the file system
     $pdo = require __DIR__ . '/../config/database.php';
     $stmt = $pdo->prepare("SELECT role_name FROM roles WHERE id = ?");
     $stmt->execute([$user_role_id]);
@@ -49,30 +51,41 @@ $user_role = $_SESSION['user_role'] ?? '';
 
 <div class="sidebar">
     <div class="sidebar-header text-center">
-        <h3><a href="dashboard.php" class="text-white text-decoration-none">CBT Platform</a></h3>
+        <h3><a href="<?php echo BASE_URL; ?>/dashboard.php" class="text-white text-decoration-none">CBT Platform</a></h3>
     </div>
     <ul class="nav flex-column">
         <li class="sidebar-heading mt-2">Core</li>
         <li class="nav-item">
-            <a class="nav-link" href="dashboard.php"><i class="fa fa-fw fa-tachometer-alt"></i>Dashboard</a>
+            <a class="nav-link" href="<?php echo BASE_URL; ?>/dashboard.php"><i class="fa fa-fw fa-tachometer-alt"></i>Dashboard</a>
         </li>
 
         <?php if ($user_role === 'Super Admin' || $user_role === 'Admin' || $user_role === 'Staff'): ?>
         <li class="sidebar-heading mt-3">Question Bank</li>
         <li class="nav-item">
-            <a class="nav-link" href="add_question.php"><i class="fa fa-fw fa-plus-circle"></i>Add Question</a>
+            <a class="nav-link" href="<?php echo BASE_URL; ?>/admin/questions.php"><i class="fa fa-fw fa-list-alt"></i>Manage Questions</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" href="<?php echo BASE_URL; ?>/admin/add_question.php"><i class="fa fa-fw fa-plus-circle"></i>Add Question</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" href="<?php echo BASE_URL; ?>/admin/categories.php"><i class="fa fa-fw fa-tags"></i>Categories</a>
         </li>
         <?php endif; ?>
+
         <?php if ($user_role === 'Super Admin' || $user_role === 'Admin'): ?>
+        <li class="sidebar-heading mt-3">Test Management</li>
         <li class="nav-item">
-            <a class="nav-link" href="categories.php"><i class="fa fa-fw fa-tags"></i>Categories</a>
+            <a class="nav-link" href="<?php echo BASE_URL; ?>/admin/create_test.php"><i class="fa fa-fw fa-plus-square"></i>Create Test</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" href="#"><i class="fa fa-fw fa-clipboard-list"></i>Manage Tests</a>
         </li>
         <?php endif; ?>
 
         <?php if ($user_role === 'Super Admin'): ?>
         <li class="sidebar-heading mt-3">Administration</li>
         <li class="nav-item">
-            <a class="nav-link" href="users.php"><i class="fa fa-fw fa-users"></i>User Management</a>
+            <a class="nav-link" href="<?php echo BASE_URL; ?>/admin/users.php"><i class="fa fa-fw fa-users"></i>User Management</a>
         </li>
         <?php endif; ?>
 
@@ -97,7 +110,7 @@ $user_role = $_SESSION['user_role'] ?? '';
             <span class="navbar-text me-3">
                 Welcome, <?php echo htmlspecialchars($user_name); ?> (<?php echo htmlspecialchars($user_role); ?>)
             </span>
-            <a href="logout.php" class="btn btn-danger">Logout</a>
+            <a href="<?php echo BASE_URL; ?>/logout.php" class="btn btn-danger">Logout</a>
         </div>
     </div>
 </nav>

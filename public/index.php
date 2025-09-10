@@ -64,12 +64,7 @@ try {
                 <h2>Initial Setup Required</h2>
                 <p>The database is not yet configured. Please run the installation script to set up the necessary tables.</p>
                 <p>Click the link below to begin:</p>
-                <?php
-                    // Construct the URL to the install script.
-                    // It's in a sibling directory to 'public', so we need to construct the path carefully.
-                    $install_url = str_replace("public/", "database/install.php", (isset($_SERVER['HTTPS']) ? "https://" : "http://") . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI']);
-                ?>
-                <h3><a href="<?php echo rtrim(str_replace('index.php', '', BASE_URL), '/') . '/database/install.php'; ?>">Run Installation Script</a></h3>
+                <h3><a href="<?php echo BASE_URL; ?>/database/install.php">Run Installation Script</a></h3>
                 <p><small>For security, please delete <code>database/install.php</code> after setup is complete.</small></p>
             </div>
         <?php else: ?>

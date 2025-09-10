@@ -17,8 +17,11 @@ define('DB_CHARSET', 'utf8mb4');
 $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off' || (isset($_SERVER['SERVER_PORT']) && $_SERVER['SERVER_PORT'] == 443)) ? "https://" : "http://";
 $host = isset($_SERVER['HTTP_HOST']) ? $_SERVER['HTTP_HOST'] : 'localhost';
 // Calculates the base path of the project dynamically.
-$script_name = str_replace('index.php', '', $_SERVER['SCRIPT_NAME']);
-define('BASE_URL', $protocol . $host . $script_name);
+// This assumes the public directory is the web root, so we go one level up from the script's directory.
+$script_name = dirname($_SERVER['SCRIPT_NAME']);
+// If the script is in the root, dirname might return '.', so we handle that.
+$base_path = ($script_name === '.' || $script_name === '/') ? '' : $script_name;
+define('BASE_URL', $protocol . $host . rtrim($base_path, '/'));
 
 
 // Root path of the application for file includes.
