@@ -92,6 +92,37 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
     </div>
 
     <div class="card mb-4">
+        <div class="card-header"><i class="fas fa-link"></i> Paystack Configuration URLs</div>
+        <div class="card-body">
+            <p>To ensure payments are processed correctly, you must add the following URLs to your Paystack dashboard under <strong>Settings &rarr; API Keys & Webhooks</strong>.</p>
+
+            <?php $base_domain = 'http' . (isset($_SERVER['HTTPS']) ? 's' : '') . '://' . $_SERVER['HTTP_HOST']; ?>
+
+            <div class="mb-3">
+                <label for="callback_url" class="form-label">Callback URL</label>
+                <div class="input-group">
+                    <input type="text" class="form-control" value="<?php echo $base_domain; ?>/order_success.php" id="callback_url" readonly>
+                    <button class="btn btn-outline-secondary copy-btn" type="button" data-clipboard-target="#callback_url">
+                        <i class="fas fa-copy"></i> Copy
+                    </button>
+                </div>
+                <div class="form-text">This is where users are redirected after payment. Enter this in the "Callback URL" field on Paystack.</div>
+            </div>
+
+            <div class="mb-3">
+                <label for="webhook_url" class="form-label">Webhook URL</label>
+                <div class="input-group">
+                    <input type="text" class="form-control" value="<?php echo $base_domain; ?>/paystack_webhook.php" id="webhook_url" readonly>
+                    <button class="btn btn-outline-secondary copy-btn" type="button" data-clipboard-target="#webhook_url">
+                        <i class="fas fa-copy"></i> Copy
+                    </button>
+                </div>
+                 <div class="form-text">This is where Paystack sends server-to-server notifications. Enter this in the "Webhook URL" field on Paystack.</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card mb-4">
         <div class="card-header"><i class="fas fa-address-book"></i> Contact & Social Media</div>
         <div class="card-body">
             <div class="row">
@@ -166,3 +197,27 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
 </form>
 
 <?php include 'includes/footer.php'; ?>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const copyButtons = document.querySelectorAll('.copy-btn');
+    copyButtons.forEach(btn => {
+        btn.addEventListener('click', function() {
+            const target = document.querySelector(this.dataset.clipboardTarget);
+            if(target) {
+                target.select();
+                target.setSelectionRange(0, 99999); // For mobile devices
+                navigator.clipboard.writeText(target.value).then(() => {
+                    const originalHtml = this.innerHTML;
+                    this.innerHTML = '<i class="fas fa-check"></i> Copied!';
+                    setTimeout(() => {
+                        this.innerHTML = originalHtml;
+                    }, 2000);
+                }).catch(err => {
+                    alert('Failed to copy.');
+                });
+            }
+        });
+    });
+});
+</script>

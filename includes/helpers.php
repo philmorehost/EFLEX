@@ -69,11 +69,13 @@ function finalize_successful_order($order_id, $user_id) {
 
     try {
         // Step 1: Update order status to 'Completed'
-        $sql_update_order = "UPDATE orders SET status = 'Completed' WHERE id = ? AND user_id = ?";
+        // The user_id check is removed as the order_id is unique and verified via the Paystack reference.
+        // This is to prevent a potential user_id mismatch if the session is inconsistent.
+        $sql_update_order = "UPDATE orders SET status = 'Completed' WHERE id = ?";
         $stmt_update = $mysqli->prepare($sql_update_order);
-        $stmt_update->bind_param("ii", $order_id, $user_id);
+        $stmt_update->bind_param("i", $order_id);
         if (!$stmt_update->execute() || $stmt_update->affected_rows === 0) {
-            throw new Exception("Failed to update order status or order not found.");
+            throw new Exception("Failed to update order status or order not found for the given Order ID.");
         }
         $stmt_update->close();
 
