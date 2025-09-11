@@ -1,45 +1,51 @@
 <?php
 $pageTitle = "CBT Platform Installation";
-// We can't use the full header/footer as the DB isn't guaranteed to be there.
-// This will be a standalone script.
+// This is a standalone script.
 
 // --- Basic Styling ---
 $style = "
     body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; margin: 0; background-color: #f4f5f7; }
     .container { max-width: 800px; margin: 40px auto; padding: 20px; background: #fff; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
-    h1, h2 { color: #333; }
-    .btn { display: inline-block; background-color: #007bff; color: #fff; padding: 10px 15px; border-radius: 5px; text-decoration: none; border: none; cursor: pointer; }
-    .btn-disabled { background-color: #ccc; cursor: not-allowed; }
-    .alert { padding: 15px; margin-bottom: 20px; border-radius: 5px; }
+    h1 { color: #333; }
+    .btn { display: inline-block; background-color: #dc3545; color: #fff; padding: 10px 15px; border-radius: 5px; text-decoration: none; border: none; cursor: pointer; font-weight: bold; }
+    .alert { padding: 15px; margin-bottom: 20px; border-radius: 5px; border: 1px solid transparent; }
     .alert-success { color: #155724; background-color: #d4edda; border-color: #c3e6cb; }
     .alert-danger { color: #721c24; background-color: #f8d7da; border-color: #f5c6cb; }
     .alert-warning { color: #856404; background-color: #fff3cd; border-color: #ffeeba; }
-    pre { background: #eee; padding: 10px; border-radius: 4px; white-space: pre-wrap; word-wrap: break-word; }
+    code { background: #eee; padding: 2px 4px; border-radius: 4px; }
 ";
 
-// --- Check if installation is already complete ---
-$already_installed = false;
-try {
-    // Suppress warnings for the initial check, as DB/tables might not exist
+$messages = [];
+$config_exists = file_exists(__DIR__ . '/includes/config.php');
+
+if ($config_exists) {
     @require_once __DIR__ . '/includes/config.php';
-    if (isset($conn) && $conn->query("SELECT 1 FROM `users` LIMIT 1")) {
-        $already_installed = true;
-    }
-} catch (Exception $e) {
-    // Ignore exceptions during check
 }
 
-$messages = [];
-
 // --- Main Installation Logic ---
-if ($_SERVER["REQUEST_METHOD"] == "POST" && !$already_installed) {
-    if (!file_exists('database.sql')) {
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    if (!$config_exists || !isset($conn)) {
+        $messages[] = ['type' => 'danger', 'text' => '<b>Error:</b> `includes/config.php` not found or database connection failed. Please configure it first.'];
+    } elseif (!file_exists('database.sql')) {
         $messages[] = ['type' => 'danger', 'text' => '<b>Error:</b> `database.sql` file not found.'];
     } else {
-        // Get SQL content
-        $sql_content = file_get_contents('database.sql');
+        // List of tables to drop, in reverse order of creation to respect foreign keys
+        $tables = [
+            'student_answers', 'test_attempts', 'test_questions', 'tests', 'options', 'questions',
+            'question_categories', 'role_permissions', 'permissions', 'permission_categories',
+            'password_resets', 'users', 'roles', 'settings'
+        ];
 
-        // Execute the multi-query
+        $conn->query('SET foreign_key_checks = 0');
+        foreach ($tables as $table) {
+            $conn->query("DROP TABLE IF EXISTS `$table`");
+        }
+        $conn->query('SET foreign_key_checks = 1');
+
+        $messages[] = ['type' => 'success', 'text' => 'Existing tables dropped successfully.'];
+
+        // Get SQL content and execute
+        $sql_content = file_get_contents('database.sql');
         if ($conn->multi_query($sql_content)) {
             // Clear results from each query
             do {
@@ -49,10 +55,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && !$already_installed) {
             } while ($conn->more_results() && $conn->next_result());
 
             $messages[] = ['type' => 'success', 'text' => 'Database tables created and seeded successfully!'];
-            $messages[] = ['type' => 'warning', 'text' => '<strong>IMPORTANT:</strong> For security reasons, please delete this `install.php` file immediately.'];
-            $already_installed = true; // Mark as installed for this request
+            $messages[] = ['type' => 'warning', 'text' => '<strong>IMPORTANT:</strong> For security reasons, please DELETE THIS `install.php` FILE immediately.'];
         } else {
-            $messages[] = ['type' => 'danger', 'text' => '<b>Database Error:</b> ' . $conn->error];
+            $messages[] = ['type' => 'danger', 'text' => '<b>Database Error during creation:</b> ' . $conn->error];
         }
     }
 }
@@ -66,7 +71,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && !$already_installed) {
 </head>
 <body>
     <div class="container">
-        <h1>CBT Platform Installation</h1>
+        <h1>CBT Platform Re-Installation</h1>
 
         <?php if (!empty($messages)): ?>
             <?php foreach ($messages as $message): ?>
@@ -74,25 +79,24 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && !$already_installed) {
                     <?php echo $message['text']; ?>
                 </div>
             <?php endforeach; ?>
-        <?php endif; ?>
-
-        <?php if ($already_installed): ?>
-            <div class="alert alert-success">
-                The application appears to be already installed. The `users` table exists.
-            </div>
-            <div class="alert alert-warning">
-                If you have not already done so, please delete `install.php` for security.
-            </div>
         <?php else: ?>
-            <p>Welcome! This script will set up the necessary database tables for the CBT platform.</p>
-            <p>Please ensure you have correctly configured your database credentials in <code>includes/config.php</code> before proceeding.</p>
-            <form action="install.php" method="POST">
-                <button type="submit" class="btn">Install Database</button>
-            </form>
+            <div class="alert alert-danger">
+                <strong>WARNING:</strong> This script will completely wipe and re-create all CBT platform tables in your database (<code><?php echo defined('DB_NAME') ? DB_NAME : 'N/A'; ?></code>).
+                <br><strong>Any existing data will be permanently lost.</strong>
+                <br>Please back up your database before proceeding if you have important data.
+            </div>
+            <p>This process is necessary to update the database schema to the latest version and fix errors like missing tables.</p>
+             <?php if (!$config_exists): ?>
+                 <div class="alert alert-danger">The <code>includes/config.php</code> file could not be found. Please ensure it exists and contains the correct database credentials.</div>
+             <?php else: ?>
+                <form action="install.php" method="POST" onsubmit="return confirm('Are you absolutely sure you want to wipe all data and reinstall?');">
+                    <button type="submit" class="btn">Wipe Data & Reinstall</button>
+                </form>
+             <?php endif; ?>
         <?php endif; ?>
 
-        <?php if ($already_installed && !empty($messages)): ?>
-             <a href="index.php" class="btn" style="margin-top: 20px;">Go to Homepage</a>
+        <?php if (!empty($messages) && strpos(end($messages)['text'], 'successfully') !== false): ?>
+             <a href="index.php" style="display:inline-block; margin-top: 20px; background-color: #28a745;" class="btn">Go to Homepage</a>
         <?php endif; ?>
     </div>
 </body>
