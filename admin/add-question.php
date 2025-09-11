@@ -41,10 +41,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $question_id = $stmt->insert_id;
             $stmt->close();
 
-            // Handle options for multiple choice
+            // Handle options based on question type
             if ($question_type === 'multiple_choice') {
-                $options = $_POST['options'];
-                $correct_option_index = $_POST['is_correct'];
+                $options = $_POST['options'] ?? [];
+                $correct_option_index = $_POST['is_correct'] ?? -1;
+
+                if (empty($options) || $correct_option_index == -1) {
+                     throw new Exception("Multiple choice questions require at least one option and a correct answer.");
+                }
 
                 $opt_stmt = $conn->prepare("INSERT INTO options (question_id, option_text, is_correct) VALUES (?, ?, ?)");
                 foreach ($options as $index => $option_text) {
@@ -54,6 +58,28 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         $opt_stmt->execute();
                     }
                 }
+                $opt_stmt->close();
+            } elseif ($question_type === 'true_false') {
+                $correct_answer = $_POST['is_correct_tf'] ?? '';
+
+                if ($correct_answer !== 'true' && $correct_answer !== 'false') {
+                    throw new Exception("A correct answer must be selected for True/False questions.");
+                }
+
+                $opt_stmt = $conn->prepare("INSERT INTO options (question_id, option_text, is_correct) VALUES (?, ?, ?)");
+
+                // Insert True option
+                $is_correct_true = ($correct_answer === 'true') ? 1 : 0;
+                $option_text_true = 'True';
+                $opt_stmt->bind_param("isi", $question_id, $option_text_true, $is_correct_true);
+                $opt_stmt->execute();
+
+                // Insert False option
+                $is_correct_false = ($correct_answer === 'false') ? 1 : 0;
+                $option_text_false = 'False';
+                $opt_stmt->bind_param("isi", $question_id, $option_text_false, $is_correct_false);
+                $opt_stmt->execute();
+
                 $opt_stmt->close();
             }
 
@@ -185,10 +211,19 @@ document.addEventListener('DOMContentLoaded', function() {
             });
 
         } else if (type === 'true_false') {
-            // True/False doesn't require extra option fields in the DB,
-            // but you might want UI for clarity. For now, we assume the answer is in the question logic.
-            // Or we could handle it like multiple choice with two fixed options.
-            // For simplicity, we'll omit extra fields for T/F and Short Answer for now.
+            container.innerHTML = `
+                <div class="mt-4 p-3 border rounded">
+                    <h5>Correct Answer</h5>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="is_correct_tf" id="is_correct_true" value="true" checked>
+                        <label class="form-check-label" for="is_correct_true">True</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="is_correct_tf" id="is_correct_false" value="false">
+                        <label class="form-check-label" for="is_correct_false">False</label>
+                    </div>
+                </div>
+            `;
         }
     });
 });
