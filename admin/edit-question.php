@@ -35,7 +35,7 @@ if (!$question) {
 // Fetch categories and options if applicable
 $categories = $conn->query("SELECT * FROM question_categories ORDER BY category_name ASC")->fetch_all(MYSQLI_ASSOC);
 $options = [];
-if ($question['question_type'] === 'multiple_choice') {
+if ($question['question_type'] === 'multiple_choice' || $question['question_type'] === 'true_false') {
     $opt_stmt = $conn->prepare("SELECT * FROM options WHERE question_id = ? ORDER BY option_id ASC");
     $opt_stmt->bind_param("i", $question_id_to_edit);
     $opt_stmt->execute();
@@ -57,23 +57,20 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     if (empty($errors)) {
         $conn->begin_transaction();
         try {
-            // Update the main question
             $stmt = $conn->prepare("UPDATE questions SET category_id = ?, question_text = ? WHERE question_id = ?");
             $stmt->bind_param("isi", $category_id, $question_text, $question_id_to_edit);
             $stmt->execute();
             $stmt->close();
 
-            // Handle options for multiple choice
-            if ($question['question_type'] === 'multiple_choice') {
-                // Delete old options
-                $del_stmt = $conn->prepare("DELETE FROM options WHERE question_id = ?");
-                $del_stmt->bind_param("i", $question_id_to_edit);
-                $del_stmt->execute();
-                $del_stmt->close();
+            // Delete old options before inserting new ones
+            $del_stmt = $conn->prepare("DELETE FROM options WHERE question_id = ?");
+            $del_stmt->bind_param("i", $question_id_to_edit);
+            $del_stmt->execute();
+            $del_stmt->close();
 
-                // Insert new options
-                $posted_options = $_POST['options'];
-                $correct_option_index = $_POST['is_correct'];
+            if ($question['question_type'] === 'multiple_choice') {
+                $posted_options = $_POST['options'] ?? [];
+                $correct_option_index = $_POST['is_correct'] ?? -1;
                 $opt_stmt = $conn->prepare("INSERT INTO options (question_id, option_text, is_correct) VALUES (?, ?, ?)");
                 foreach ($posted_options as $index => $option_text) {
                     if (!empty(trim($option_text))) {
@@ -82,6 +79,18 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         $opt_stmt->execute();
                     }
                 }
+                $opt_stmt->close();
+            } elseif ($question['question_type'] === 'true_false') {
+                $correct_answer = $_POST['is_correct_tf'] ?? '';
+                $opt_stmt = $conn->prepare("INSERT INTO options (question_id, option_text, is_correct) VALUES (?, ?, ?)");
+                $option_text_true = 'True';
+                $is_correct_true = ($correct_answer === 'true') ? 1 : 0;
+                $opt_stmt->bind_param("isi", $question_id_to_edit, $option_text_true, $is_correct_true);
+                $opt_stmt->execute();
+                $option_text_false = 'False';
+                $is_correct_false = ($correct_answer === 'false') ? 1 : 0;
+                $opt_stmt->bind_param("isi", $question_id_to_edit, $option_text_false, $is_correct_false);
+                $opt_stmt->execute();
                 $opt_stmt->close();
             }
 
@@ -159,6 +168,26 @@ require_once __DIR__ . '/../includes/header.php';
                                         <?php endforeach; ?>
                                     </div>
                                     <button type="button" id="add-mc-option" class="btn btn-sm btn-outline-secondary mt-2">Add Another Option</button>
+                                </div>
+                                <?php elseif ($question['question_type'] === 'true_false'): ?>
+                                <div class="mt-4 p-3 border rounded">
+                                    <h5>Correct Answer</h5>
+                                    <?php
+                                    $correct_tf_answer = '';
+                                    foreach ($options as $option) {
+                                        if ($option['is_correct']) {
+                                            $correct_tf_answer = strtolower($option['option_text']);
+                                        }
+                                    }
+                                    ?>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="is_correct_tf" value="true" <?php echo ($correct_tf_answer === 'true') ? 'checked' : ''; ?>>
+                                        <label class="form-check-label">True</label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="is_correct_tf" value="false" <?php echo ($correct_tf_answer === 'false') ? 'checked' : ''; ?>>
+                                        <label class="form-check-label">False</label>
+                                    </div>
                                 </div>
                                 <?php endif; ?>
 

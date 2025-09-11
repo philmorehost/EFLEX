@@ -20,7 +20,11 @@ if (!$test_id) {
 }
 
 // Fetch test info
-$test = $conn->query("SELECT * FROM tests WHERE test_id = $test_id")->fetch_assoc();
+$stmt = $conn->prepare("SELECT * FROM tests WHERE test_id = ?");
+$stmt->bind_param("i", $test_id);
+$stmt->execute();
+$test = $stmt->get_result()->fetch_assoc();
+$stmt->close();
 if (!$test) {
     header("Location: index.php?error=testnotfound");
     exit;
@@ -42,7 +46,11 @@ if (!$attempt) {
     $attempt_id = $insert_stmt->insert_id;
     $insert_stmt->close();
     // Re-fetch the attempt to have a consistent object with start_time
-    $attempt = $conn->query("SELECT * FROM test_attempts WHERE attempt_id = $attempt_id")->fetch_assoc();
+    $refetch_stmt = $conn->prepare("SELECT * FROM test_attempts WHERE attempt_id = ?");
+    $refetch_stmt->bind_param("i", $attempt_id);
+    $refetch_stmt->execute();
+    $attempt = $refetch_stmt->get_result()->fetch_assoc();
+    $refetch_stmt->close();
 } else {
     $attempt_id = $attempt['attempt_id'];
 }
@@ -51,9 +59,13 @@ if (!$attempt) {
 $questions_sql = "SELECT q.question_id, q.question_text, q.question_type
                   FROM questions q
                   JOIN test_questions tq ON q.question_id = tq.question_id
-                  WHERE tq.test_id = $test_id
+                  WHERE tq.test_id = ?
                   ORDER BY tq.question_order ASC";
-$questions = $conn->query($questions_sql)->fetch_all(MYSQLI_ASSOC);
+$q_stmt = $conn->prepare($questions_sql);
+$q_stmt->bind_param("i", $test_id);
+$q_stmt->execute();
+$questions = $q_stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+$q_stmt->close();
 
 // --- Handle Answer Submission ---
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -68,7 +80,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $upsert_sql = "INSERT INTO student_answers (attempt_id, question_id, selected_option_id, answer_text)
                        VALUES (?, ?, ?, ?)
                        ON DUPLICATE KEY UPDATE selected_option_id = VALUES(selected_option_id), answer_text = VALUES(answer_text)";
-        $ans_stmt = $conn->prepare($upsert_sql);
         $upsert_sql = "INSERT INTO student_answers (attempt_id, question_id, selected_option_id, answer_text)
                        VALUES (?, ?, ?, ?)
                        ON DUPLICATE KEY UPDATE selected_option_id = VALUES(selected_option_id), answer_text = VALUES(answer_text)";
@@ -140,8 +151,11 @@ require_once __DIR__ . '/includes/header.php';
                     <hr>
                     <?php if ($q['question_type'] === 'multiple_choice'): ?>
                         <?php
-                        $options_sql = "SELECT * FROM options WHERE question_id = " . $q['question_id'] . " ORDER BY option_id";
-                        $options = $conn->query($options_sql)->fetch_all(MYSQLI_ASSOC);
+                        $opt_stmt = $conn->prepare("SELECT * FROM options WHERE question_id = ? ORDER BY option_id");
+                        $opt_stmt->bind_param("i", $q['question_id']);
+                        $opt_stmt->execute();
+                        $options = $opt_stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+                        $opt_stmt->close();
                         foreach ($options as $option):
                         ?>
                             <div class="form-check">
@@ -153,8 +167,11 @@ require_once __DIR__ . '/includes/header.php';
                         <?php endforeach; ?>
                     <?php elseif ($q['question_type'] === 'true_false'): ?>
                         <?php
-                        $options_sql = "SELECT * FROM options WHERE question_id = " . $q['question_id'] . " ORDER BY option_id";
-                        $options = $conn->query($options_sql)->fetch_all(MYSQLI_ASSOC);
+                        $opt_stmt = $conn->prepare("SELECT * FROM options WHERE question_id = ? ORDER BY option_id");
+                        $opt_stmt->bind_param("i", $q['question_id']);
+                        $opt_stmt->execute();
+                        $options = $opt_stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+                        $opt_stmt->close();
                         foreach ($options as $option):
                         ?>
                             <div class="form-check">
