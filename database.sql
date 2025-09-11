@@ -1,5 +1,5 @@
 -- CBT Platform Database Schema
--- Version 1.0
+-- Version 1.1
 
 -- Set SQL mode and timezone
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
@@ -49,19 +49,9 @@ CREATE TABLE `users` (
 --
 -- Default Super Admin user
 -- Password: superadmin
-INSERT INTO `users` (`role_id`, `first_name`, `last_name`, `email`, `password_hash`, `status`) VALUES
-(1, 'Super', 'Admin', 'superadmin@cbt.com', '$2y$10$2.A/9.j0d.fE4wO5.C7q.uY3gC7L0q6B/2eK5B/gC3vH6zJ9tO3i', 'active');
+INSERT INTO `users` (`user_id`, `role_id`, `first_name`, `last_name`, `email`, `password_hash`, `status`) VALUES
+(1, 1, 'Super', 'Admin', 'superadmin@cbt.com', '$2y$10$2.A/9.j0d.fE4wO5.C7q.uY3gC7L0q6B/2eK5B/gC3vH6zJ9tO3i', 'active');
 
-
---
--- Constraints for dumped tables
---
-
---
--- Constraints for table `users`
---
-ALTER TABLE `users`
-  ADD CONSTRAINT `users_ibfk_1` FOREIGN KEY (`role_id`) REFERENCES `roles` (`role_id`) ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- --------------------------------------------------------
 
@@ -77,3 +67,113 @@ CREATE TABLE `password_resets` (
   UNIQUE KEY `token` (`token`),
   KEY `email` (`email`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `permission_categories`
+--
+CREATE TABLE `permission_categories` (
+  `category_id` int(11) NOT NULL AUTO_INCREMENT,
+  `category_name` varchar(100) NOT NULL,
+  PRIMARY KEY (`category_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+--
+-- Dumping data for table `permission_categories`
+--
+INSERT INTO `permission_categories` (`category_id`, `category_name`) VALUES
+(1, 'User Management'),
+(2, 'Role Management'),
+(3, 'Test Management'),
+(4, 'System Settings');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `permissions`
+--
+CREATE TABLE `permissions` (
+  `permission_id` int(11) NOT NULL AUTO_INCREMENT,
+  `permission_name` varchar(100) NOT NULL,
+  `description` text,
+  `category_id` int(11) NOT NULL,
+  PRIMARY KEY (`permission_id`),
+  UNIQUE KEY `permission_name` (`permission_name`),
+  KEY `category_id` (`category_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+--
+-- Dumping data for table `permissions`
+--
+INSERT INTO `permissions` (`permission_id`, `permission_name`, `description`, `category_id`) VALUES
+(1, 'view_users', 'Can view the list of users.', 1),
+(2, 'create_users', 'Can add new users.', 1),
+(3, 'edit_users', 'Can edit existing users.', 1),
+(4, 'delete_users', 'Can delete users.', 1),
+(5, 'view_roles', 'Can view the list of roles and their permissions.', 2),
+(6, 'create_roles', 'Can create new roles.', 2),
+(7, 'edit_roles', 'Can edit existing roles and assign permissions.', 2),
+(8, 'delete_roles', 'Can delete roles.', 2),
+(9, 'view_tests', 'Can view tests.', 3),
+(10, 'create_tests', 'Can create new tests and questions.', 3),
+(11, 'edit_tests', 'Can edit existing tests.', 3),
+(12, 'delete_tests', 'Can delete tests.', 3),
+(13, 'view_settings', 'Can view system settings.', 4),
+(14, 'edit_settings', 'Can change system settings.', 4);
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `role_permissions`
+--
+CREATE TABLE `role_permissions` (
+  `role_id` int(11) NOT NULL,
+  `permission_id` int(11) NOT NULL,
+  PRIMARY KEY (`role_id`,`permission_id`),
+  KEY `permission_id` (`permission_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+--
+-- Dumping data for table `role_permissions`
+--
+-- Super Admin (all permissions)
+INSERT INTO `role_permissions` (`role_id`, `permission_id`) VALUES
+(1, 1), (1, 2), (1, 3), (1, 4), (1, 5), (1, 6), (1, 7), (1, 8),
+(1, 9), (1, 10), (1, 11), (1, 12), (1, 13), (1, 14);
+
+-- Admin (user and test management)
+INSERT INTO `role_permissions` (`role_id`, `permission_id`) VALUES
+(2, 1), (2, 2), (2, 3), (2, 4), (2, 9), (2, 10), (2, 11), (2, 12);
+
+-- Staff (test management only)
+INSERT INTO `role_permissions` (`role_id`, `permission_id`) VALUES
+(3, 9), (3, 10), (3, 11);
+
+-- User (no admin permissions by default)
+-- (No entries for role_id 4)
+
+-- --------------------------------------------------------
+
+--
+-- Constraints for dumped tables
+--
+
+--
+-- Constraints for table `users`
+--
+ALTER TABLE `users`
+  ADD CONSTRAINT `users_ibfk_1` FOREIGN KEY (`role_id`) REFERENCES `roles` (`role_id`) ON DELETE RESTRICT ON UPDATE CASCADE;
+
+--
+-- Constraints for table `permissions`
+--
+ALTER TABLE `permissions`
+  ADD CONSTRAINT `permissions_ibfk_1` FOREIGN KEY (`category_id`) REFERENCES `permission_categories` (`category_id`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+--
+-- Constraints for table `role_permissions`
+--
+ALTER TABLE `role_permissions`
+  ADD CONSTRAINT `role_permissions_ibfk_1` FOREIGN KEY (`role_id`) REFERENCES `roles` (`role_id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  ADD CONSTRAINT `role_permissions_ibfk_2` FOREIGN KEY (`permission_id`) REFERENCES `permissions` (`permission_id`) ON DELETE CASCADE ON UPDATE CASCADE;

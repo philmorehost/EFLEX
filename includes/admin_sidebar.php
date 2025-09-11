@@ -12,6 +12,11 @@
         <a href="<?php echo BASE_URL; ?>admin/users.php" class="list-group-item list-group-item-action bg-transparent text-dark fw-bold">
             <i class="bi bi-people me-2"></i> User Management
         </a>
+        <?php if (isset($_SESSION['role_id']) && $_SESSION['role_id'] == 1): // Super Admin only ?>
+        <a href="<?php echo BASE_URL; ?>admin/roles.php" class="list-group-item list-group-item-action bg-transparent text-dark fw-bold">
+            <i class="bi bi-person-rolodex me-2"></i> Role Management
+        </a>
+        <?php endif; ?>
         <a href="#" class="list-group-item list-group-item-action bg-transparent text-dark fw-bold">
             <i class="bi bi-card-checklist me-2"></i> Test Management
         </a>
