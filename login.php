@@ -6,7 +6,11 @@ $error_message = '';
 
 // Redirect if already logged in
 if (isset($_SESSION['user_id'])) {
-    header("Location: admin/index.php");
+    if (in_array($_SESSION['role_id'], [1, 2, 3])) {
+        header("Location: admin/index.php");
+    } else {
+        header("Location: index.php");
+    }
     exit;
 }
 
@@ -36,8 +40,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 $_SESSION['first_name'] = $user['first_name'];
                 $_SESSION['role_id'] = $user['role_id'];
 
-                // Redirect to the admin dashboard
-                header("Location: admin/index.php");
+                // Role-based redirection
+                if (in_array($user['role_id'], [1, 2, 3])) { // Admin, Super Admin, Staff
+                    header("Location: admin/index.php");
+                } else { // Regular User
+                    header("Location: index.php");
+                }
                 exit;
             } else {
                 // Invalid password
