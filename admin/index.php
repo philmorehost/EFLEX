@@ -1,6 +1,27 @@
 <?php
 $pageTitle = "Admin Dashboard";
-// Use __DIR__ to ensure the path is correct, regardless of where the script is included from.
+// Use __DIR__ to ensure the path is correct
+require_once __DIR__ . '/../includes/config.php';
+
+// --- Authentication Check ---
+// Check if the user is logged in.
+if (!isset($_SESSION['user_id'])) {
+    // If not, redirect to the login page.
+    header("Location: ../login.php?error=authrequired");
+    exit;
+}
+
+// --- Role Check ---
+// Check if the user has an allowed role (Super Admin, Admin, or Staff).
+// Role IDs: 1 = Super Admin, 2 = Admin, 3 = Staff
+$allowed_roles = [1, 2, 3];
+if (!in_array($_SESSION['role_id'], $allowed_roles)) {
+    // If the user's role is not allowed, destroy the session and redirect.
+    session_destroy();
+    header("Location: ../login.php?error=accessdenied");
+    exit;
+}
+
 require_once __DIR__ . '/../includes/header.php';
 ?>
 
@@ -27,7 +48,7 @@ require_once __DIR__ . '/../includes/header.php';
             <a href="#" class="list-group-item list-group-item-action bg-transparent text-dark fw-bold">
                 <i class="bi bi-gear me-2"></i> Settings
             </a>
-            <a href="../index.php" class="list-group-item list-group-item-action bg-transparent text-danger fw-bold">
+            <a href="../logout.php" class="list-group-item list-group-item-action bg-transparent text-danger fw-bold">
                 <i class="bi bi-box-arrow-left me-2"></i> Logout
             </a>
         </div>
@@ -50,12 +71,13 @@ require_once __DIR__ . '/../includes/header.php';
                 <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle second-text fw-bold" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                            <i class="bi bi-person-circle me-2"></i>Super Admin
+                            <i class="bi bi-person-circle me-2"></i><?php echo htmlspecialchars($_SESSION['first_name']); ?>
                         </a>
-                        <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
+                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
                             <li><a class="dropdown-item" href="#">Profile</a></li>
                             <li><a class="dropdown-item" href="#">Settings</a></li>
-                            <li><a class="dropdown-item" href="#">Logout</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="../logout.php">Logout</a></li>
                         </ul>
                     </li>
                 </ul>
@@ -63,7 +85,7 @@ require_once __DIR__ . '/../includes/header.php';
         </nav>
 
         <div class="container-fluid px-4">
-            <h3 class="fs-4 mb-3">Welcome, Admin!</h3>
+            <h3 class="fs-4 mb-3">Welcome, <?php echo htmlspecialchars($_SESSION['first_name']); ?>!</h3>
             <p>This is the main dashboard content area. Fintech-style cards and charts will go here.</p>
 
             <div class="row g-3 my-2">
