@@ -1,5 +1,24 @@
 </div> <!-- .wrapper -->
 
+<!-- PWA Install Modal -->
+<div class="modal fade" id="pwaInstallModal" tabindex="-1" aria-labelledby="pwaInstallModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="pwaInstallModalLabel">Install CBT Platform App</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        For a better experience and easy access, install the CBT Platform app on your device. It's fast and uses very little storage.
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Later</button>
+        <button type="button" class="btn btn-primary" id="pwa-install-button">Install</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- Core JS -->
 <!-- jQuery -->
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>

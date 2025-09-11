@@ -22,6 +22,22 @@ if (!in_array($_SESSION['role_id'], $allowed_roles)) {
     exit;
 }
 
+// --- Fetch Dashboard Statistics ---
+$total_users = $conn->query("SELECT COUNT(*) as count FROM users")->fetch_assoc()['count'];
+$total_tests = $conn->query("SELECT COUNT(*) as count FROM tests")->fetch_assoc()['count'];
+$total_questions = $conn->query("SELECT COUNT(*) as count FROM questions")->fetch_assoc()['count'];
+$completed_attempts = $conn->query("SELECT COUNT(*) as count FROM test_attempts WHERE status = 'completed'")->fetch_assoc()['count'];
+
+// --- Fetch Recent Activities ---
+$recent_users = $conn->query("SELECT first_name, last_name, email, created_at FROM users ORDER BY user_id DESC LIMIT 5")->fetch_all(MYSQLI_ASSOC);
+$recent_attempts = $conn->query("SELECT t.title, u.first_name, u.last_name, ta.score, ta.end_time
+                                 FROM test_attempts ta
+                                 JOIN tests t ON ta.test_id = t.test_id
+                                 JOIN users u ON ta.user_id = u.user_id
+                                 WHERE ta.status = 'completed'
+                                 ORDER BY ta.attempt_id DESC LIMIT 5")->fetch_all(MYSQLI_ASSOC);
+
+
 require_once __DIR__ . '/../includes/header.php';
 ?>
 
@@ -42,19 +58,94 @@ require_once __DIR__ . '/../includes/header.php';
 
         <div class="container-fluid px-4">
             <h3 class="fs-4 mb-3">Welcome, <?php echo htmlspecialchars($_SESSION['first_name']); ?>!</h3>
-            <p>This is the main dashboard content area. Fintech-style cards and charts will go here.</p>
-
-            <div class="row g-3 my-2">
+            <div class="row g-4 my-3">
                 <div class="col-md-3">
                     <div class="p-3 bg-white shadow-sm d-flex justify-content-around align-items-center rounded">
                         <div>
-                            <h3 class="fs-2">720</h3>
-                            <p class="fs-5">Students</p>
+                            <h3 class="fs-2"><?php echo $total_users; ?></h3>
+                            <p class="fs-5 text-muted mb-0">Total Users</p>
                         </div>
-                        <i class="bi bi-people fs-1 primary-text border rounded-full secondary-bg p-3"></i>
+                        <i class="bi bi-people fs-1 primary-text border rounded-pill p-3"></i>
                     </div>
                 </div>
-                 <!-- Add more cards here -->
+                <div class="col-md-3">
+                    <div class="p-3 bg-white shadow-sm d-flex justify-content-around align-items-center rounded">
+                        <div>
+                            <h3 class="fs-2"><?php echo $total_tests; ?></h3>
+                            <p class="fs-5 text-muted mb-0">Total Tests</p>
+                        </div>
+                        <i class="bi bi-file-earmark-text fs-1 primary-text border rounded-pill p-3"></i>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="p-3 bg-white shadow-sm d-flex justify-content-around align-items-center rounded">
+                        <div>
+                            <h3 class="fs-2"><?php echo $total_questions; ?></h3>
+                            <p class="fs-5 text-muted mb-0">Questions</p>
+                        </div>
+                        <i class="bi bi-patch-question fs-1 primary-text border rounded-pill p-3"></i>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="p-3 bg-white shadow-sm d-flex justify-content-around align-items-center rounded">
+                        <div>
+                            <h3 class="fs-2"><?php echo $completed_attempts; ?></h3>
+                            <p class="fs-5 text-muted mb-0">Tests Taken</p>
+                        </div>
+                        <i class="bi bi-check2-circle fs-1 primary-text border rounded-pill p-3"></i>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row g-4 my-3">
+                <div class="col-md-6">
+                    <div class="card shadow-sm h-100">
+                        <div class="card-header">
+                            <h5 class="mb-0"><i class="bi bi-person-plus me-2"></i>Recent Registrations</h5>
+                        </div>
+                        <div class="card-body">
+                            <ul class="list-group list-group-flush">
+                                <?php if (empty($recent_users)): ?>
+                                    <li class="list-group-item">No recent registrations.</li>
+                                <?php else: ?>
+                                    <?php foreach($recent_users as $user): ?>
+                                        <li class="list-group-item d-flex justify-content-between align-items-start">
+                                            <div class="ms-2 me-auto">
+                                                <div class="fw-bold"><?php echo htmlspecialchars($user['first_name'] . ' ' . $user['last_name']); ?></div>
+                                                <?php echo htmlspecialchars($user['email']); ?>
+                                            </div>
+                                            <span class="badge bg-light text-dark rounded-pill"><?php echo date('M d', strtotime($user['created_at'])); ?></span>
+                                        </li>
+                                    <?php endforeach; ?>
+                                <?php endif; ?>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                     <div class="card shadow-sm h-100">
+                        <div class="card-header">
+                            <h5 class="mb-0"><i class="bi bi-check-circle-fill me-2"></i>Recent Test Attempts</h5>
+                        </div>
+                        <div class="card-body">
+                            <ul class="list-group list-group-flush">
+                                <?php if (empty($recent_attempts)): ?>
+                                    <li class="list-group-item">No recent test attempts.</li>
+                                <?php else: ?>
+                                    <?php foreach($recent_attempts as $attempt): ?>
+                                         <li class="list-group-item d-flex justify-content-between align-items-start">
+                                            <div class="ms-2 me-auto">
+                                                <div class="fw-bold"><?php echo htmlspecialchars($attempt['first_name'] . ' ' . $attempt['last_name']); ?></div>
+                                                <span class="text-muted"><?php echo htmlspecialchars($attempt['title']); ?></span>
+                                            </div>
+                                            <span class="badge bg-primary rounded-pill"><?php echo number_format($attempt['score'], 1); ?>%</span>
+                                        </li>
+                                    <?php endforeach; ?>
+                                <?php endif; ?>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
             </div>
 
         </div>
