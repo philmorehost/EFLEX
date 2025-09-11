@@ -17,9 +17,13 @@
             <i class="bi bi-person-rolodex me-2"></i> Role Management
         </a>
         <?php endif; ?>
-        <a href="#" class="list-group-item list-group-item-action bg-transparent text-dark fw-bold">
-            <i class="bi bi-card-checklist me-2"></i> Test Management
+        <a href="#testSubmenu" data-bs-toggle="collapse" class="list-group-item list-group-item-action bg-transparent text-dark fw-bold">
+            <i class="bi bi-card-checklist me-2"></i> Test Management <i class="bi bi-chevron-down float-end"></i>
         </a>
+        <div class="collapse" id="testSubmenu">
+            <a href="<?php echo BASE_URL; ?>admin/questions.php" class="list-group-item list-group-item-action bg-transparent text-dark ps-5">Question Bank</a>
+            <a href="#" class="list-group-item list-group-item-action bg-transparent text-dark ps-5">Manage Tests</a>
+        </div>
         <a href="#" class="list-group-item list-group-item-action bg-transparent text-dark fw-bold">
             <i class="bi bi-bar-chart-line me-2"></i> Results & Analytics
         </a>

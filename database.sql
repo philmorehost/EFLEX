@@ -1,5 +1,5 @@
 -- CBT Platform Database Schema
--- Version 1.1
+-- Version 1.2
 
 -- Set SQL mode and timezone
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
@@ -47,11 +47,8 @@ CREATE TABLE `users` (
 --
 -- Dumping data for table `users`
 --
--- Default Super Admin user
--- Password: superadmin
 INSERT INTO `users` (`user_id`, `role_id`, `first_name`, `last_name`, `email`, `password_hash`, `status`) VALUES
 (1, 1, 'Super', 'Admin', 'superadmin@cbt.com', '$2y$10$2.A/9.j0d.fE4wO5.C7q.uY3gC7L0q6B/2eK5B/gC3vH6zJ9tO3i', 'active');
-
 
 -- --------------------------------------------------------
 
@@ -137,21 +134,61 @@ CREATE TABLE `role_permissions` (
 --
 -- Dumping data for table `role_permissions`
 --
--- Super Admin (all permissions)
 INSERT INTO `role_permissions` (`role_id`, `permission_id`) VALUES
-(1, 1), (1, 2), (1, 3), (1, 4), (1, 5), (1, 6), (1, 7), (1, 8),
-(1, 9), (1, 10), (1, 11), (1, 12), (1, 13), (1, 14);
-
--- Admin (user and test management)
-INSERT INTO `role_permissions` (`role_id`, `permission_id`) VALUES
-(2, 1), (2, 2), (2, 3), (2, 4), (2, 9), (2, 10), (2, 11), (2, 12);
-
--- Staff (test management only)
-INSERT INTO `role_permissions` (`role_id`, `permission_id`) VALUES
+(1, 1), (1, 2), (1, 3), (1, 4), (1, 5), (1, 6), (1, 7), (1, 8), (1, 9), (1, 10), (1, 11), (1, 12), (1, 13), (1, 14),
+(2, 1), (2, 2), (2, 3), (2, 4), (2, 9), (2, 10), (2, 11), (2, 12),
 (3, 9), (3, 10), (3, 11);
 
--- User (no admin permissions by default)
--- (No entries for role_id 4)
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `question_categories`
+--
+CREATE TABLE `question_categories` (
+  `category_id` int(11) NOT NULL AUTO_INCREMENT,
+  `category_name` varchar(255) NOT NULL,
+  `description` text,
+  PRIMARY KEY (`category_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+--
+-- Dumping data for table `question_categories`
+--
+INSERT INTO `question_categories` (`category_id`, `category_name`, `description`) VALUES
+(1, 'General Knowledge', 'A variety of general topics.'),
+(2, 'Mathematics', 'Questions related to mathematical concepts.'),
+(3, 'History', 'Questions about historical events and figures.');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `questions`
+--
+CREATE TABLE `questions` (
+  `question_id` int(11) NOT NULL AUTO_INCREMENT,
+  `category_id` int(11) NOT NULL,
+  `question_type` enum('multiple_choice','true_false','short_answer') NOT NULL,
+  `question_text` text NOT NULL,
+  `created_by` int(11) NOT NULL,
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`question_id`),
+  KEY `category_id` (`category_id`),
+  KEY `created_by` (`created_by`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `options`
+--
+CREATE TABLE `options` (
+  `option_id` int(11) NOT NULL AUTO_INCREMENT,
+  `question_id` int(11) NOT NULL,
+  `option_text` text NOT NULL,
+  `is_correct` tinyint(1) NOT NULL DEFAULT '0',
+  PRIMARY KEY (`option_id`),
+  KEY `question_id` (`question_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- --------------------------------------------------------
 
@@ -177,3 +214,16 @@ ALTER TABLE `permissions`
 ALTER TABLE `role_permissions`
   ADD CONSTRAINT `role_permissions_ibfk_1` FOREIGN KEY (`role_id`) REFERENCES `roles` (`role_id`) ON DELETE CASCADE ON UPDATE CASCADE,
   ADD CONSTRAINT `role_permissions_ibfk_2` FOREIGN KEY (`permission_id`) REFERENCES `permissions` (`permission_id`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+--
+-- Constraints for table `questions`
+--
+ALTER TABLE `questions`
+  ADD CONSTRAINT `questions_ibfk_1` FOREIGN KEY (`category_id`) REFERENCES `question_categories` (`category_id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  ADD CONSTRAINT `questions_ibfk_2` FOREIGN KEY (`created_by`) REFERENCES `users` (`user_id`) ON DELETE NO ACTION ON UPDATE CASCADE;
+
+--
+-- Constraints for table `options`
+--
+ALTER TABLE `options`
+  ADD CONSTRAINT `options_ibfk_1` FOREIGN KEY (`question_id`) REFERENCES `questions` (`question_id`) ON DELETE CASCADE ON UPDATE CASCADE;
