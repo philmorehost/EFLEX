@@ -27,9 +27,14 @@
         <a href="#" class="list-group-item list-group-item-action bg-transparent text-dark fw-bold">
             <i class="bi bi-bar-chart-line me-2"></i> Results & Analytics
         </a>
-        <a href="#" class="list-group-item list-group-item-action bg-transparent text-dark fw-bold">
+        <a href="<?php echo BASE_URL; ?>admin/bulk-email.php" class="list-group-item list-group-item-action bg-transparent text-dark fw-bold">
+            <i class="bi bi-envelope me-2"></i> Bulk Email
+        </a>
+        <?php if (isset($_SESSION['role_id']) && $_SESSION['role_id'] == 1): // Super Admin only ?>
+        <a href="<?php echo BASE_URL; ?>admin/settings.php" class="list-group-item list-group-item-action bg-transparent text-dark fw-bold">
             <i class="bi bi-gear me-2"></i> Settings
         </a>
+        <?php endif; ?>
         <a href="<?php echo BASE_URL; ?>logout.php" class="list-group-item list-group-item-action bg-transparent text-danger fw-bold">
             <i class="bi bi-box-arrow-left me-2"></i> Logout
         </a>
