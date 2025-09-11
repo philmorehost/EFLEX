@@ -22,7 +22,7 @@
         </a>
         <div class="collapse" id="testSubmenu">
             <a href="<?php echo BASE_URL; ?>admin/questions.php" class="list-group-item list-group-item-action bg-transparent text-dark ps-5">Question Bank</a>
-            <a href="#" class="list-group-item list-group-item-action bg-transparent text-dark ps-5">Manage Tests</a>
+            <a href="<?php echo BASE_URL; ?>admin/tests.php" class="list-group-item list-group-item-action bg-transparent text-dark ps-5">Manage Tests</a>
         </div>
         <a href="#" class="list-group-item list-group-item-action bg-transparent text-dark fw-bold">
             <i class="bi bi-bar-chart-line me-2"></i> Results & Analytics

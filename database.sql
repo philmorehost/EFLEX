@@ -1,5 +1,5 @@
 -- CBT Platform Database Schema
--- Version 1.2
+-- Version 1.3
 
 -- Set SQL mode and timezone
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
@@ -193,6 +193,36 @@ CREATE TABLE `options` (
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `tests`
+--
+CREATE TABLE `tests` (
+  `test_id` int(11) NOT NULL AUTO_INCREMENT,
+  `title` varchar(255) NOT NULL,
+  `description` text,
+  `time_limit_minutes` int(11) DEFAULT NULL,
+  `passing_score` int(11) NOT NULL DEFAULT '70',
+  `created_by` int(11) NOT NULL,
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`test_id`),
+  KEY `created_by` (`created_by`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `test_questions`
+--
+CREATE TABLE `test_questions` (
+  `test_id` int(11) NOT NULL,
+  `question_id` int(11) NOT NULL,
+  `question_order` int(11) NOT NULL,
+  PRIMARY KEY (`test_id`,`question_id`),
+  KEY `question_id` (`question_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- --------------------------------------------------------
+
+--
 -- Constraints for dumped tables
 --
 
@@ -227,3 +257,16 @@ ALTER TABLE `questions`
 --
 ALTER TABLE `options`
   ADD CONSTRAINT `options_ibfk_1` FOREIGN KEY (`question_id`) REFERENCES `questions` (`question_id`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+--
+-- Constraints for table `tests`
+--
+ALTER TABLE `tests`
+  ADD CONSTRAINT `tests_ibfk_1` FOREIGN KEY (`created_by`) REFERENCES `users` (`user_id`) ON DELETE NO ACTION ON UPDATE CASCADE;
+
+--
+-- Constraints for table `test_questions`
+--
+ALTER TABLE `test_questions`
+  ADD CONSTRAINT `test_questions_ibfk_1` FOREIGN KEY (`test_id`) REFERENCES `tests` (`test_id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  ADD CONSTRAINT `test_questions_ibfk_2` FOREIGN KEY (`question_id`) REFERENCES `questions` (`question_id`) ON DELETE CASCADE ON UPDATE CASCADE;
