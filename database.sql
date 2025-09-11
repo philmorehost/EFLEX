@@ -62,3 +62,18 @@ INSERT INTO `users` (`role_id`, `first_name`, `last_name`, `email`, `password_ha
 --
 ALTER TABLE `users`
   ADD CONSTRAINT `users_ibfk_1` FOREIGN KEY (`role_id`) REFERENCES `roles` (`role_id`) ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `password_resets`
+--
+CREATE TABLE `password_resets` (
+  `reset_id` int(11) NOT NULL AUTO_INCREMENT,
+  `email` varchar(255) NOT NULL,
+  `token` varchar(255) NOT NULL,
+  `expires_at` int(11) NOT NULL,
+  PRIMARY KEY (`reset_id`),
+  UNIQUE KEY `token` (`token`),
+  KEY `email` (`email`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
