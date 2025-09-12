@@ -66,29 +66,28 @@ require_once __DIR__ . '/../includes/header.php';
 
             <!-- Stat Cards -->
             <div class="row g-4 my-3">
-                <!-- (Card HTML remains the same) -->
                  <div class="col-md-3">
                     <div class="p-3 bg-white shadow-sm d-flex justify-content-around align-items-center rounded">
                         <div><h3 class="fs-2"><?php echo $total_users; ?></h3><p class="fs-5 text-muted mb-0">Total Users</p></div>
-                        <i class="bi bi-people fs-1 primary-text border rounded-pill p-3"></i>
+                        <i class="bi bi-people fs-1 card-icon bg-info-light"></i>
                     </div>
                 </div>
                 <div class="col-md-3">
                     <div class="p-3 bg-white shadow-sm d-flex justify-content-around align-items-center rounded">
                         <div><h3 class="fs-2"><?php echo $total_tests; ?></h3><p class="fs-5 text-muted mb-0">Total Tests</p></div>
-                        <i class="bi bi-file-earmark-text fs-1 primary-text border rounded-pill p-3"></i>
+                        <i class="bi bi-file-earmark-text fs-1 card-icon bg-success-light"></i>
                     </div>
                 </div>
                 <div class="col-md-3">
                     <div class="p-3 bg-white shadow-sm d-flex justify-content-around align-items-center rounded">
                         <div><h3 class="fs-2"><?php echo $total_questions; ?></h3><p class="fs-5 text-muted mb-0">Questions</p></div>
-                        <i class="bi bi-patch-question fs-1 primary-text border rounded-pill p-3"></i>
+                        <i class="bi bi-patch-question fs-1 card-icon bg-warning-light"></i>
                     </div>
                 </div>
                 <div class="col-md-3">
                     <div class="p-3 bg-white shadow-sm d-flex justify-content-around align-items-center rounded">
                         <div><h3 class="fs-2"><?php echo $completed_attempts; ?></h3><p class="fs-5 text-muted mb-0">Tests Taken</p></div>
-                        <i class="bi bi-check2-circle fs-1 primary-text border rounded-pill p-3"></i>
+                        <i class="bi bi-check2-circle fs-1 card-icon bg-danger-light"></i>
                     </div>
                 </div>
             </div>

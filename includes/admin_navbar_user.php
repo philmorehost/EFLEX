@@ -9,8 +9,10 @@
                 <i class="bi bi-person-circle me-2"></i><?php echo htmlspecialchars($_SESSION['first_name']); ?>
             </a>
             <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
-                <li><a class="dropdown-item" href="#">Profile</a></li>
-                <li><a class="dropdown-item" href="#">Settings</a></li>
+                <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>admin/profile.php">Profile</a></li>
+                <?php if (isset($_SESSION['role_id']) && $_SESSION['role_id'] == 1): // Super Admin only ?>
+                <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>admin/settings.php">Settings</a></li>
+                <?php endif; ?>
                 <li><hr class="dropdown-divider"></li>
                 <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>logout.php">Logout</a></li>
             </ul>

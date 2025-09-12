@@ -21,6 +21,7 @@
             <i class="bi bi-card-checklist me-2"></i> Test Management <i class="bi bi-chevron-down float-end"></i>
         </a>
         <div class="collapse" id="testSubmenu">
+            <a href="<?php echo BASE_URL; ?>admin/question-categories.php" class="list-group-item list-group-item-action bg-transparent text-dark ps-5">Categories</a>
             <a href="<?php echo BASE_URL; ?>admin/questions.php" class="list-group-item list-group-item-action bg-transparent text-dark ps-5">Question Bank</a>
             <a href="<?php echo BASE_URL; ?>admin/tests.php" class="list-group-item list-group-item-action bg-transparent text-dark ps-5">Manage Tests</a>
         </div>
