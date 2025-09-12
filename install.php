@@ -29,7 +29,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     } elseif (!file_exists('database.sql')) {
         $messages[] = ['type' => 'danger', 'text' => '<b>Error:</b> `database.sql` file not found.'];
     } else {
-        // List of tables to drop, in reverse order of creation to respect foreign keys
+        // --- Step 1: Drop existing tables ---
         $tables = [
             'student_answers', 'test_attempts', 'test_questions', 'tests', 'options', 'questions',
             'question_categories', 'role_permissions', 'permissions', 'permission_categories',
@@ -44,7 +44,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
         $messages[] = ['type' => 'success', 'text' => 'Existing tables dropped successfully.'];
 
-        // Get SQL content and execute
+        // --- Step 2: Re-create tables from SQL file ---
         $sql_content = file_get_contents('database.sql');
         if ($conn->multi_query($sql_content)) {
             // Clear results from each query
@@ -53,9 +53,24 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     $result->free();
                 }
             } while ($conn->more_results() && $conn->next_result());
-
             $messages[] = ['type' => 'success', 'text' => 'Database tables created and seeded successfully!'];
+
+            // --- Step 3: Programmatically set the Super Admin password ---
+            $new_admin_password = 'password123';
+            $hashed_password = password_hash($new_admin_password, PASSWORD_DEFAULT);
+
+            $update_stmt = $conn->prepare("UPDATE users SET password_hash = ? WHERE user_id = 1");
+            $update_stmt->bind_param("s", $hashed_password);
+
+            if ($update_stmt->execute()) {
+                 $messages[] = ['type' => 'success', 'text' => 'Super Admin password has been reset.'];
+            } else {
+                 $messages[] = ['type' => 'danger', 'text' => 'Could not reset Super Admin password.'];
+            }
+            $update_stmt->close();
+
             $messages[] = ['type' => 'warning', 'text' => '<strong>IMPORTANT:</strong> For security reasons, please DELETE THIS `install.php` FILE immediately.'];
+
         } else {
             $messages[] = ['type' => 'danger', 'text' => '<b>Database Error during creation:</b> ' . $conn->error];
         }
@@ -83,9 +98,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             <div class="alert alert-danger">
                 <strong>WARNING:</strong> This script will completely wipe and re-create all CBT platform tables in your database (<code><?php echo defined('DB_NAME') ? DB_NAME : 'N/A'; ?></code>).
                 <br><strong>Any existing data will be permanently lost.</strong>
-                <br>Please back up your database before proceeding if you have important data.
             </div>
-            <p>This process is necessary to update the database schema to the latest version and fix errors like missing tables.</p>
+            <p>This process is necessary to update the database schema to the latest version and fix any installation issues.</p>
              <?php if (!$config_exists): ?>
                  <div class="alert alert-danger">The <code>includes/config.php</code> file could not be found. Please ensure it exists and contains the correct database credentials.</div>
              <?php else: ?>
@@ -95,8 +109,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
              <?php endif; ?>
         <?php endif; ?>
 
-        <?php if (!empty($messages) && strpos(end($messages)['text'], 'successfully') !== false): ?>
-             <a href="index.php" style="display:inline-block; margin-top: 20px; background-color: #28a745;" class="btn">Go to Homepage</a>
+        <?php if (!empty($messages) && strpos(end($messages)['text'], 'DELETE THIS') !== false): ?>
+             <div class="alert alert-info">
+                 <p class="mb-0"><strong>Login with the new Super Admin credentials:</strong></p>
+                 <p class="mb-0"><strong>Email:</strong> <code>superadmin@cbt.com</code></p>
+                 <p class="mb-0"><strong>Password:</strong> <code>password123</code></p>
+             </div>
+             <a href="login.php" style="display:inline-block; margin-top: 20px; background-color: #28a745;" class="btn">Go to Login Page</a>
         <?php endif; ?>
     </div>
 </body>
