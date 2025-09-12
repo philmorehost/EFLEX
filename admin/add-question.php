@@ -38,14 +38,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     throw new Exception("All fields are required for Question #" . ($q_idx + 1));
                 }
 
-                // Insert into questions table
                 $stmt = $conn->prepare("INSERT INTO questions (category_id, question_type, question_text, created_by) VALUES (?, ?, ?, ?)");
                 $stmt->bind_param("issi", $category_id, $question_type, $question_text, $created_by);
                 $stmt->execute();
                 $question_id = $stmt->insert_id;
                 $stmt->close();
 
-                // Handle options based on question type
                 if ($question_type === 'multiple_choice') {
                     $options = $q_data['options'] ?? [];
                     $correct_option_index = $q_data['is_correct'] ?? -1;
@@ -110,7 +108,7 @@ require_once __DIR__ . '/../includes/header.php';
                     <?php endif; ?>
                     <form action="add-question.php" method="POST" id="bulk-question-form">
                         <div id="questions-container">
-                            <!-- Question Block #1 -->
+                            <!-- Question Block Template (will be cloned) -->
                             <div class="card shadow-sm mb-4 question-block">
                                 <div class="card-header d-flex justify-content-between align-items-center">
                                     <h5 class="mb-0">Question 1</h5>
@@ -139,7 +137,9 @@ require_once __DIR__ . '/../includes/header.php';
                                     </div>
                                     <div class="mb-3">
                                         <label class="form-label">Question Text</label>
-                                        <textarea class="form-control ck-editor" name="questions[0][question_text]" rows="3"></textarea>
+                                        <div class="editor-wrapper">
+                                            <textarea class="form-control" name="questions[0][question_text]" rows="3"></textarea>
+                                        </div>
                                     </div>
                                     <div class="dynamic-fields-container"></div>
                                 </div>
@@ -160,10 +160,15 @@ require_once __DIR__ . '/../includes/header.php';
 
 <script>
 let questionIndex = 1;
+let editors = {}; // Keep track of editor instances
 
 function initializeCKEditor(element) {
     ClassicEditor
         .create(element)
+        .then(editor => {
+            // Store the editor instance using a unique key
+            editors[element.id] = editor;
+        })
         .catch(error => {
             console.error('CKEditor 5 Error:', error);
         });
@@ -197,16 +202,15 @@ function handleQuestionTypeChange(selectElement) {
 }
 
 document.addEventListener('DOMContentLoaded', function() {
-    // Initialize first editor
-    initializeCKEditor(document.querySelector('.ck-editor'));
+    const firstTextarea = document.querySelector('textarea[name="questions[0][question_text]"]');
+    firstTextarea.id = 'editor-0';
+    initializeCKEditor(firstTextarea);
 
-    document.getElementById('questions-container').addEventListener('change', function(e) {
-        if (e.target && e.target.classList.contains('question-type-select')) {
-            handleQuestionTypeChange(e.target);
-        }
+    document.getElementById('questions-container').addEventListener('change', e => {
+        if (e.target && e.target.classList.contains('question-type-select')) handleQuestionTypeChange(e.target);
     });
 
-    document.getElementById('questions-container').addEventListener('click', function(e) {
+    document.getElementById('questions-container').addEventListener('click', e => {
         if (e.target && e.target.classList.contains('add-mc-option-btn')) {
             const wrapper = e.target.previousElementSibling;
             const qIndex = wrapper.querySelector('input[type="radio"]').name.match(/\[(\d+)\]/)[1];
@@ -223,30 +227,34 @@ document.addEventListener('DOMContentLoaded', function() {
         const firstBlock = container.querySelector('.question-block');
         const newBlock = firstBlock.cloneNode(true);
 
-        // Update header and names/ids
         newBlock.querySelector('h5').textContent = `Question ${questionIndex + 1}`;
         newBlock.querySelectorAll('[name]').forEach(el => {
             el.name = el.name.replace(/\[\d+\]/, `[${questionIndex}]`);
         });
 
-        // Clear values and destroy old CKEditor instance if any
         newBlock.querySelector('.dynamic-fields-container').innerHTML = '';
-        const oldEditor = newBlock.querySelector('.ck-editor-instance');
-        if (oldEditor) oldEditor.remove();
-
-        const newTextarea = newBlock.querySelector('textarea');
-        newTextarea.value = '';
-        newTextarea.id = `editor-${questionIndex}`; // Give it a unique ID
+        const editorWrapper = newBlock.querySelector('.editor-wrapper');
+        const newTextareaId = `editor-${questionIndex}`;
+        editorWrapper.innerHTML = `<textarea class="form-control" name="questions[${questionIndex}][question_text]" rows="3" id="${newTextareaId}"></textarea>`;
 
         container.appendChild(newBlock);
-        initializeCKEditor(newTextarea);
+        initializeCKEditor(document.getElementById(newTextareaId));
         questionIndex++;
     });
 });
 
 function removeQuestionBlock(button) {
     if (document.querySelectorAll('.question-block').length > 1) {
-        button.closest('.question-block').remove();
+        const block = button.closest('.question-block');
+        const textarea = block.querySelector('textarea');
+        if (textarea && editors[textarea.id]) {
+            editors[textarea.id].destroy().then(() => {
+                delete editors[textarea.id];
+                block.remove();
+            });
+        } else {
+            block.remove();
+        }
     } else {
         alert("You must have at least one question.");
     }
