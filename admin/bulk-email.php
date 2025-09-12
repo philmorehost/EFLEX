@@ -30,8 +30,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
 require_once __DIR__ . '/../includes/header.php';
 ?>
-<!-- CKEditor CDN -->
-<script src="https://cdn.ckeditor.com/4.16.2/standard/ckeditor.js"></script>
+<!-- CKEditor 5 CDN -->
+<script src="https://cdn.ckeditor.com/ckeditor5/35.4.0/classic/ckeditor.js"></script>
 
 <div class="d-flex" id="admin-wrapper">
     <?php include __DIR__ . '/../includes/admin_sidebar.php'; ?>
@@ -79,8 +79,12 @@ require_once __DIR__ . '/../includes/header.php';
 </div>
 
 <script>
-    // Initialize CKEditor
-    CKEDITOR.replace('message');
+    // Initialize CKEditor 5
+    ClassicEditor
+        .create(document.querySelector('#message'))
+        .catch(error => {
+            console.error('CKEditor 5 Error:', error);
+        });
 </script>
 
 <?php require_once __DIR__ . '/../includes/footer.php'; ?>
