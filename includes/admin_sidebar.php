@@ -25,9 +25,13 @@
             <a href="<?php echo BASE_URL; ?>admin/questions.php" class="list-group-item list-group-item-action bg-transparent text-dark ps-5">Question Bank</a>
             <a href="<?php echo BASE_URL; ?>admin/tests.php" class="list-group-item list-group-item-action bg-transparent text-dark ps-5">Manage Tests</a>
         </div>
-        <a href="<?php echo BASE_URL; ?>admin/results.php" class="list-group-item list-group-item-action bg-transparent text-dark fw-bold">
-            <i class="bi bi-bar-chart-line me-2"></i> Results & Analytics
+        <a href="#resultsSubmenu" data-bs-toggle="collapse" class="list-group-item list-group-item-action bg-transparent text-dark fw-bold">
+            <i class="bi bi-bar-chart-line me-2"></i> Results & Analytics <i class="bi bi-chevron-down float-end"></i>
         </a>
+        <div class="collapse" id="resultsSubmenu">
+            <a href="<?php echo BASE_URL; ?>admin/results.php" class="list-group-item list-group-item-action bg-transparent text-dark ps-5">Test Results</a>
+            <a href="<?php echo BASE_URL; ?>admin/live-monitoring.php" class="list-group-item list-group-item-action bg-transparent text-dark ps-5">Live Monitoring</a>
+        </div>
         <a href="<?php echo BASE_URL; ?>admin/bulk-email.php" class="list-group-item list-group-item-action bg-transparent text-dark fw-bold">
             <i class="bi bi-envelope me-2"></i> Bulk Email
         </a>
