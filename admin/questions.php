@@ -56,9 +56,17 @@ function truncate_text($text, $length = 100) {
                 <div class="col">
                     <div class="d-flex justify-content-between align-items-center mb-3">
                         <h3 class="fs-4 mb-0">All Questions</h3>
-                        <a href="add-question.php" class="btn btn-primary">
-                            <i class="bi bi-plus-lg me-2"></i>Add New Question
-                        </a>
+                        <div>
+                            <a href="import-questions.php" class="btn btn-secondary">
+                                <i class="bi bi-upload me-2"></i>Import
+                            </a>
+                            <a href="export-questions.php" class="btn btn-info text-white">
+                                <i class="bi bi-download me-2"></i>Export to CSV
+                            </a>
+                            <a href="add-question.php" class="btn btn-primary">
+                                <i class="bi bi-plus-lg me-2"></i>Add New Question
+                            </a>
+                        </div>
                     </div>
                     <div class="table-responsive">
                         <table class="table bg-white rounded shadow-sm table-hover">
