@@ -1,6 +1,8 @@
 <?php
 $pageTitle = "Take Test";
 require_once __DIR__ . '/includes/config.php';
+require_once __DIR__ . '/includes/htmlpurifier/HTMLPurifier.standalone.php';
+$purifier = new HTMLPurifier();
 
 // --- Auth Check ---
 if (!isset($_SESSION['user_id']) || $_SESSION['role_id'] != 4) {
@@ -106,7 +108,7 @@ require_once __DIR__ . '/includes/header.php';
                 <div class="card">
                     <div class="card-header">Question <?php echo $index + 1; ?> of <?php echo count($questions); ?></div>
                     <div class="card-body">
-                        <p class="card-text fs-5"><?php echo nl2br(htmlspecialchars($q['question_text'])); ?></p>
+                        <div class="card-text fs-5"><?php echo $purifier->purify($q['question_text']); ?></div>
                         <hr>
                         <div class="options-area" data-question-id="<?php echo $q['question_id']; ?>">
                             <?php if ($q['question_type'] === 'multiple_choice' || $q['question_type'] === 'true_false'): ?>
