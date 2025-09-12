@@ -25,8 +25,13 @@ define('DB_NAME', 'cbt_platform');
 // --- Site Configuration ---
 // The name of the application.
 define('SITE_NAME', 'CBT Platform');
-// The base URL of the application. MUST end with a forward slash (/).
-define('BASE_URL', 'http://localhost/cbt/'); // Adjust this to your project's root URL
+// The base URL of the application.
+// Dynamically determine the base URL to make the application more portable.
+$protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off' || $_SERVER['SERVER_PORT'] == 443) ? "https://" : "http://";
+$host = $_SERVER['HTTP_HOST'];
+// Assumes the project is in the root directory of a domain or subdomain.
+// For subdirectory installs, this might need adjustment e.g. $host . '/subdirectory/';
+define('BASE_URL', $protocol . $host . '/');
 
 // --- Create Database Connection using MySQLi ---
 $conn = new mysqli(DB_HOST, DB_USER, DB_PASS, DB_NAME);

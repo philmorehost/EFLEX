@@ -60,7 +60,8 @@ body {
 }
 
 #page-content-wrapper {
-    min-width: 100vw;
+    width: 100%;
+    transition: margin 0.25s ease-out;
 }
 
 #admin-wrapper.toggled #sidebar-wrapper {

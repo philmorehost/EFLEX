@@ -3,6 +3,17 @@
 $(document).ready(function() {
     console.log("CBT Platform is ready!");
 
+    // --- Admin Sidebar Toggle Logic ---
+    var menuToggle = document.getElementById("menu-toggle");
+    if (menuToggle) {
+        menuToggle.addEventListener("click", function() {
+            var adminWrapper = document.getElementById("admin-wrapper");
+            if (adminWrapper) {
+                adminWrapper.classList.toggle("toggled");
+            }
+        });
+    }
+
     // --- PWA Install Prompt Logic ---
     let deferredPrompt;
     const installModal = new bootstrap.Modal(document.getElementById('pwaInstallModal'));

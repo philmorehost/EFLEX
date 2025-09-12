@@ -153,13 +153,6 @@ require_once __DIR__ . '/../includes/header.php';
 </div>
 <!-- /#page-content-wrapper -->
 
-<script>
-    // JS for sidebar toggle
-    document.getElementById("menu-toggle").addEventListener("click", function() {
-        document.getElementById("admin-wrapper").classList.toggle("toggled");
-    });
-</script>
-
 <?php
 // Use __DIR__ to ensure the path is correct
 require_once __DIR__ . '/../includes/footer.php';
