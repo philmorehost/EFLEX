@@ -1,6 +1,11 @@
 <?php
 $pageTitle = "Add Questions";
 require_once __DIR__ . '/../includes/config.php';
+require_once __DIR__ . '/../includes/lib/htmlpurifier/library/HTMLPurifier.standalone.php';
+
+// --- HTML Purifier Setup ---
+$purifier_config = HTMLPurifier_Config::createDefault();
+$purifier = new HTMLPurifier($purifier_config);
 
 // --- Auth and Role Check ---
 if (!isset($_SESSION['user_id'])) {
@@ -32,7 +37,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             foreach ($posted_questions as $q_idx => $q_data) {
                 $category_id = $q_data['category_id'];
                 $question_type = $q_data['question_type'];
-                $question_text = trim($q_data['question_text']);
+                $question_text = $purifier->purify(trim($q_data['question_text']));
 
                 if (empty($category_id) || empty($question_type) || empty($question_text)) {
                     throw new Exception("All fields are required for Question #" . ($q_idx + 1));
@@ -53,7 +58,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     foreach ($options as $opt_idx => $option_text) {
                         if (!empty(trim($option_text))) {
                             $is_correct = ($opt_idx == $correct_option_index) ? 1 : 0;
-                            $opt_stmt->bind_param("isi", $question_id, $option_text, $is_correct);
+                            $purified_option_text = $purifier->purify(trim($option_text));
+                            $opt_stmt->bind_param("isi", $question_id, $purified_option_text, $is_correct);
                             $opt_stmt->execute();
                         }
                     }

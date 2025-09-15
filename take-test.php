@@ -1,8 +1,11 @@
 <?php
 $pageTitle = "Take Test";
 require_once __DIR__ . '/includes/config.php';
-require_once __DIR__ . '/includes/htmlpurifier/HTMLPurifier.standalone.php';
-$purifier = new HTMLPurifier();
+require_once __DIR__ . '/includes/lib/htmlpurifier/library/HTMLPurifier.standalone.php';
+
+// --- HTML Purifier Setup ---
+$purifier_config = HTMLPurifier_Config::createDefault();
+$purifier = new HTMLPurifier($purifier_config);
 
 // --- Auth Check ---
 if (!isset($_SESSION['user_id']) || $_SESSION['role_id'] != 4) {

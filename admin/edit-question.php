@@ -1,6 +1,11 @@
 <?php
 $pageTitle = "Edit Question";
 require_once __DIR__ . '/../includes/config.php';
+require_once __DIR__ . '/../includes/lib/htmlpurifier/library/HTMLPurifier.standalone.php';
+
+// --- HTML Purifier Setup ---
+$purifier_config = HTMLPurifier_Config::createDefault();
+$purifier = new HTMLPurifier($purifier_config);
 
 // --- Auth and Role Check ---
 if (!isset($_SESSION['user_id'])) {
@@ -48,7 +53,7 @@ $errors = [];
 // --- Form Submission Logic ---
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $category_id = $_POST['category_id'];
-    $question_text = trim($_POST['question_text']);
+    $question_text = $purifier->purify(trim($_POST['question_text']));
 
     if (empty($category_id) || empty($question_text)) {
         $errors[] = "Category and question text are required.";
@@ -75,7 +80,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 foreach ($posted_options as $index => $option_text) {
                     if (!empty(trim($option_text))) {
                         $is_correct = ($index == $correct_option_index) ? 1 : 0;
-                        $opt_stmt->bind_param("isi", $question_id_to_edit, $option_text, $is_correct);
+                        $purified_option_text = $purifier->purify(trim($option_text));
+                        $opt_stmt->bind_param("isi", $question_id_to_edit, $purified_option_text, $is_correct);
                         $opt_stmt->execute();
                     }
                 }

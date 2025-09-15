@@ -15,7 +15,6 @@ if (isset($_SESSION['user_id'])) {
 
     // If user is a regular User, display the student dashboard
     if ($role_id == 4) {
-        require_once __DIR__ . '/includes/student_navbar.php';
         $user_id = $_SESSION['user_id'];
 
         // Fetch all available tests and join with attempts to see if user has taken them
