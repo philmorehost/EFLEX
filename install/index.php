@@ -37,7 +37,7 @@ if ($action === 'savedb' && $_SERVER['REQUEST_METHOD'] === 'POST') {
         'pass' => $_POST['db_pass']
     ];
     $_SESSION['install_stage'] = 3; // Set stage for installation
-    header('Location: install.php');
+    header('Location: index.php');
     exit;
 }
 
@@ -46,7 +46,7 @@ if ($action === 'next_stage') {
     if (isset($_SESSION['install_stage']) && $_SESSION['install_stage'] == 1) {
         $_SESSION['install_stage'] = 2;
     }
-    header('Location: install.php');
+    header('Location: index.php');
     exit;
 }
 
@@ -55,7 +55,7 @@ if ($action === 'reset') {
     $_SESSION['install_stage'] = 1;
     unset($_SESSION['db_details']); // Clear stored DB details
     unset($_SESSION['db_error']);
-    header('Location: install.php');
+    header('Location: index.php');
     exit;
 }
 
@@ -67,10 +67,10 @@ if (!isset($_SESSION['install_stage'])) {
 $stage = $_SESSION['install_stage'];
 
 $stages = [
-    1 => 'install/stage1_requirements.php',
-    2 => 'install/stage2_database.php',
-    3 => 'install/stage3_install.php',
-    4 => 'install/stage4_success.php',
+    1 => 'stage1_requirements.php',
+    2 => 'stage2_database.php',
+    3 => 'stage3_install.php',
+    4 => 'stage4_success.php',
 ];
 
 $stage_file = $stages[$stage] ?? $stages[1];

@@ -22,7 +22,7 @@ $config_success = false;
 $error = null;
 
 // --- 3. Execute SQL from database.sql ---
-$sql_file_path = __DIR__ . '/../../database.sql';
+$sql_file_path = __DIR__ . '/../database.sql';
 if (!file_exists($sql_file_path)) {
     $error = "The `database.sql` file could not be found. Installation cannot continue.";
 } else {
@@ -98,7 +98,7 @@ if (!\$conn->set_charset("utf8mb4")) {
 ?>
 EOT;
 
-    $config_path = __DIR__ . '/../../includes/config.php';
+    $config_path = __DIR__ . '/../includes/config.php';
     if (!file_put_contents($config_path, $config_template)) {
         $error = "Could not write to `includes/config.php`. Please check file permissions.";
     } else {
