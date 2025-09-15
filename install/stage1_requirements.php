@@ -45,9 +45,9 @@ foreach ($requirements as $req) {
 
 <div style="margin-top: 20px; text-align: right;">
     <?php if ($all_ok): ?>
-        <a href="install.php?action=next_stage" class="btn">Next Step &raquo;</a>
+        <a href="index.php?action=next_stage" class="btn">Next Step &raquo;</a>
     <?php else: ?>
         <p class="alert alert-danger">One or more critical requirements are not met. Please fix the issues and try again.</p>
-        <a href="install.php?stage=1" class="btn" style="background-color: #6c757d;">Retry Check</a>
+        <a href="index.php?action=reset" class="btn" style="background-color: #6c757d;">Retry Check</a>
     <?php endif; ?>
 </div>

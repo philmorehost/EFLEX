@@ -3,7 +3,8 @@
 
 // --- 1. Get DB details from session ---
 if (!isset($_SESSION['db_details'])) {
-    header('Location: install.php?stage=2');
+    $_SESSION['install_stage'] = 2;
+    header('Location: index.php');
     exit;
 }
 $db = $_SESSION['db_details'];
@@ -13,7 +14,8 @@ $db = $_SESSION['db_details'];
 
 if ($conn->connect_error) {
     $_SESSION['db_error'] = "Connection Failed: " . $conn->connect_error;
-    header('Location: install.php?stage=2');
+    $_SESSION['install_stage'] = 2;
+    header('Location: index.php');
     exit;
 }
 
@@ -111,7 +113,7 @@ $conn->close();
 // --- 5. Advance to next stage or show error ---
 if ($install_success && $config_success) {
     $_SESSION['install_stage'] = 4;
-    header('Location: install.php?stage=4');
+    header('Location: index.php');
     exit;
 }
 
@@ -128,5 +130,5 @@ $pageTitle = "Stage 3: Installation Error";
     <?php echo htmlspecialchars($error ?? 'An unknown error occurred. Please try again.'); ?>
 </div>
 <div style="margin-top: 20px;">
-    <a href="install.php?stage=2" class="btn" style="background-color: #6c757d;">&laquo; Back to Database Setup</a>
+    <a href="index.php?action=back_to_stage2" class="btn" style="background-color: #6c757d;">&laquo; Back to Database Setup</a>
 </div>

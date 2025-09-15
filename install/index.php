@@ -41,6 +41,13 @@ if ($action === 'savedb' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     exit;
 }
 
+// Handle error return from Stage 3
+if ($action === 'back_to_stage2') {
+    $_SESSION['install_stage'] = 2;
+    header('Location: index.php');
+    exit;
+}
+
 // Handle advancing from Stage 1 to 2
 if ($action === 'next_stage') {
     if (isset($_SESSION['install_stage']) && $_SESSION['install_stage'] == 1) {

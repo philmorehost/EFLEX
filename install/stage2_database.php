@@ -25,7 +25,7 @@ $db_pass = $_SESSION['db_details']['pass'] ?? '';
     </div>
 <?php endif; ?>
 
-<form action="install.php?action=savedb" method="POST">
+<form action="index.php?action=savedb" method="POST">
     <div>
         <label for="db_host">Database Host</label>
         <input type="text" id="db_host" name="db_host" value="<?php echo htmlspecialchars($db_host); ?>" required>
@@ -44,7 +44,7 @@ $db_pass = $_SESSION['db_details']['pass'] ?? '';
     </div>
     <hr>
     <div style="display: flex; justify-content: space-between; align-items: center;">
-        <a href="install.php?action=reset" class="btn" style="background-color: #6c757d;">&laquo; Back</a>
+        <a href="index.php?action=reset" class="btn" style="background-color: #6c757d;">&laquo; Back</a>
         <button type="submit" class="btn">Test Connection & Install &raquo;</button>
     </div>
 </form>
