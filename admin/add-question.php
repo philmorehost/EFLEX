@@ -5,6 +5,8 @@ require_once __DIR__ . '/../includes/lib/htmlpurifier/library/HTMLPurifier.stand
 
 // --- HTML Purifier Setup ---
 $purifier_config = HTMLPurifier_Config::createDefault();
+$purifier_config->set('HTML.Allowed', 'p,b,strong,i,em,u,a[href],ul,ol,li,br,sup,sub,span[style],div[style]');
+$purifier_config->set('CSS.AllowedProperties', 'font,font-size,font-weight,font-style,text-decoration,color,background-color,text-align,margin,padding,list-style-type');
 $purifier = new HTMLPurifier($purifier_config);
 
 // --- Auth and Role Check ---
