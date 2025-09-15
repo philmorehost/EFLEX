@@ -1,6 +1,13 @@
 <?php
 $pageTitle = "Add Questions";
 require_once __DIR__ . '/../includes/config.php';
+require_once __DIR__ . '/../includes/lib/htmlpurifier/library/HTMLPurifier.standalone.php';
+
+// --- HTML Purifier Setup ---
+$purifier_config = HTMLPurifier_Config::createDefault();
+$purifier_config->set('HTML.Allowed', 'p,b,strong,i,em,u,a[href],ul,ol,li,br,sup,sub,span[style],div[style]');
+$purifier_config->set('CSS.AllowedProperties', 'font,font-size,font-weight,font-style,text-decoration,color,background-color,text-align,margin,padding,list-style-type');
+$purifier = new HTMLPurifier($purifier_config);
 
 // --- Auth and Role Check ---
 if (!isset($_SESSION['user_id'])) {
@@ -32,7 +39,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             foreach ($posted_questions as $q_idx => $q_data) {
                 $category_id = $q_data['category_id'];
                 $question_type = $q_data['question_type'];
-                $question_text = trim($q_data['question_text']);
+                $question_text = $purifier->purify(trim($q_data['question_text']));
 
                 if (empty($category_id) || empty($question_type) || empty($question_text)) {
                     throw new Exception("All fields are required for Question #" . ($q_idx + 1));
@@ -53,7 +60,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     foreach ($options as $opt_idx => $option_text) {
                         if (!empty(trim($option_text))) {
                             $is_correct = ($opt_idx == $correct_option_index) ? 1 : 0;
-                            $opt_stmt->bind_param("isi", $question_id, $option_text, $is_correct);
+                            $purified_option_text = $purifier->purify(trim($option_text));
+                            $opt_stmt->bind_param("isi", $question_id, $purified_option_text, $is_correct);
                             $opt_stmt->execute();
                         }
                     }
@@ -100,7 +108,8 @@ require_once __DIR__ . '/../includes/header.php';
 
         <div class="container-fluid px-4">
             <div class="row">
-                <div class="col-lg-12">
+                <!-- Main Question Form Column -->
+                <div class="col-lg-8">
                     <?php if (!empty($errors)): ?>
                         <div class="alert alert-danger">
                             <?php foreach ($errors as $error): ?><p class="mb-0"><?php echo $error; ?></p><?php endforeach; ?>
@@ -152,6 +161,92 @@ require_once __DIR__ . '/../includes/header.php';
                             <a href="questions.php" class="btn btn-secondary">Cancel</a>
                         </div>
                     </form>
+                </div>
+
+                <!-- Formatting Guide Column -->
+                <div class="col-lg-4">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0">Formatting Guide</h5>
+                        </div>
+                        <div class="card-body">
+                            <p class="card-text small">Use these HTML tags and codes in the question text for special formatting.</p>
+                            <table class="table table-sm table-bordered">
+                                <thead>
+                                    <tr>
+                                        <th>Formatting</th>
+                                        <th>Example Code</th>
+                                        <th>Result</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr><td colspan="3" class="text-center table-primary"><strong>Basic</strong></td></tr>
+                                    <tr>
+                                        <td>Superscript</td>
+                                        <td><code>x&lt;sup&gt;2&lt;/sup&gt;</code></td>
+                                        <td>x<sup>2</sup></td>
+                                    </tr>
+                                    <tr>
+                                        <td>Subscript</td>
+                                        <td><code>H&lt;sub&gt;2&lt;/sub&gt;O</code></td>
+                                        <td>H<sub>2</sub>O</td>
+                                    </tr>
+                                    <tr><td colspan="3" class="text-center table-primary"><strong>Math & Science</strong></td></tr>
+                                    <tr>
+                                        <td>Multiply</td>
+                                        <td><code>&amp;times;</code></td>
+                                        <td>&times;</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Not Equal</td>
+                                        <td><code>&amp;ne;</code></td>
+                                        <td>&ne;</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Greater/Eq</td>
+                                        <td><code>&amp;ge;</code></td>
+                                        <td>&ge;</td>
+                                    </tr>
+                                     <tr>
+                                        <td>Lesser/Eq</td>
+                                        <td><code>&amp;le;</code></td>
+                                        <td>&le;</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Integral</td>
+                                        <td><code>&amp;int;</code></td>
+                                        <td>&int;</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Equilibrium</td>
+                                        <td><code>&amp;rightleftharpoons;</code></td>
+                                        <td>⇌</td>
+                                    </tr>
+                                    <tr><td colspan="3" class="text-center table-primary"><strong>Currency</strong></td></tr>
+                                    <tr>
+                                        <td>Dollar</td>
+                                        <td><code>&amp;dollar;</code></td>
+                                        <td>$</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Euro</td>
+                                        <td><code>&amp;euro;</code></td>
+                                        <td>€</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Pound</td>
+                                        <td><code>&amp;pound;</code></td>
+                                        <td>£</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Yen</td>
+                                        <td><code>&amp;yen;</code></td>
+                                        <td>¥</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

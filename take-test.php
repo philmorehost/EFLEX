@@ -7,6 +7,13 @@ if (!file_exists(__DIR__ . '/includes/config.php')) {
 
 $pageTitle = "Take Test";
 require_once __DIR__ . '/includes/config.php';
+require_once __DIR__ . '/includes/lib/htmlpurifier/library/HTMLPurifier.standalone.php';
+
+// --- HTML Purifier Setup ---
+$purifier_config = HTMLPurifier_Config::createDefault();
+$purifier_config->set('HTML.Allowed', 'p,b,strong,i,em,u,a[href],ul,ol,li,br,sup,sub,span[style],div[style]');
+$purifier_config->set('CSS.AllowedProperties', 'font,font-size,font-weight,font-style,text-decoration,color,background-color,text-align,margin,padding,list-style-type');
+$purifier = new HTMLPurifier($purifier_config);
 
 // --- Auth Check ---
 if (!isset($_SESSION['user_id']) || $_SESSION['role_id'] != 4) {
@@ -112,7 +119,7 @@ require_once __DIR__ . '/includes/header.php';
                 <div class="card">
                     <div class="card-header">Question <?php echo $index + 1; ?> of <?php echo count($questions); ?></div>
                     <div class="card-body">
-                        <p class="card-text fs-5"><?php echo nl2br(htmlspecialchars($q['question_text'])); ?></p>
+                        <div class="card-text fs-5"><?php echo $purifier->purify($q['question_text']); ?></div>
                         <hr>
                         <div class="options-area" data-question-id="<?php echo $q['question_id']; ?>">
                             <?php if ($q['question_type'] === 'multiple_choice' || $q['question_type'] === 'true_false'): ?>
@@ -128,7 +135,7 @@ require_once __DIR__ . '/includes/header.php';
                                         <input class="form-check-input" type="radio" name="answer_<?php echo $q['question_id']; ?>"
                                                value="<?php echo $option['option_id']; ?>"
                                                <?php echo ($q['selected_option_id'] == $option['option_id']) ? 'checked' : ''; ?>>
-                                        <label class="form-check-label"><?php echo htmlspecialchars($option['option_text']); ?></label>
+                                        <label class="form-check-label"><?php echo $purifier->purify($option['option_text']); ?></label>
                                     </div>
                                 <?php endforeach; ?>
                             <?php elseif ($q['question_type'] === 'short_answer'): ?>
