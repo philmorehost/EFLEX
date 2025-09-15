@@ -129,7 +129,8 @@ require_once __DIR__ . '/../includes/header.php';
 
         <div class="container-fluid px-4">
             <div class="row">
-                <div class="col-lg-10">
+                <!-- Main Edit Form Column -->
+                <div class="col-lg-8">
                     <div class="card shadow-sm">
                         <div class="card-header">
                             <h5 class="mb-0">Editing Question #<?php echo $question['question_id']; ?></h5>
@@ -204,6 +205,76 @@ require_once __DIR__ . '/../includes/header.php';
                                     <a href="questions.php" class="btn btn-secondary">Cancel</a>
                                 </div>
                             </form>
+                        </div>
+                    </div>
+                </div>
+                <!-- Formatting Guide Column -->
+                <div class="col-lg-4">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0">Formatting Guide</h5>
+                        </div>
+                        <div class="card-body">
+                            <p class="card-text small">Use these HTML tags in the question text for special formatting.</p>
+                            <table class="table table-sm table-bordered">
+                                <thead>
+                                    <tr>
+                                        <th>Formatting</th>
+                                        <th>Example Code</th>
+                                        <th>Result</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>Superscript</td>
+                                        <td><code>x&lt;sup&gt;2&lt;/sup&gt;</code></td>
+                                        <td>x<sup>2</sup></td>
+                                    </tr>
+                                    <tr>
+                                        <td>Subscript</td>
+                                        <td><code>H&lt;sub&gt;2&lt;/sub&gt;O</code></td>
+                                        <td>H<sub>2</sub>O</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Bold</td>
+                                        <td><code>&lt;strong&gt;Bold&lt;/strong&gt;</code></td>
+                                        <td><strong>Bold</strong></td>
+                                    </tr>
+                                    <tr>
+                                        <td>Italic</td>
+                                        <td><code>&lt;em&gt;Italic&lt;/em&gt;</code></td>
+                                        <td><em>Italic</em></td>
+                                    </tr>
+                                    <tr>
+                                        <td colspan="3" class="text-center"><strong>Common Symbols</strong></td>
+                                    </tr>
+                                    <tr>
+                                        <td>Multiply</td>
+                                        <td><code>&amp;times;</code></td>
+                                        <td>&times;</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Divide</td>
+                                        <td><code>&amp;divide;</code></td>
+                                        <td>&divide;</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Pi</td>
+                                        <td><code>&amp;pi;</code></td>
+                                        <td>&pi;</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Delta</td>
+                                        <td><code>&amp;Delta;</code></td>
+                                        <td>&Delta;</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Right Arrow</td>
+                                        <td><code>&amp;rarr;</code></td>
+                                        <td>&rarr;</td>
+                                    </tr>
+                                </tbody>
+                            </table>
                         </div>
                     </div>
                 </div>
