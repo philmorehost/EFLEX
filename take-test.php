@@ -1,4 +1,10 @@
 <?php
+// Check if the config file exists. If not, redirect to the installer.
+if (!file_exists(__DIR__ . '/includes/config.php')) {
+    header('Location: install/');
+    exit;
+}
+
 $pageTitle = "Take Test";
 require_once __DIR__ . '/includes/config.php';
 
