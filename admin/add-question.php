@@ -1,13 +1,6 @@
 <?php
 $pageTitle = "Add Questions";
 require_once __DIR__ . '/../includes/config.php';
-require_once __DIR__ . '/../includes/lib/htmlpurifier/library/HTMLPurifier.standalone.php';
-
-// --- HTML Purifier Setup ---
-$purifier_config = HTMLPurifier_Config::createDefault();
-$purifier_config->set('HTML.Allowed', 'p,b,strong,i,em,u,a[href],ul,ol,li,br,sup,sub,span[style],div[style]');
-$purifier_config->set('CSS.AllowedProperties', 'font,font-size,font-weight,font-style,text-decoration,color,background-color,text-align,margin,padding,list-style-type');
-$purifier = new HTMLPurifier($purifier_config);
 
 // --- Auth and Role Check ---
 if (!isset($_SESSION['user_id'])) {
@@ -39,7 +32,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             foreach ($posted_questions as $q_idx => $q_data) {
                 $category_id = $q_data['category_id'];
                 $question_type = $q_data['question_type'];
-                $question_text = $purifier->purify(trim($q_data['question_text']));
+                $question_text = trim($q_data['question_text']);
 
                 if (empty($category_id) || empty($question_type) || empty($question_text)) {
                     throw new Exception("All fields are required for Question #" . ($q_idx + 1));
@@ -60,8 +53,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     foreach ($options as $opt_idx => $option_text) {
                         if (!empty(trim($option_text))) {
                             $is_correct = ($opt_idx == $correct_option_index) ? 1 : 0;
-                            $purified_option_text = $purifier->purify(trim($option_text));
-                            $opt_stmt->bind_param("isi", $question_id, $purified_option_text, $is_correct);
+                            $opt_stmt->bind_param("isi", $question_id, $option_text, $is_correct);
                             $opt_stmt->execute();
                         }
                     }
@@ -108,8 +100,7 @@ require_once __DIR__ . '/../includes/header.php';
 
         <div class="container-fluid px-4">
             <div class="row">
-                <!-- Main Question Form Column -->
-                <div class="col-lg-8">
+                <div class="col-lg-12">
                     <?php if (!empty($errors)): ?>
                         <div class="alert alert-danger">
                             <?php foreach ($errors as $error): ?><p class="mb-0"><?php echo $error; ?></p><?php endforeach; ?>
@@ -161,77 +152,6 @@ require_once __DIR__ . '/../includes/header.php';
                             <a href="questions.php" class="btn btn-secondary">Cancel</a>
                         </div>
                     </form>
-                </div>
-
-                <!-- Formatting Guide Column -->
-                <div class="col-lg-4">
-                    <div class="card">
-                        <div class="card-header">
-                            <h5 class="mb-0">Formatting Guide</h5>
-                        </div>
-                        <div class="card-body">
-                            <p class="card-text small">Use these HTML tags in the question text for special formatting.</p>
-                            <table class="table table-sm table-bordered">
-                                <thead>
-                                    <tr>
-                                        <th>Formatting</th>
-                                        <th>Example Code</th>
-                                        <th>Result</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr>
-                                        <td>Superscript</td>
-                                        <td><code>x&lt;sup&gt;2&lt;/sup&gt;</code></td>
-                                        <td>x<sup>2</sup></td>
-                                    </tr>
-                                    <tr>
-                                        <td>Subscript</td>
-                                        <td><code>H&lt;sub&gt;2&lt;/sub&gt;O</code></td>
-                                        <td>H<sub>2</sub>O</td>
-                                    </tr>
-                                    <tr>
-                                        <td>Bold</td>
-                                        <td><code>&lt;strong&gt;Bold&lt;/strong&gt;</code></td>
-                                        <td><strong>Bold</strong></td>
-                                    </tr>
-                                    <tr>
-                                        <td>Italic</td>
-                                        <td><code>&lt;em&gt;Italic&lt;/em&gt;</code></td>
-                                        <td><em>Italic</em></td>
-                                    </tr>
-                                    <tr>
-                                        <td colspan="3" class="text-center"><strong>Common Symbols</strong></td>
-                                    </tr>
-                                    <tr>
-                                        <td>Multiply</td>
-                                        <td><code>&amp;times;</code></td>
-                                        <td>&times;</td>
-                                    </tr>
-                                    <tr>
-                                        <td>Divide</td>
-                                        <td><code>&amp;divide;</code></td>
-                                        <td>&divide;</td>
-                                    </tr>
-                                    <tr>
-                                        <td>Pi</td>
-                                        <td><code>&amp;pi;</code></td>
-                                        <td>&pi;</td>
-                                    </tr>
-                                    <tr>
-                                        <td>Delta</td>
-                                        <td><code>&amp;Delta;</code></td>
-                                        <td>&Delta;</td>
-                                    </tr>
-                                    <tr>
-                                        <td>Right Arrow</td>
-                                        <td><code>&amp;rarr;</code></td>
-                                        <td>&rarr;</td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
                 </div>
             </div>
         </div>
