@@ -129,7 +129,7 @@ require_once __DIR__ . '/includes/header.php';
                                         <input class="form-check-input" type="radio" name="answer_<?php echo $q['question_id']; ?>"
                                                value="<?php echo $option['option_id']; ?>"
                                                <?php echo ($q['selected_option_id'] == $option['option_id']) ? 'checked' : ''; ?>>
-                                        <label class="form-check-label"><?php echo htmlspecialchars($option['option_text']); ?></label>
+                                        <label class="form-check-label"><?php echo $purifier->purify($option['option_text']); ?></label>
                                     </div>
                                 <?php endforeach; ?>
                             <?php elseif ($q['question_type'] === 'short_answer'): ?>
