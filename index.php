@@ -44,22 +44,24 @@ if (isset($_SESSION['user_id'])) {
                 <?php else: ?>
                     <?php foreach ($tests as $test): ?>
                         <div class="col-md-6 col-lg-4 mb-4">
-                            <div class="card h-100">
+                            <div class="card h-100 shadow-sm">
+                                <div class="card-header">
+                                    <h5 class="card-title mb-0"><?php echo htmlspecialchars($test['title']); ?></h5>
+                                </div>
                                 <div class="card-body d-flex flex-column">
-                                    <h5 class="card-title"><?php echo htmlspecialchars($test['title']); ?></h5>
-                                    <p class="card-text text-muted"><?php echo htmlspecialchars($test['description']); ?></p>
+                                    <p class="card-text text-muted flex-grow-1"><?php echo htmlspecialchars($test['description']); ?></p>
                                     <ul class="list-unstyled mt-3 mb-4">
                                         <li><strong>Questions:</strong> <?php echo $test['question_count']; ?></li>
                                         <li><strong>Time Limit:</strong> <?php echo $test['time_limit_minutes']; ?> minutes</li>
                                     </ul>
-                                    <div class="mt-auto">
+                                    <div class="mt-auto text-center">
                                         <?php if ($test['status'] === 'completed'): ?>
-                                            <p class="mb-1"><strong>Your Score:</strong> <?php echo number_format($test['score'], 2); ?>%</p>
-                                            <a href="#" class="btn btn-secondary disabled w-100">Test Completed</a>
+                                            <p class="mb-2"><strong>Your Score:</strong> <span class="badge bg-success"><?php echo number_format($test['score'], 2); ?>%</span></p>
+                                            <a href="#" class="btn btn-light disabled w-100"><i class="fas fa-check-circle"></i> Test Completed</a>
                                         <?php elseif ($test['status'] === 'in_progress'): ?>
-                                            <a href="take-test.php?id=<?php echo $test['test_id']; ?>" class="btn btn-warning w-100">Continue Test</a>
+                                            <a href="take-test.php?id=<?php echo $test['test_id']; ?>" class="btn btn-warning w-100"><i class="fas fa-arrow-right"></i> Continue Test</a>
                                         <?php else: ?>
-                                            <a href="take-test.php?id=<?php echo $test['test_id']; ?>" class="btn btn-primary w-100">Start Test</a>
+                                            <a href="take-test.php?id=<?php echo $test['test_id']; ?>" class="btn btn-primary w-100"><i class="fas fa-play"></i> Start Test</a>
                                         <?php endif; ?>
                                     </div>
                                 </div>

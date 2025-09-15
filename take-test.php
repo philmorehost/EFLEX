@@ -1,13 +1,6 @@
 <?php
 $pageTitle = "Take Test";
 require_once __DIR__ . '/includes/config.php';
-require_once __DIR__ . '/includes/lib/htmlpurifier/library/HTMLPurifier.standalone.php';
-
-// --- HTML Purifier Setup ---
-$purifier_config = HTMLPurifier_Config::createDefault();
-$purifier_config->set('HTML.Allowed', 'p,b,strong,i,em,u,a[href],ul,ol,li,br,sup,sub,span[style],div[style]');
-$purifier_config->set('CSS.AllowedProperties', 'font,font-size,font-weight,font-style,text-decoration,color,background-color,text-align,margin,padding,list-style-type');
-$purifier = new HTMLPurifier($purifier_config);
 
 // --- Auth Check ---
 if (!isset($_SESSION['user_id']) || $_SESSION['role_id'] != 4) {
@@ -18,18 +11,6 @@ if (!isset($_SESSION['user_id']) || $_SESSION['role_id'] != 4) {
 $user_id = $_SESSION['user_id'];
 $test_id = filter_input(INPUT_GET, 'id', FILTER_VALIDATE_INT);
 if (!$test_id) { header("Location: index.php?error=invalidtest"); exit; }
-
-// --- Fetch User Info (for profile picture) ---
-$user_stmt = $conn->prepare("SELECT profile_picture_path FROM users WHERE user_id = ?");
-$user_stmt->bind_param("i", $user_id);
-$user_stmt->execute();
-$user = $user_stmt->get_result()->fetch_assoc();
-$user_stmt->close();
-
-$profile_pic = $user['profile_picture_path'] ?? 'assets/img/default_avatar.svg';
-if (empty($user['profile_picture_path']) || !file_exists(__DIR__ . '/' . $user['profile_picture_path'])) {
-    $profile_pic = 'assets/img/default_avatar.svg';
-}
 
 // --- Fetch Test Info ---
 $test_stmt = $conn->prepare("SELECT * FROM tests WHERE test_id = ?");
@@ -114,13 +95,8 @@ require_once __DIR__ . '/includes/header.php';
 
 <div class="container mt-4">
     <div class="d-flex justify-content-between align-items-center">
-        <div class="test-info">
-            <h3><?php echo htmlspecialchars($test['title']); ?></h3>
-        </div>
-        <div class="d-flex align-items-center">
-            <div class="h3 me-4" id="timer">--:--</div>
-            <img src="<?php echo htmlspecialchars($profile_pic); ?>" alt="Profile Picture" class="img-thumbnail rounded-circle" style="width: 50px; height: 50px; object-fit: cover;">
-        </div>
+        <h3><?php echo htmlspecialchars($test['title']); ?></h3>
+        <div class="h3" id="timer">--:--</div>
     </div>
     <hr>
 
@@ -130,7 +106,7 @@ require_once __DIR__ . '/includes/header.php';
                 <div class="card">
                     <div class="card-header">Question <?php echo $index + 1; ?> of <?php echo count($questions); ?></div>
                     <div class="card-body">
-                        <div class="card-text fs-5"><?php echo $purifier->purify($q['question_text']); ?></div>
+                        <p class="card-text fs-5"><?php echo nl2br(htmlspecialchars($q['question_text'])); ?></p>
                         <hr>
                         <div class="options-area" data-question-id="<?php echo $q['question_id']; ?>">
                             <?php if ($q['question_type'] === 'multiple_choice' || $q['question_type'] === 'true_false'): ?>
@@ -146,7 +122,7 @@ require_once __DIR__ . '/includes/header.php';
                                         <input class="form-check-input" type="radio" name="answer_<?php echo $q['question_id']; ?>"
                                                value="<?php echo $option['option_id']; ?>"
                                                <?php echo ($q['selected_option_id'] == $option['option_id']) ? 'checked' : ''; ?>>
-                                        <label class="form-check-label"><?php echo $purifier->purify($option['option_text']); ?></label>
+                                        <label class="form-check-label"><?php echo htmlspecialchars($option['option_text']); ?></label>
                                     </div>
                                 <?php endforeach; ?>
                             <?php elseif ($q['question_type'] === 'short_answer'): ?>
