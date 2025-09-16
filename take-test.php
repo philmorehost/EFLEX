@@ -45,6 +45,17 @@ $test = $test_stmt->get_result()->fetch_assoc();
 $test_stmt->close();
 if (!$test) { header("Location: index.php?error=testnotfound"); exit; }
 
+// --- Check Test Availability ---
+$now = time();
+if (!empty($test['available_from']) && $now < strtotime($test['available_from'])) {
+    header("Location: index.php?error=testnotyetavailable");
+    exit;
+}
+if (!empty($test['available_to']) && $now > strtotime($test['available_to'])) {
+    header("Location: index.php?error=testexpired");
+    exit;
+}
+
 // --- Find or Create Test Attempt ---
 $attempt_stmt = $conn->prepare("SELECT * FROM test_attempts WHERE test_id = ? AND user_id = ? AND status = 'in_progress'");
 $attempt_stmt->bind_param("ii", $test_id, $user_id);

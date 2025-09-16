@@ -50,11 +50,13 @@ if (isset($_SESSION['user_id'])) {
 
         // Fetch all available tests and join with attempts to see if user has taken them
         $sql = "SELECT
-                    t.test_id, t.title, t.description, t.time_limit_minutes,
+                    t.test_id, t.title, t.description, t.time_limit_minutes, t.available_from, t.available_to,
                     (SELECT COUNT(*) FROM test_questions WHERE test_id = t.test_id) as question_count,
                     ta.score, ta.status
                 FROM tests t
                 LEFT JOIN test_attempts ta ON t.test_id = ta.test_id AND ta.user_id = ?
+                WHERE (t.available_from IS NULL OR NOW() >= t.available_from)
+                  AND (t.available_to IS NULL OR NOW() <= t.available_to)
                 ORDER BY t.test_id DESC";
 
         $stmt = $conn->prepare($sql);
@@ -119,6 +121,9 @@ if (isset($_SESSION['user_id'])) {
                                     <ul class="list-unstyled mt-3 mb-4">
                                         <li><strong>Questions:</strong> <?php echo $test['question_count']; ?></li>
                                         <li><strong>Time Limit:</strong> <?php echo $test['time_limit_minutes']; ?> minutes</li>
+                                        <?php if (!empty($test['available_to'])): ?>
+                                            <li class="text-danger"><strong>Closes:</strong> <?php echo date('M d, Y, g:i A', strtotime($test['available_to'])); ?></li>
+                                        <?php endif; ?>
                                     </ul>
                                     <div class="mt-auto text-center">
                                         <?php if ($test['status'] === 'completed'): ?>

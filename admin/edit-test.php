@@ -40,6 +40,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $description = trim($_POST['description'] ?? '');
     $time_limit = filter_input(INPUT_POST, 'time_limit_minutes', FILTER_VALIDATE_INT);
     $passing_score = filter_input(INPUT_POST, 'passing_score', FILTER_VALIDATE_INT);
+    $available_from = trim($_POST['available_from'] ?? '');
+    $available_to = trim($_POST['available_to'] ?? '');
 
     if (empty($title)) {
         $errors[] = "Test title is required.";
@@ -50,10 +52,16 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     if ($passing_score === false || $passing_score < 0 || $passing_score > 100) {
         $errors[] = "Passing score must be between 0 and 100.";
     }
+    if (!empty($available_from) && !empty($available_to) && strtotime($available_from) >= strtotime($available_to)) {
+        $errors[] = "The 'Available From' date must be earlier than the 'Available To' date.";
+    }
 
     if (empty($errors)) {
-        $stmt = $conn->prepare("UPDATE tests SET title = ?, description = ?, time_limit_minutes = ?, passing_score = ? WHERE test_id = ?");
-        $stmt->bind_param("ssiii", $title, $description, $time_limit, $passing_score, $test_id_to_edit);
+        $available_from = !empty($available_from) ? $available_from : null;
+        $available_to = !empty($available_to) ? $available_to : null;
+
+        $stmt = $conn->prepare("UPDATE tests SET title = ?, description = ?, time_limit_minutes = ?, passing_score = ?, available_from = ?, available_to = ? WHERE test_id = ?");
+        $stmt->bind_param("ssiisssi", $title, $description, $time_limit, $passing_score, $available_from, $available_to, $test_id_to_edit);
 
         if ($stmt->execute()) {
             header("Location: tests.php?success=test_updated");
@@ -110,6 +118,16 @@ require_once __DIR__ . '/../includes/header.php';
                                     <div class="col-md-6 mb-3">
                                         <label for="passing_score" class="form-label">Passing Score (%)</label>
                                         <input type="number" class="form-control" id="passing_score" name="passing_score" value="<?php echo htmlspecialchars($test['passing_score']); ?>" min="0" max="100" required>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label for="available_from" class="form-label">Available From (Optional)</label>
+                                        <input type="datetime-local" class="form-control" id="available_from" name="available_from" value="<?php echo !empty($test['available_from']) ? date('Y-m-d\TH:i', strtotime($test['available_from'])) : ''; ?>">
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label for="available_to" class="form-label">Available To (Optional)</label>
+                                        <input type="datetime-local" class="form-control" id="available_to" name="available_to" value="<?php echo !empty($test['available_to']) ? date('Y-m-d\TH:i', strtotime($test['available_to'])) : ''; ?>">
                                     </div>
                                 </div>
                                 <div class="mt-3">

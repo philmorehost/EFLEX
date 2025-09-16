@@ -103,6 +103,8 @@ CREATE TABLE `tests` (
   `title` varchar(255) NOT NULL,
   `description` text,
   `time_limit_minutes` int(11) DEFAULT NULL,
+  `available_from` datetime DEFAULT NULL,
+  `available_to` datetime DEFAULT NULL,
   `passing_score` int(11) NOT NULL DEFAULT '70',
   `created_by` int(11) NOT NULL,
   `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
