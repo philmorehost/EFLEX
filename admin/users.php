@@ -15,12 +15,27 @@ if (!in_array($_SESSION['role_id'], $allowed_roles)) {
     exit;
 }
 
-// --- Fetch all users from the database ---
-$sql = "SELECT u.user_id, u.first_name, u.last_name, u.email, u.status, r.role_name
-        FROM users u
-        LEFT JOIN roles r ON u.role_id = r.role_id
-        ORDER BY u.user_id ASC";
-$result = $conn->query($sql);
+// --- Fetch users from the database ---
+$search_term = '';
+if (isset($_GET['search']) && !empty(trim($_GET['search']))) {
+    $search_term = trim($_GET['search']);
+    $sql = "SELECT u.user_id, u.first_name, u.last_name, u.email, u.status, r.role_name
+            FROM users u
+            LEFT JOIN roles r ON u.role_id = r.role_id
+            WHERE CONCAT(u.first_name, ' ', u.last_name) LIKE ? OR u.email LIKE ?
+            ORDER BY u.user_id ASC";
+    $stmt = $conn->prepare($sql);
+    $like_term = "%" . $search_term . "%";
+    $stmt->bind_param("ss", $like_term, $like_term);
+    $stmt->execute();
+    $result = $stmt->get_result();
+} else {
+    $sql = "SELECT u.user_id, u.first_name, u.last_name, u.email, u.status, r.role_name
+            FROM users u
+            LEFT JOIN roles r ON u.role_id = r.role_id
+            ORDER BY u.user_id ASC";
+    $result = $conn->query($sql);
+}
 $users = $result->fetch_all(MYSQLI_ASSOC);
 
 require_once __DIR__ . '/../includes/header.php';
@@ -49,6 +64,25 @@ require_once __DIR__ . '/../includes/header.php';
                             <i class="bi bi-plus-lg me-2"></i>Add New User
                         </a>
                     </div>
+
+                    <!-- Search and Filter Form -->
+                    <div class="card shadow-sm mb-4">
+                        <div class="card-body">
+                            <form action="users.php" method="get" class="row g-3 align-items-center">
+                                <div class="col-md-8">
+                                    <label for="search" class="visually-hidden">Search</label>
+                                    <input type="search" class="form-control" id="search" name="search" placeholder="Search by name or email..." value="<?php echo htmlspecialchars($search_term); ?>">
+                                </div>
+                                <div class="col-md-2">
+                                    <button type="submit" class="btn btn-primary w-100">Search</button>
+                                </div>
+                                <div class="col-md-2">
+                                     <a href="users.php" class="btn btn-outline-secondary w-100">Clear</a>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
                     <div class="table-responsive">
                         <table class="table bg-white rounded shadow-sm table-hover">
                             <thead class="table-light">

@@ -13,7 +13,8 @@ if (!in_array($_SESSION['role_id'], $allowed_roles)) {
     exit;
 }
 
-// --- Fetch all tests from the database ---
+// --- Fetch tests from the database ---
+$search_term = '';
 $sql = "SELECT
             t.test_id,
             t.title,
@@ -22,9 +23,21 @@ $sql = "SELECT
             u.last_name,
             (SELECT COUNT(*) FROM test_questions WHERE test_id = t.test_id) as question_count
         FROM tests t
-        LEFT JOIN users u ON t.created_by = u.user_id
-        ORDER BY t.test_id DESC";
-$result = $conn->query($sql);
+        LEFT JOIN users u ON t.created_by = u.user_id";
+
+if (isset($_GET['search']) && !empty(trim($_GET['search']))) {
+    $search_term = trim($_GET['search']);
+    $sql .= " WHERE t.title LIKE ?";
+    $sql .= " ORDER BY t.test_id DESC";
+    $stmt = $conn->prepare($sql);
+    $like_term = "%" . $search_term . "%";
+    $stmt->bind_param("s", $like_term);
+    $stmt->execute();
+    $result = $stmt->get_result();
+} else {
+    $sql .= " ORDER BY t.test_id DESC";
+    $result = $conn->query($sql);
+}
 $tests = $result->fetch_all(MYSQLI_ASSOC);
 
 require_once __DIR__ . '/../includes/header.php';
@@ -51,6 +64,25 @@ require_once __DIR__ . '/../includes/header.php';
                             <i class="bi bi-plus-lg me-2"></i>Create New Test
                         </a>
                     </div>
+
+                    <!-- Search and Filter Form -->
+                    <div class="card shadow-sm mb-4">
+                        <div class="card-body">
+                            <form action="tests.php" method="get" class="row g-3 align-items-center">
+                                <div class="col-md-8">
+                                    <label for="search" class="visually-hidden">Search</label>
+                                    <input type="search" class="form-control" id="search" name="search" placeholder="Search by test title..." value="<?php echo htmlspecialchars($search_term); ?>">
+                                </div>
+                                <div class="col-md-2">
+                                    <button type="submit" class="btn btn-primary w-100">Search</button>
+                                </div>
+                                <div class="col-md-2">
+                                     <a href="tests.php" class="btn btn-outline-secondary w-100">Clear</a>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
                     <div class="table-responsive">
                         <table class="table bg-white rounded shadow-sm table-hover">
                             <thead class="table-light">
