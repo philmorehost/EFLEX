@@ -56,6 +56,7 @@ $errors = [];
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $category_id = $_POST['category_id'];
     $question_text = $purifier->purify(trim($_POST['question_text']));
+    $model_answer = ($question['question_type'] === 'short_answer') ? ($_POST['model_answer'] ?? NULL) : NULL;
 
     if (empty($category_id) || empty($question_text)) {
         $errors[] = "Category and question text are required.";
@@ -64,8 +65,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     if (empty($errors)) {
         $conn->begin_transaction();
         try {
-            $stmt = $conn->prepare("UPDATE questions SET category_id = ?, question_text = ? WHERE question_id = ?");
-            $stmt->bind_param("isi", $category_id, $question_text, $question_id_to_edit);
+            $stmt = $conn->prepare("UPDATE questions SET category_id = ?, question_text = ?, model_answer = ? WHERE question_id = ?");
+            $stmt->bind_param("issi", $category_id, $question_text, $model_answer, $question_id_to_edit);
             $stmt->execute();
             $stmt->close();
 
@@ -162,6 +163,13 @@ require_once __DIR__ . '/../includes/header.php';
                                     <label for="question_text" class="form-label">Question Text</label>
                                     <textarea class="form-control" id="question_text" name="question_text" rows="3" required><?php echo htmlspecialchars($question['question_text']); ?></textarea>
                                 </div>
+
+                                <?php if ($question['question_type'] === 'short_answer'): ?>
+                                <div class="mb-3">
+                                    <label for="model_answer" class="form-label">Model Answer (Optional)</label>
+                                    <textarea class="form-control" id="model_answer" name="model_answer" rows="2"><?php echo htmlspecialchars($question['model_answer'] ?? ''); ?></textarea>
+                                </div>
+                                <?php endif; ?>
 
                                 <?php if ($question['question_type'] === 'multiple_choice'): ?>
                                 <div class="mt-4 p-3 border rounded">

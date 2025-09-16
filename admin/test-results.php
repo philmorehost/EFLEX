@@ -34,11 +34,17 @@ $sql = "SELECT
             ta.end_time,
             u.first_name,
             u.last_name,
-            u.email
+            u.email,
+            (SELECT COUNT(*)
+             FROM student_answers sa
+             JOIN questions q ON sa.question_id = q.question_id
+             WHERE sa.attempt_id = ta.attempt_id
+             AND q.question_type = 'short_answer'
+             AND sa.score IS NULL) as ungraded_count
         FROM test_attempts ta
         JOIN users u ON ta.user_id = u.user_id
         WHERE ta.test_id = ? AND ta.status = 'completed'
-        ORDER BY ta.score DESC";
+        ORDER BY ta.end_time DESC";
 $stmt = $conn->prepare($sql);
 $stmt->bind_param("i", $test_id);
 $stmt->execute();
@@ -111,11 +117,12 @@ require_once __DIR__ . '/../includes/header.php';
                                             <th>Email</th>
                                             <th>Date Completed</th>
                                             <th>Score</th>
+                                            <th>Actions</th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         <?php if (empty($attempts)): ?>
-                                            <tr><td colspan="4" class="text-center">No completed attempts for this test yet.</td></tr>
+                                            <tr><td colspan="5" class="text-center">No completed attempts for this test yet.</td></tr>
                                         <?php else: ?>
                                             <?php foreach ($attempts as $attempt): ?>
                                                 <tr>
@@ -123,6 +130,15 @@ require_once __DIR__ . '/../includes/header.php';
                                                     <td><?php echo htmlspecialchars($attempt['email']); ?></td>
                                                     <td><?php echo date('M d, Y, g:i A', strtotime($attempt['end_time'])); ?></td>
                                                     <td><strong><?php echo number_format($attempt['score'], 2); ?>%</strong></td>
+                                                    <td>
+                                                        <?php if ($attempt['ungraded_count'] > 0): ?>
+                                                            <a href="grade-attempt.php?id=<?php echo $attempt['attempt_id']; ?>" class="btn btn-sm btn-warning">
+                                                                Grade (<?php echo $attempt['ungraded_count']; ?>)
+                                                            </a>
+                                                        <?php else: ?>
+                                                            <a href="grade-attempt.php?id=<?php echo $attempt['attempt_id']; ?>" class="btn btn-sm btn-outline-secondary">View</a>
+                                                        <?php endif; ?>
+                                                    </td>
                                                 </tr>
                                             <?php endforeach; ?>
                                         <?php endif; ?>

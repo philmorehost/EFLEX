@@ -40,13 +40,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 $category_id = $q_data['category_id'];
                 $question_type = $q_data['question_type'];
                 $question_text = $purifier->purify(trim($q_data['question_text']));
+                $model_answer = ($question_type === 'short_answer') ? ($q_data['model_answer'] ?? NULL) : NULL;
 
                 if (empty($category_id) || empty($question_type) || empty($question_text)) {
                     throw new Exception("All fields are required for Question #" . ($q_idx + 1));
                 }
 
-                $stmt = $conn->prepare("INSERT INTO questions (category_id, question_type, question_text, created_by) VALUES (?, ?, ?, ?)");
-                $stmt->bind_param("issi", $category_id, $question_type, $question_text, $created_by);
+                $stmt = $conn->prepare("INSERT INTO questions (category_id, question_type, question_text, model_answer, created_by) VALUES (?, ?, ?, ?, ?)");
+                $stmt->bind_param("isssi", $category_id, $question_type, $question_text, $model_answer, $created_by);
                 $stmt->execute();
                 $question_id = $stmt->insert_id;
                 $stmt->close();
@@ -292,6 +293,13 @@ function handleQuestionTypeChange(selectElement) {
                 <h5>Correct Answer</h5>
                 <div class="form-check"><input class="form-check-input" type="radio" name="questions[${qIndex}][is_correct_tf]" value="true" checked><label class="form-check-label">True</label></div>
                 <div class="form-check"><input class="form-check-input" type="radio" name="questions[${qIndex}][is_correct_tf]" value="false"><label class="form-check-label">False</label></div>
+            </div>`;
+    } else if (type === 'short_answer') {
+        container.innerHTML = `
+            <div class="mt-4 p-3 border rounded">
+                <h5>Model Answer (Optional)</h5>
+                <p class="small text-muted">Provide a model answer for grading reference. This will not be shown to the student.</p>
+                <textarea class="form-control" name="questions[${qIndex}][model_answer]" rows="2"></textarea>
             </div>`;
     }
 }
