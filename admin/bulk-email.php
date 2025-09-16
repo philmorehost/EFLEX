@@ -15,16 +15,53 @@ if (!in_array($_SESSION['role_id'], $allowed_roles)) {
 
 $success_message = '';
 
+// Fetch all roles for the dropdown
+$roles_result = $conn->query("SELECT role_id, role_name FROM roles ORDER BY role_name ASC");
+$roles = $roles_result->fetch_all(MYSQLI_ASSOC);
+
 // --- Form Submission Logic ---
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $subject = trim($_POST['subject'] ?? '');
     $message = trim($_POST['message'] ?? '');
+    $recipient_role = $_POST['recipient_role'] ?? 'all';
 
     if (!empty($subject) && !empty($message)) {
-        // In a real application, this would queue emails to be sent.
-        // For this project, we simulate the action.
-        $user_count = $conn->query("SELECT COUNT(*) as count FROM users")->fetch_assoc()['count'];
-        $success_message = "Your message has been successfully queued for sending to " . $user_count . " users.";
+        $sql = "SELECT email FROM users WHERE status = 'active'";
+        $params = [];
+        $types = '';
+
+        if ($recipient_role !== 'all') {
+            $sql .= " AND role_id = ?";
+            $params[] = $recipient_role;
+            $types .= 'i';
+        }
+
+        $stmt = $conn->prepare($sql);
+        if (!empty($params)) {
+            $stmt->bind_param($types, ...$params);
+        }
+        $stmt->execute();
+        $result = $stmt->get_result();
+        $recipients = $result->fetch_all(MYSQLI_ASSOC);
+        $stmt->close();
+
+        $recipient_count = count($recipients);
+
+        // In a real application, this is where you would loop through $recipients
+        // and send emails using a mail library like PHPMailer.
+        // For now, we just show a success message.
+
+        $group_name = 'All Users';
+        if ($recipient_role !== 'all') {
+            foreach($roles as $role) {
+                if ($role['role_id'] == $recipient_role) {
+                    $group_name = 'All ' . htmlspecialchars(ucfirst($role['role_name'])) . 's';
+                    break;
+                }
+            }
+        }
+
+        $success_message = "Your message has been successfully queued for sending to $recipient_count recipients in the group: $group_name.";
     }
 }
 
@@ -59,6 +96,17 @@ require_once __DIR__ . '/../includes/header.php';
                         <div class="card-body">
                             <form action="bulk-email.php" method="POST">
                                 <div class="mb-3">
+                                    <label for="recipient_role" class="form-label">Recipient Group</label>
+                                    <select class="form-select" id="recipient_role" name="recipient_role" required>
+                                        <option value="all" selected>All Users</option>
+                                        <?php foreach ($roles as $role): ?>
+                                            <option value="<?php echo $role['role_id']; ?>">
+                                                All <?php echo htmlspecialchars(ucfirst($role['role_name'])) . 's'; ?>
+                                            </option>
+                                        <?php endforeach; ?>
+                                    </select>
+                                </div>
+                                <div class="mb-3">
                                     <label for="subject" class="form-label">Subject</label>
                                     <input type="text" class="form-control" id="subject" name="subject" required>
                                 </div>
@@ -67,7 +115,7 @@ require_once __DIR__ . '/../includes/header.php';
                                     <textarea class="form-control" id="message" name="message" rows="10"></textarea>
                                 </div>
                                 <div class="mt-3">
-                                    <button type="submit" class="btn btn-primary">Send to All Users</button>
+                                    <button type="submit" class="btn btn-primary">Queue Email for Sending</button>
                                 </div>
                             </form>
                         </div>
