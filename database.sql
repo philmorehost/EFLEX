@@ -26,6 +26,15 @@ CREATE TABLE `categories` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 --
+-- Dumping data for table `categories`
+--
+INSERT INTO `categories` (`id`, `name`, `slug`) VALUES
+(1, 'PHP Scripts', 'php-scripts'),
+(2, 'WordPress', 'wordpress'),
+(3, 'JavaScript', 'javascript'),
+(4, 'HTML & CSS', 'html-css');
+
+--
 -- Table structure for table `products`
 --
 CREATE TABLE `products` (
