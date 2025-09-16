@@ -136,7 +136,7 @@ require_once __DIR__ . '/includes/header.php';
         </div>
         <div class="d-flex align-items-center">
             <div class="h3 me-4" id="timer">--:--</div>
-            <img src="<?php echo htmlspecialchars($profile_pic); ?>" alt="Profile Picture" class="img-thumbnail rounded-circle" style="width: 50px; height: 50px; object-fit: cover;">
+            <img src="<?php echo htmlspecialchars($profile_pic); ?>" alt="Profile Picture" class="img-thumbnail rounded-circle" style="width: 120px; height: 120px; object-fit: cover;">
         </div>
     </div>
     <hr>

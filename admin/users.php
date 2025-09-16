@@ -19,7 +19,7 @@ if (!in_array($_SESSION['role_id'], $allowed_roles)) {
 $search_term = '';
 if (isset($_GET['search']) && !empty(trim($_GET['search']))) {
     $search_term = trim($_GET['search']);
-    $sql = "SELECT u.user_id, u.first_name, u.last_name, u.email, u.status, r.role_name
+    $sql = "SELECT u.user_id, u.first_name, u.last_name, u.email, u.status, r.role_name, u.profile_picture_path
             FROM users u
             LEFT JOIN roles r ON u.role_id = r.role_id
             WHERE CONCAT(u.first_name, ' ', u.last_name) LIKE ? OR u.email LIKE ?
@@ -30,7 +30,7 @@ if (isset($_GET['search']) && !empty(trim($_GET['search']))) {
     $stmt->execute();
     $result = $stmt->get_result();
 } else {
-    $sql = "SELECT u.user_id, u.first_name, u.last_name, u.email, u.status, r.role_name
+    $sql = "SELECT u.user_id, u.first_name, u.last_name, u.email, u.status, r.role_name, u.profile_picture_path
             FROM users u
             LEFT JOIN roles r ON u.role_id = r.role_id
             ORDER BY u.user_id ASC";
@@ -59,7 +59,13 @@ require_once __DIR__ . '/../includes/header.php';
             <div class="row my-5">
                 <div class="col">
                     <div class="d-flex justify-content-between align-items-center mb-3">
-                        <h3 class="fs-4 mb-0">All Users</h3>
+                        <div class="d-flex align-items-center">
+                            <h3 class="fs-4 mb-0 me-3">All Users</h3>
+                            <div class="btn-group" role="group" aria-label="View Toggle">
+                                <button type="button" class="btn btn-outline-secondary active" id="view-list-btn"><i class="bi bi-list-ul"></i></button>
+                                <button type="button" class="btn btn-outline-secondary" id="view-grid-btn"><i class="bi bi-grid-3x3-gap-fill"></i></button>
+                            </div>
+                        </div>
                         <div>
                              <a href="import-students.php" class="btn btn-outline-success">
                                 <i class="bi bi-upload me-2"></i>Import Students
@@ -91,11 +97,12 @@ require_once __DIR__ . '/../includes/header.php';
                         </div>
                     </div>
 
-                    <div class="table-responsive">
+                    <div class="table-responsive" id="user-list-view">
                         <table class="table bg-white rounded shadow-sm table-hover">
                             <thead class="table-light">
                                 <tr>
                                     <th scope="col">ID</th>
+                                    <th scope="col">Photo</th>
                                     <th scope="col">Name</th>
                                     <th scope="col">Email</th>
                                     <th scope="col">Role</th>
@@ -112,6 +119,14 @@ require_once __DIR__ . '/../includes/header.php';
                                     <?php foreach ($users as $user): ?>
                                         <tr>
                                             <th scope="row"><?php echo htmlspecialchars($user['user_id']); ?></th>
+                                            <td>
+                                                <?php
+                                                    $pic_path = !empty($user['profile_picture_path']) && file_exists(__DIR__ . '/../' . $user['profile_picture_path'])
+                                                        ? '../' . $user['profile_picture_path']
+                                                        : '../assets/img/default_avatar.svg';
+                                                ?>
+                                                <img src="<?php echo htmlspecialchars($pic_path); ?>" alt="User Photo" class="rounded-circle" style="width: 40px; height: 40px; object-fit: cover;">
+                                            </td>
                                             <td><?php echo htmlspecialchars($user['first_name'] . ' ' . $user['last_name']); ?></td>
                                             <td><?php echo htmlspecialchars($user['email']); ?></td>
                                             <td><?php echo htmlspecialchars($user['role_name']); ?></td>
@@ -141,10 +156,77 @@ require_once __DIR__ . '/../includes/header.php';
                             </tbody>
                         </table>
                     </div>
+
+                    <!-- Grid View -->
+                    <div id="user-grid-view" style="display: none;">
+                        <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 row-cols-xl-4 g-4">
+                            <?php foreach ($users as $user): ?>
+                                <div class="col">
+                                    <div class="card h-100 text-center shadow-sm">
+                                        <?php
+                                            $pic_path = !empty($user['profile_picture_path']) && file_exists(__DIR__ . '/../' . $user['profile_picture_path'])
+                                                ? '../' . $user['profile_picture_path']
+                                                : '../assets/img/default_avatar.svg';
+                                        ?>
+                                        <img src="<?php echo htmlspecialchars($pic_path); ?>" class="card-img-top" alt="User Photo" style="height: 200px; object-fit: cover;">
+                                        <div class="card-body">
+                                            <h5 class="card-title"><?php echo htmlspecialchars($user['first_name'] . ' ' . $user['last_name']); ?></h5>
+                                            <p class="card-text text-muted"><?php echo htmlspecialchars($user['email']); ?></p>
+                                            <?php
+                                                $status_color = 'secondary'; // Default
+                                                if ($user['status'] === 'active') $status_color = 'success';
+                                                if ($user['status'] === 'pending') $status_color = 'info text-dark';
+                                                if (in_array($user['status'], ['inactive', 'suspended'])) $status_color = 'warning text-dark';
+                                            ?>
+                                            <span class="badge bg-<?php echo $status_color; ?> mb-3"><?php echo htmlspecialchars(ucfirst($user['status'])); ?></span>
+                                        </div>
+                                        <div class="card-footer">
+                                            <?php if ($user['status'] === 'pending'): ?>
+                                                <a href="approve-user.php?id=<?php echo $user['user_id']; ?>" class="btn btn-sm btn-success">Approve</a>
+                                                <a href="deny-user.php?id=<?php echo $user['user_id']; ?>" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure?');">Deny</a>
+                                            <?php else: ?>
+                                                <a href="edit-user.php?id=<?php echo $user['user_id']; ?>" class="btn btn-sm btn-outline-primary">Edit</a>
+                                                <a href="delete-user.php?id=<?php echo $user['user_id']; ?>" class="btn btn-sm btn-outline-danger" onclick="return confirm('Are you sure?');">Delete</a>
+                                            <?php endif; ?>
+                                        </div>
+                                    </div>
+                                </div>
+                            <?php endforeach; ?>
+                        </div>
+                    </div>
+                    <!-- End Grid View -->
+
                 </div>
             </div>
         </div>
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const viewListBtn = document.getElementById('view-list-btn');
+    const viewGridBtn = document.getElementById('view-grid-btn');
+    const listView = document.getElementById('user-list-view');
+    const gridView = document.getElementById('user-grid-view');
+
+    viewListBtn.addEventListener('click', function () {
+        if (!viewListBtn.classList.contains('active')) {
+            listView.style.display = 'block';
+            gridView.style.display = 'none';
+            viewListBtn.classList.add('active');
+            viewGridBtn.classList.remove('active');
+        }
+    });
+
+    viewGridBtn.addEventListener('click', function () {
+        if (!viewGridBtn.classList.contains('active')) {
+            listView.style.display = 'none';
+            gridView.style.display = 'block';
+            viewGridBtn.classList.add('active');
+            viewListBtn.classList.remove('active');
+        }
+    });
+});
+</script>
 
 <?php require_once __DIR__ . '/../includes/footer.php'; ?>
