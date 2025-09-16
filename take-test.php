@@ -52,6 +52,17 @@ if (!$attempt) {
     $attempt_id = $attempt['attempt_id'];
 }
 
+// --- Calculate remaining time on the server side ---
+$seconds_remaining = -1; // Default to no time limit
+if (!empty($test['time_limit_minutes'])) {
+    $start_time_unix = strtotime($attempt['start_time']);
+    $end_time_unix = $start_time_unix + ($test['time_limit_minutes'] * 60);
+    $now_unix = time();
+    $seconds_remaining = $end_time_unix - $now_unix;
+    if ($seconds_remaining < 0) $seconds_remaining = 0;
+}
+
+
 // --- Final Submission Logic ---
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['finish_test'])) {
     // Grading logic from previous implementation
@@ -257,26 +268,30 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    // --- Timer Logic (from previous step) ---
+    // --- Timer Logic ---
     const timerDisplay = document.getElementById('timer');
-    const startTime = new Date('<?php echo $attempt["start_time"]; ?>').getTime();
-    const timeLimitMinutes = parseInt('<?php echo $test["time_limit_minutes"]; ?>', 10);
-    if (!isNaN(timeLimitMinutes) && timeLimitMinutes > 0) {
-        const endTime = startTime + timeLimitMinutes * 60 * 1000;
+    let remainingSeconds = <?php echo $seconds_remaining; ?>;
+
+    if (remainingSeconds >= 0) {
         const timerInterval = setInterval(() => {
-            const distance = endTime - new Date().getTime();
-            if (distance < 0) {
+            if (remainingSeconds <= 0) {
                 clearInterval(timerInterval);
                 timerDisplay.innerHTML = "Time's Up!";
                 alert("Time is up! Your test will be submitted automatically.");
                 document.getElementById('finish-form').submit();
                 return;
             }
-            const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-            const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
-            const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+            remainingSeconds--;
+
+            const hours = Math.floor(remainingSeconds / 3600);
+            const minutes = Math.floor((remainingSeconds % 3600) / 60);
+            const seconds = remainingSeconds % 60;
+
             let timerText = ('0' + minutes).slice(-2) + ":" + ('0' + seconds).slice(-2);
-            if (hours > 0) timerText = ('0' + hours).slice(-2) + ":" + timerText;
+            if (hours > 0) {
+                timerText = ('0' + hours).slice(-2) + ":" + timerText;
+            }
             timerDisplay.innerHTML = timerText;
         }, 1000);
     } else {
@@ -293,4 +308,4 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 </script>
 
-<?php require_once __DIR__ . '/../includes/footer.php'; ?>
+<?php require_once __DIR__ . '/includes/footer.php'; ?>
