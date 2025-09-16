@@ -68,7 +68,7 @@ if (isset($_SESSION['user_id'])) {
         <!-- Student Dashboard HTML -->
         <div class="container mt-5">
             <div class="d-flex align-items-center mb-4">
-                <img src="<?php echo htmlspecialchars($profile_pic); ?>" alt="Profile Picture" class="img-thumbnail rounded-circle me-3" style="width: 60px; height: 60px; object-fit: cover;">
+                <img src="<?php echo htmlspecialchars($profile_pic); ?>" alt="Profile Picture" class="img-thumbnail rounded-circle me-3" style="width: 150px; height: 150px; object-fit: cover;">
                 <h1 class="mb-0">Welcome, <?php echo htmlspecialchars($user['first_name']); ?>!</h1>
             </div>
 
