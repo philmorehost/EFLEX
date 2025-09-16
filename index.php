@@ -23,6 +23,19 @@ if (isset($_SESSION['user_id'])) {
     if ($role_id == 4) {
         $user_id = $_SESSION['user_id'];
 
+        // --- Fetch Student Statistics ---
+        $stats_sql = "SELECT
+                        COUNT(*) as total_completed,
+                        AVG(score) as average_score,
+                        SUM(CASE WHEN score >= 70 THEN 1 ELSE 0 END) as tests_passed
+                    FROM test_attempts
+                    WHERE user_id = ? AND status = 'completed'";
+        $stats_stmt = $conn->prepare($stats_sql);
+        $stats_stmt->bind_param("i", $user_id);
+        $stats_stmt->execute();
+        $stats = $stats_stmt->get_result()->fetch_assoc();
+        $stats_stmt->close();
+
         // Fetch all available tests and join with attempts to see if user has taken them
         $sql = "SELECT
                     t.test_id, t.title, t.description, t.time_limit_minutes,
@@ -41,6 +54,38 @@ if (isset($_SESSION['user_id'])) {
         <!-- Student Dashboard HTML -->
         <div class="container mt-5">
             <h1 class="mb-4">Welcome, <?php echo htmlspecialchars($_SESSION['first_name']); ?>!</h1>
+
+            <!-- Stat Cards -->
+            <div class="row g-4 mb-4">
+                <div class="col-md-4">
+                    <div class="card text-center text-white bg-primary shadow">
+                        <div class="card-body">
+                            <i class="fas fa-file-alt fa-3x mb-2"></i>
+                            <h3 class="card-title"><?php echo $stats['total_completed'] ?? 0; ?></h3>
+                            <p class="card-text">Tests Taken</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card text-center text-white bg-success shadow">
+                        <div class="card-body">
+                            <i class="fas fa-graduation-cap fa-3x mb-2"></i>
+                            <h3 class="card-title"><?php echo number_format($stats['average_score'] ?? 0, 1); ?>%</h3>
+                            <p class="card-text">Average Score</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card text-center text-white bg-info shadow">
+                        <div class="card-body">
+                            <i class="fas fa-trophy fa-3x mb-2"></i>
+                            <h3 class="card-title"><?php echo $stats['tests_passed'] ?? 0; ?></h3>
+                            <p class="card-text">Tests Passed</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <h3 class="mb-4">Available Tests</h3>
             <div class="row">
                 <?php if (empty($tests)): ?>
