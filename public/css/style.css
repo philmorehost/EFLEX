@@ -1,0 +1,391 @@
+/* public/css/style.css */
+
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    background-color: #f4f7f6;
+    color: #333;
+}
+
+.container {
+    width: 90%;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px 0;
+}
+
+/* Header and Navbar */
+.navbar {
+    background-color: #ffffff;
+    padding: 1rem 0;
+    border-bottom: 1px solid #e0e0e0;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.navbar .container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.navbar-brand {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #333;
+    text-decoration: none;
+}
+
+.navbar-nav {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+}
+
+.navbar-nav li {
+    margin-left: 20px;
+}
+
+.navbar-nav a {
+    color: #555;
+    text-decoration: none;
+    font-size: 1rem;
+    transition: color 0.3s;
+}
+
+.navbar-nav a:hover {
+    color: #007bff;
+}
+
+/* Main Content */
+main.container {
+    padding-top: 40px;
+    padding-bottom: 60px;
+    min-height: 80vh;
+}
+
+/* Footer */
+.footer {
+    background-color: #333;
+    color: #fff;
+    text-align: center;
+    padding: 20px 0;
+    margin-top: 40px;
+}
+
+.footer p {
+    margin: 0;
+}
+
+/* Homepage Specific Styles */
+
+/* Hero Section */
+.hero {
+    background-color: #007bff;
+    color: #ffffff;
+    text-align: center;
+    padding: 60px 20px;
+    border-radius: 8px;
+}
+
+.hero-content h1 {
+    font-size: 2.5rem;
+    margin-bottom: 10px;
+}
+
+.hero-content p {
+    font-size: 1.2rem;
+    margin-bottom: 20px;
+}
+
+.btn {
+    padding: 10px 20px;
+    text-decoration: none;
+    border-radius: 5px;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.btn-primary {
+    background-color: #ffffff;
+    color: #007bff;
+    font-weight: bold;
+}
+
+.btn-primary:hover {
+    background-color: #f0f0f0;
+}
+
+/* Product Sections */
+.featured-products, .new-releases {
+    margin-top: 40px;
+}
+
+h2 {
+    font-size: 1.8rem;
+    margin-bottom: 20px;
+    text-align: center;
+    color: #333;
+}
+
+/* Product Grid */
+.product-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 20px;
+}
+
+.product-card {
+    background-color: #ffffff;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.product-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 6px 8px rgba(0,0,0,0.15);
+}
+
+.product-card img {
+    width: 100%;
+    height: auto;
+    display: block;
+}
+
+.product-card-content {
+    padding: 15px;
+}
+
+.product-card-content h3 {
+    font-size: 1.2rem;
+    margin: 0 0 10px 0;
+}
+
+.product-card-content .product-category {
+    font-size: 0.9rem;
+    color: #777;
+    margin-bottom: 10px;
+}
+
+.product-card-content .product-price {
+    font-size: 1.1rem;
+    font-weight: bold;
+    color: #007bff;
+    text-align: right;
+}
+
+/* Products Page Specific Styles */
+
+.page-header {
+    text-align: center;
+    margin-bottom: 40px;
+}
+
+.search-bar {
+    display: flex;
+    justify-content: center;
+    margin-top: 20px;
+}
+
+.search-bar input {
+    width: 50%;
+    padding: 10px;
+    font-size: 1rem;
+    border: 1px solid #ccc;
+    border-radius: 5px 0 0 5px;
+}
+
+.search-bar button {
+    padding: 10px 20px;
+    border: none;
+    background-color: #007bff;
+    color: white;
+    border-radius: 0 5px 5px 0;
+    cursor: pointer;
+}
+
+.products-page-layout {
+    display: grid;
+    grid-template-columns: 250px 1fr;
+    gap: 30px;
+}
+
+.filters-sidebar {
+    background-color: #ffffff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.filter-group {
+    margin-bottom: 20px;
+}
+
+.filter-group h4 {
+    margin-bottom: 10px;
+    font-size: 1.1rem;
+}
+
+.filter-group ul {
+    list-style: none;
+    padding: 0;
+}
+
+.filter-group ul li a {
+    text-decoration: none;
+    color: #555;
+}
+
+.filter-group ul li a:hover {
+    color: #007bff;
+}
+
+.products-grid-container {
+    width: 100%;
+}
+
+/* Product Details Page Specific Styles */
+
+.product-details-layout {
+    display: grid;
+    grid-template-columns: 1fr 300px;
+    gap: 30px;
+}
+
+.product-header h1 {
+    font-size: 2.2rem;
+    margin-bottom: 5px;
+}
+
+.product-category-detail {
+    font-size: 1.1rem;
+    color: #777;
+    margin-bottom: 20px;
+}
+
+.product-gallery .main-image {
+    width: 100%;
+    border-radius: 8px;
+    margin-bottom: 10px;
+}
+
+.thumbnail-images {
+    display: flex;
+    gap: 10px;
+}
+
+.thumbnail-images img {
+    width: 100px;
+    height: 70px;
+    object-fit: cover;
+    border-radius: 4px;
+    cursor: pointer;
+    border: 2px solid transparent;
+}
+
+.thumbnail-images img.active {
+    border-color: #007bff;
+}
+
+.product-description, .product-reviews {
+    margin-top: 30px;
+}
+
+.product-reviews .review {
+    border-top: 1px solid #e0e0e0;
+    padding: 15px 0;
+}
+
+.review-author {
+    font-weight: bold;
+}
+
+.review-rating {
+    color: #f8b400;
+    margin: 5px 0;
+}
+
+.product-purchase-sidebar .purchase-box {
+    background-color: #ffffff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    margin-bottom: 20px;
+}
+
+.price-tag {
+    font-size: 2rem;
+    font-weight: bold;
+    color: #007bff;
+    margin-bottom: 15px;
+}
+
+.purchase-box select, .purchase-box .btn {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 10px;
+    border-radius: 5px;
+}
+
+.btn-success {
+    background-color: #28a745;
+    color: white;
+}
+
+.btn-block {
+    display: block;
+    width: 100%;
+    text-align: center;
+}
+
+.seller-info {
+    background-color: #ffffff;
+    padding: 20px;
+    border-radius: 8px;
+    text-align: center;
+}
+
+/* Authentication Page Styles */
+
+.auth-container {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 40px;
+    max-width: 900px;
+    margin: 40px auto;
+}
+
+.auth-form-wrapper {
+    background-color: #ffffff;
+    padding: 30px;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.auth-form-wrapper h2 {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.form-group {
+    margin-bottom: 15px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+}
+
+.form-group input,
+.form-group select {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    box-sizing: border-box; /* Fixes padding issue */
+}
