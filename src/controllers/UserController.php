@@ -1,0 +1,55 @@
+<?php
+// src/controllers/UserController.php
+
+require_once __DIR__ . '/../models/User.php';
+
+class UserController {
+    private $userModel;
+
+    public function __construct($pdo) {
+        $this->userModel = new User($pdo);
+    }
+
+    public function register() {
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            // Only handle POST requests
+            http_response_code(405); // Method Not Allowed
+            echo 'Invalid request method.';
+            return;
+        }
+
+        // 1. Get and sanitize input
+        $username = trim(filter_input(INPUT_POST, 'username', FILTER_SANITIZE_STRING));
+        $email = trim(filter_input(INPUT_POST, 'email', FILTER_VALIDATE_EMAIL));
+        $password = $_POST['password']; // We won't sanitize this, just hash it
+        $userType = $_POST['user_type'] === 'seller' ? 'seller' : 'buyer';
+
+        // 2. Validate input
+        if (!$username || !$email || empty($password)) {
+            // Simple validation: check if fields are empty or email is invalid
+            // In a real app, you'd handle this more gracefully (e.g., redirect with error message)
+            die('Validation failed: Please fill all fields correctly.');
+        }
+
+        // 3. Check if user already exists
+        if ($this->userModel->findByEmail($email)) {
+            die('Error: An account with this email already exists.');
+        }
+
+        // 4. Hash the password
+        $passwordHash = password_hash($password, PASSWORD_DEFAULT);
+
+        // 5. Create the user
+        $success = $this->userModel->create($username, $email, $passwordHash, $userType);
+
+        // 6. Redirect on success
+        if ($success) {
+            // Redirect to login page with a success message
+            header('Location: /login?registration=success');
+            exit();
+        } else {
+            // Handle failure
+            die('An unexpected error occurred. Please try again.');
+        }
+    }
+}

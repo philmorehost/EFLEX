@@ -18,7 +18,7 @@
 
     <div class="auth-form-wrapper">
         <h2>Create a New Account</h2>
-        <form action="#" method="POST" class="auth-form">
+        <form action="/register" method="POST" class="auth-form">
             <div class="form-group">
                 <label for="register-username">Username</label>
                 <input type="text" id="register-username" name="username" required>
