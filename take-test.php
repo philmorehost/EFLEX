@@ -119,7 +119,7 @@ $questions_sql = "SELECT q.question_id, q.question_text, q.question_type, sa.sel
                   JOIN test_questions tq ON q.question_id = tq.question_id
                   LEFT JOIN student_answers sa ON q.question_id = sa.question_id AND sa.attempt_id = ?
                   WHERE tq.test_id = ?
-                  ORDER BY tq.question_order ASC";
+                  ORDER BY RAND()";
 $q_stmt = $conn->prepare($questions_sql);
 $q_stmt->bind_param("ii", $attempt_id, $test_id);
 $q_stmt->execute();
@@ -152,11 +152,12 @@ require_once __DIR__ . '/includes/header.php';
                         <div class="options-area" data-question-id="<?php echo $q['question_id']; ?>">
                             <?php if ($q['question_type'] === 'multiple_choice' || $q['question_type'] === 'true_false'): ?>
                                 <?php
-                                $opt_stmt = $conn->prepare("SELECT * FROM options WHERE question_id = ? ORDER BY option_id");
+                                $opt_stmt = $conn->prepare("SELECT * FROM options WHERE question_id = ?");
                                 $opt_stmt->bind_param("i", $q['question_id']);
                                 $opt_stmt->execute();
                                 $options = $opt_stmt->get_result()->fetch_all(MYSQLI_ASSOC);
                                 $opt_stmt->close();
+                                shuffle($options); // Randomize the order of options
                                 foreach ($options as $option):
                                 ?>
                                     <div class="form-check">
