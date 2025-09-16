@@ -167,7 +167,7 @@ require_once __DIR__ . '/includes/header.php';
                                     </div>
                                 <?php endforeach; ?>
                             <?php elseif ($q['question_type'] === 'short_answer'): ?>
-                                <textarea class="form-control" name="answer_<?php echo $q['question_id']; ?>" rows="3"><?php echo htmlspecialchars($q['answer_text']); ?></textarea>
+                                <textarea class="form-control" name="answer_<?php echo $q['question_id']; ?>" rows="3"><?php echo htmlspecialchars($q['answer_text'] ?? ''); ?></textarea>
                             <?php endif; ?>
                         </div>
                     </div>
