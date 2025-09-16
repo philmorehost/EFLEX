@@ -116,13 +116,24 @@ require_once __DIR__ . '/../includes/header.php';
                                             <td><?php echo htmlspecialchars($user['email']); ?></td>
                                             <td><?php echo htmlspecialchars($user['role_name']); ?></td>
                                             <td>
-                                                <span class="badge bg-<?php echo $user['status'] === 'active' ? 'success' : 'warning'; ?>">
+                                                <?php
+                                                    $status_color = 'secondary'; // Default
+                                                    if ($user['status'] === 'active') $status_color = 'success';
+                                                    if ($user['status'] === 'pending') $status_color = 'info text-dark';
+                                                    if (in_array($user['status'], ['inactive', 'suspended'])) $status_color = 'warning text-dark';
+                                                ?>
+                                                <span class="badge bg-<?php echo $status_color; ?>">
                                                     <?php echo htmlspecialchars(ucfirst($user['status'])); ?>
                                                 </span>
                                             </td>
                                             <td>
-                                                <a href="edit-user.php?id=<?php echo $user['user_id']; ?>" class="btn btn-sm btn-outline-primary">Edit</a>
-                                                <a href="delete-user.php?id=<?php echo $user['user_id']; ?>" class="btn btn-sm btn-outline-danger" onclick="return confirm('Are you sure you want to delete this user? This action cannot be undone.');">Delete</a>
+                                                <?php if ($user['status'] === 'pending'): ?>
+                                                    <a href="approve-user.php?id=<?php echo $user['user_id']; ?>" class="btn btn-sm btn-success">Approve</a>
+                                                    <a href="deny-user.php?id=<?php echo $user['user_id']; ?>" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure you want to deny and delete this user?');">Deny</a>
+                                                <?php else: ?>
+                                                    <a href="edit-user.php?id=<?php echo $user['user_id']; ?>" class="btn btn-sm btn-outline-primary">Edit</a>
+                                                    <a href="delete-user.php?id=<?php echo $user['user_id']; ?>" class="btn btn-sm btn-outline-danger" onclick="return confirm('Are you sure you want to delete this user? This action cannot be undone.');">Delete</a>
+                                                <?php endif; ?>
                                             </td>
                                         </tr>
                                     <?php endforeach; ?>

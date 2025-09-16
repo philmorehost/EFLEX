@@ -28,7 +28,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $error_message = "Email and password are required.";
     } else {
         // Fetch user from the database
-        $sql = "SELECT user_id, first_name, role_id, password_hash FROM users WHERE email = ?";
+        $sql = "SELECT user_id, first_name, role_id, password_hash, status FROM users WHERE email = ?";
         $stmt = $conn->prepare($sql);
         $stmt->bind_param("s", $email);
         $stmt->execute();
@@ -39,20 +39,27 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
             // Verify password
             if (password_verify($password, $user['password_hash'])) {
-                // Password is correct, start the session
-                session_regenerate_id(true); // Prevent session fixation
+                // Check user status
+                if ($user['status'] === 'active') {
+                    // Password is correct and user is active, start the session
+                    session_regenerate_id(true); // Prevent session fixation
 
-                $_SESSION['user_id'] = $user['user_id'];
-                $_SESSION['first_name'] = $user['first_name'];
-                $_SESSION['role_id'] = $user['role_id'];
+                    $_SESSION['user_id'] = $user['user_id'];
+                    $_SESSION['first_name'] = $user['first_name'];
+                    $_SESSION['role_id'] = $user['role_id'];
 
-                // Role-based redirection
-                if (in_array($user['role_id'], [1, 2, 3])) { // Admin, Super Admin, Staff
-                    header("Location: admin/index.php");
-                } else { // Regular User
-                    header("Location: index.php");
+                    // Role-based redirection
+                    if (in_array($user['role_id'], [1, 2, 3])) { // Admin, Super Admin, Staff
+                        header("Location: admin/index.php");
+                    } else { // Regular User
+                        header("Location: index.php");
+                    }
+                    exit;
+                } elseif ($user['status'] === 'pending') {
+                    $error_message = "Your account is pending approval. Please wait for an administrator to review your registration.";
+                } else { // inactive, suspended, etc.
+                    $error_message = "Your account has been disabled. Please contact support.";
                 }
-                exit;
             } else {
                 // Invalid password
                 $error_message = "Invalid email or password.";

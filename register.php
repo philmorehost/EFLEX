@@ -19,25 +19,51 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $email = trim($_POST['email'] ?? '');
     $password = $_POST['password'] ?? '';
     $confirm_password = $_POST['confirm_password'] ?? '';
+    $address = trim($_POST['address'] ?? '');
+    $phone = trim($_POST['phone'] ?? '');
+    $sex = trim($_POST['sex'] ?? '');
+    $profile_picture = $_FILES['profile_picture'] ?? null;
 
     // --- Validation ---
-    if (empty($first_name) || empty($last_name) || empty($email) || empty($password)) {
+    if (empty($first_name) || empty($last_name) || empty($email) || empty($password) || empty($address) || empty($phone) || empty($sex)) {
         $errors[] = "All fields are required.";
+    }
+    if ($profile_picture === null || $profile_picture['error'] !== UPLOAD_ERR_OK) {
+        $errors[] = "Profile picture is required and must be uploaded successfully.";
     }
 
     if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
         $errors[] = "Invalid email format.";
     }
-
     if (strlen($password) < 8) {
         $errors[] = "Password must be at least 8 characters long.";
     }
-
     if ($password !== $confirm_password) {
         $errors[] = "Passwords do not match.";
     }
 
-    // Check if email already exists (only if other validations pass)
+    // --- Profile Picture Validation ---
+    $profile_picture_path = null;
+    if (empty($errors) && $profile_picture) {
+        $upload_dir = 'uploads/profile_pictures/';
+        if (!is_dir($upload_dir)) {
+            mkdir($upload_dir, 0755, true);
+        }
+        $allowed_types = ['image/jpeg', 'image/png', 'image/gif'];
+        if (!in_array($profile_picture['type'], $allowed_types)) {
+            $errors[] = "Invalid file type for profile picture. Please upload a JPG, PNG, or GIF.";
+        } else {
+            $file_extension = pathinfo($profile_picture['name'], PATHINFO_EXTENSION);
+            $unique_filename = uniqid('user_', true) . '.' . $file_extension;
+            $profile_picture_path = $upload_dir . $unique_filename;
+            if (!move_uploaded_file($profile_picture['tmp_name'], $profile_picture_path)) {
+                $errors[] = "Failed to save profile picture.";
+                $profile_picture_path = null; // Reset path on failure
+            }
+        }
+    }
+
+    // Check if email already exists
     if (empty($errors)) {
         $stmt = $conn->prepare("SELECT user_id FROM users WHERE email = ?");
         $stmt->bind_param("s", $email);
@@ -51,10 +77,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     // --- If no errors, proceed with registration ---
     if (empty($errors)) {
-        // Hash the password securely
         $password_hash = password_hash($password, PASSWORD_DEFAULT);
-
-        // Get the role_id for 'User'
         $role_name = 'User';
         $stmt = $conn->prepare("SELECT role_id FROM roles WHERE role_name = ?");
         $stmt->bind_param("s", $role_name);
@@ -62,22 +85,23 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $result = $stmt->get_result();
 
         if ($result->num_rows > 0) {
-            $role = $result->fetch_assoc();
-            $role_id = $role['role_id'];
+            $role_id = $result->fetch_assoc()['role_id'];
 
-            // Insert new user into the database using a prepared statement
-            $sql = "INSERT INTO users (role_id, first_name, last_name, email, password_hash, status) VALUES (?, ?, ?, ?, ?, 'active')";
+            $sql = "INSERT INTO users (role_id, first_name, last_name, email, password_hash, address, phone, sex, profile_picture_path, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending')";
             $stmt = $conn->prepare($sql);
-            $stmt->bind_param("issss", $role_id, $first_name, $last_name, $email, $password_hash);
+            $stmt->bind_param("issssssss", $role_id, $first_name, $last_name, $email, $password_hash, $address, $phone, $sex, $profile_picture_path);
 
             if ($stmt->execute()) {
-                // Registration successful
-                $success_message = "Registration successful! You can now <a href='login.php' class='alert-link'>log in</a>.";
+                $success_message = "Registration successful! Your account is now pending approval from an administrator. You will be notified via email once it has been reviewed.";
             } else {
-                $errors[] = "Registration failed due to a server error. Please try again later.";
+                $errors[] = "Registration failed due to a server error.";
+                // Clean up uploaded file if db insert fails
+                if ($profile_picture_path && file_exists($profile_picture_path)) {
+                    unlink($profile_picture_path);
+                }
             }
         } else {
-            $errors[] = "Critical error: Default user role not found. Please contact the administrator.";
+            $errors[] = "Critical error: Default user role not found.";
         }
         $stmt->close();
     }
@@ -108,7 +132,7 @@ require_once __DIR__ . '/includes/header.php';
 
                     <?php // Hide form on success
                     if (empty($success_message)): ?>
-                    <form action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>" method="POST">
+                    <form action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>" method="POST" enctype="multipart/form-data">
                         <div class="row">
                             <div class="col-md-6 mb-3">
                                 <label for="first_name" class="form-label">First Name</label>
@@ -126,13 +150,41 @@ require_once __DIR__ . '/includes/header.php';
                         </div>
 
                         <div class="mb-3">
-                            <label for="password" class="form-label">Password</label>
-                            <input type="password" class="form-control" id="password" name="password" required>
+                            <label for="address" class="form-label">Address</label>
+                            <textarea class="form-control" id="address" name="address" rows="2" required></textarea>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="phone" class="form-label">Phone Number</label>
+                                <input type="tel" class="form-control" id="phone" name="phone" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="sex" class="form-label">Sex</label>
+                                <select class="form-select" id="sex" name="sex" required>
+                                    <option value="" selected disabled>Select...</option>
+                                    <option value="Male">Male</option>
+                                    <option value="Female">Female</option>
+                                    <option value="Prefer not to say">Prefer not to say</option>
+                                </select>
+                            </div>
                         </div>
 
                         <div class="mb-3">
-                            <label for="confirm_password" class="form-label">Confirm Password</label>
-                            <input type="password" class="form-control" id="confirm_password" name="confirm_password" required>
+                            <label for="profile_picture" class="form-label">Profile Picture</label>
+                            <input class="form-control" type="file" id="profile_picture" name="profile_picture" accept="image/*" required>
+                            <div class="form-text">Please upload a clear photo for verification.</div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="password" class="form-label">Password</label>
+                                <input type="password" class="form-control" id="password" name="password" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="confirm_password" class="form-label">Confirm Password</label>
+                                <input type="password" class="form-control" id="confirm_password" name="confirm_password" required>
+                            </div>
                         </div>
 
                         <div class="d-grid mt-4">
