@@ -15,7 +15,6 @@ if (!in_array($_SESSION['role_id'], $allowed_roles)) {
 // This query joins all necessary tables and uses GROUP_CONCAT to flatten the options
 // for each question into a single row, which is ideal for CSV export.
 $sql = "SELECT
-            q.question_id,
             qc.category_name,
             q.question_type,
             q.question_text,
@@ -39,7 +38,6 @@ $output = fopen('php://output', 'w');
 
 // Add header row
 fputcsv($output, [
-    'question_id',
     'category_name',
     'question_type',
     'question_text',

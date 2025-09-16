@@ -60,9 +60,17 @@ require_once __DIR__ . '/../includes/header.php';
                 <div class="col">
                     <div class="d-flex justify-content-between align-items-center mb-3">
                         <h3 class="fs-4 mb-0">All Users</h3>
-                        <a href="add-user.php" class="btn btn-primary">
-                            <i class="bi bi-plus-lg me-2"></i>Add New User
-                        </a>
+                        <div>
+                             <a href="import-students.php" class="btn btn-outline-success">
+                                <i class="bi bi-upload me-2"></i>Import Students
+                            </a>
+                            <a href="export-students.php" class="btn btn-outline-info">
+                                <i class="bi bi-download me-2"></i>Export Students
+                            </a>
+                            <a href="add-user.php" class="btn btn-primary">
+                                <i class="bi bi-plus-lg me-2"></i>Add New User
+                            </a>
+                        </div>
                     </div>
 
                     <!-- Search and Filter Form -->

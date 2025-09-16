@@ -96,6 +96,16 @@ require_once __DIR__ . '/../includes/header.php';
                                     </div>
                                 </div>
                                 <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label for="smtp_from_name" class="form-label">From Name</label>
+                                        <input type="text" class="form-control" id="smtp_from_name" name="settings[smtp_from_name]" placeholder="e.g., Your Site Name" value="<?php echo htmlspecialchars($settings['smtp_from_name'] ?? ''); ?>">
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label for="smtp_from_email" class="form-label">Sender Email Address</label>
+                                        <input type="email" class="form-control" id="smtp_from_email" name="settings[smtp_from_email]" placeholder="e.g., no-reply@yoursite.com" value="<?php echo htmlspecialchars($settings['smtp_from_email'] ?? ''); ?>">
+                                    </div>
+                                </div>
+                                <div class="row">
                                      <div class="col-md-6 mb-3">
                                         <label for="smtp_user" class="form-label">SMTP Username</label>
                                         <input type="text" class="form-control" id="smtp_user" name="settings[smtp_user]" value="<?php echo htmlspecialchars($settings['smtp_user'] ?? ''); ?>">
