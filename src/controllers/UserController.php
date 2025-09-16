@@ -2,6 +2,7 @@
 // src/controllers/UserController.php
 
 require_once __DIR__ . '/../models/User.php';
+require_once __DIR__ . '/../lib/Session.php';
 
 class UserController {
     private $userModel;
@@ -45,11 +46,58 @@ class UserController {
         // 6. Redirect on success
         if ($success) {
             // Redirect to login page with a success message
-            header('Location: /login?registration=success');
+            Session::flash('success_message', 'Registration successful! Please log in.');
+            header('Location: /login');
             exit();
         } else {
             // Handle failure
-            die('An unexpected error occurred. Please try again.');
+            Session::flash('error_message', 'An unexpected error occurred. Please try again.');
+            header('Location: /register');
+            exit();
         }
+    }
+
+    public function login() {
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            http_response_code(405);
+            echo 'Invalid request method.';
+            return;
+        }
+
+        // 1. Get and validate input
+        $email = filter_input(INPUT_POST, 'email', FILTER_VALIDATE_EMAIL);
+        $password = $_POST['password'];
+
+        if (!$email || empty($password)) {
+            Session::flash('error_message', 'Invalid email or password.');
+            header('Location: /login');
+            exit();
+        }
+
+        // 2. Find user by email
+        $user = $this->userModel->findByEmail($email);
+
+        // 3. Verify user and password
+        if ($user && password_verify($password, $user['password'])) {
+            // Password is correct, set session
+            Session::set('user_id', $user['id']);
+            Session::set('username', $user['username']);
+            Session::set('user_type', $user['user_type']);
+
+            // Redirect to homepage or dashboard
+            header('Location: /');
+            exit();
+        } else {
+            // Invalid credentials
+            Session::flash('error_message', 'Invalid email or password.');
+            header('Location: /login');
+            exit();
+        }
+    }
+
+    public function logout() {
+        Session::destroy();
+        header('Location: /');
+        exit();
     }
 }

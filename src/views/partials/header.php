@@ -1,3 +1,4 @@
+<?php require_once __DIR__ . '/../../lib/Session.php'; ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -14,8 +15,15 @@
                 <ul class="navbar-nav">
                     <li><a href="/">Home</a></li>
                     <li><a href="/products">Products</a></li>
-                    <li><a href="/login">Login</a></li>
-                    <li><a href="/register">Register</a></li>
+
+                    <?php if (Session::has('user_id')): ?>
+                        <li><span>Welcome, <?php echo htmlspecialchars(Session::get('username')); ?>!</span></li>
+                        <li><a href="/dashboard">Dashboard</a></li>
+                        <li><a href="/logout">Logout</a></li>
+                    <?php else: ?>
+                        <li><a href="/login">Login</a></li>
+                        <li><a href="/register">Register</a></li>
+                    <?php endif; ?>
                 </ul>
             </div>
         </nav>

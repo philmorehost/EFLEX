@@ -1,6 +1,9 @@
 <?php
 // public/index.php - Front Controller
 
+// Start the session
+session_start();
+
 // Require essential files
 require_once __DIR__ . '/../src/lib/Database.php';
 require_once __DIR__ . '/../src/controllers/UserController.php';
@@ -30,13 +33,20 @@ $routes = [
         'product-details' => __DIR__ . '/../src/views/product_details.php',
         'login' => __DIR__ . '/../src/views/auth.php',
         'register' => __DIR__ . '/../src/views/auth.php',
+        'logout' => function() use ($pdo) {
+            $controller = new UserController($pdo);
+            $controller->logout();
+        },
     ],
     'POST' => [
         'register' => function() use ($pdo) {
             $controller = new UserController($pdo);
             $controller->register();
         },
-        // Add other POST routes here later (e.g., login)
+        'login' => function() use ($pdo) {
+            $controller = new UserController($pdo);
+            $controller->login();
+        },
     ]
 ];
 

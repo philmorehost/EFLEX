@@ -1,9 +1,18 @@
 <?php require_once __DIR__ . '/partials/header.php'; ?>
+<?php require_once __DIR__ . '/../lib/Session.php'; ?>
 
 <div class="auth-container">
     <div class="auth-form-wrapper">
         <h2>Login to Your Account</h2>
-        <form action="#" method="POST" class="auth-form">
+
+        <?php if ($success_message = Session::flash('success_message')): ?>
+            <div class="alert alert-success"><?php echo htmlspecialchars($success_message); ?></div>
+        <?php endif; ?>
+        <?php if ($error_message = Session::flash('error_message')): ?>
+            <div class="alert alert-danger"><?php echo htmlspecialchars($error_message); ?></div>
+        <?php endif; ?>
+
+        <form action="/login" method="POST" class="auth-form">
             <div class="form-group">
                 <label for="login-email">Email Address</label>
                 <input type="email" id="login-email" name="email" required>
