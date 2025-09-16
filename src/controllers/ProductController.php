@@ -12,32 +12,20 @@ class ProductController {
         $this->pdo = $pdo;
     }
 
-    /**
-     * Show the form for creating a new product.
-     */
     public function create() {
         $categoryModel = new Category($this->pdo);
         $data = [
             'categories' => $categoryModel->findAll()
         ];
-
-        // Make data available to the view
         extract($data);
-
-        // Load the view
         require_once __DIR__ . '/../views/products/create.php';
     }
 
-    /**
-     * Store a newly created product in the database.
-     */
     public function store() {
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-            http_response_code(405);
-            die('Invalid request method.');
+            http_response_code(405); die('Invalid request method.');
         }
 
-        // --- Form Data Validation ---
         $name = trim(filter_input(INPUT_POST, 'name', FILTER_SANITIZE_STRING));
         $description = trim(filter_input(INPUT_POST, 'description', FILTER_SANITIZE_STRING));
         $price = filter_input(INPUT_POST, 'price', FILTER_VALIDATE_FLOAT);
@@ -46,15 +34,12 @@ class ProductController {
 
         if (!$name || !$description || $price === false || !$categoryId) {
             Session::flash('error_message', 'Invalid input. Please check all fields.');
-            header('Location: /products/create');
-            exit();
+            header('Location: /products/create'); exit();
         }
 
-        // --- File Upload Handling ---
         if (!isset($_FILES['product_file']) || $_FILES['product_file']['error'] !== UPLOAD_ERR_OK) {
             Session::flash('error_message', 'File upload error. Please try again.');
-            header('Location: /products/create');
-            exit();
+            header('Location: /products/create'); exit();
         }
 
         $file = $_FILES['product_file'];
@@ -62,8 +47,7 @@ class ProductController {
 
         if ($file['type'] !== 'application/zip') {
             Session::flash('error_message', 'Invalid file type. Only .zip files are allowed.');
-            header('Location: /products/create');
-            exit();
+            header('Location: /products/create'); exit();
         }
 
         $fileName = uniqid('prod_', true) . '.zip';
@@ -71,11 +55,9 @@ class ProductController {
 
         if (!move_uploaded_file($file['tmp_name'], $uploadFilePath)) {
             Session::flash('error_message', 'Failed to save uploaded file.');
-            header('Location: /products/create');
-            exit();
+            header('Location: /products/create'); exit();
         }
 
-        // --- Database Insertion ---
         $productModel = new Product($this->pdo);
         $success = $productModel->create($name, $description, $price, $categoryId, $sellerId, $fileName);
 
@@ -88,5 +70,46 @@ class ProductController {
             header('Location: /products/create');
         }
         exit();
+    }
+
+    public function search() {
+        $criteria = [
+            'keyword' => filter_input(INPUT_GET, 'keyword', FILTER_SANITIZE_STRING),
+            'category_id' => filter_input(INPUT_GET, 'category_id', FILTER_VALIDATE_INT),
+            'min_rating' => filter_input(INPUT_GET, 'min_rating', FILTER_VALIDATE_FLOAT),
+        ];
+
+        $criteria = array_filter($criteria);
+
+        $productModel = new Product($this->pdo);
+        $products = $productModel->search($criteria);
+
+        header('Content-Type: application/json');
+        echo json_encode($products);
+        exit();
+    }
+
+    /**
+     * Display a single product.
+     */
+    public function show() {
+        $id = filter_input(INPUT_GET, 'id', FILTER_VALIDATE_INT);
+        if (!$id) {
+            http_response_code(404);
+            echo "<h1>404 Not Found</h1><p>Product not found.</p>";
+            exit();
+        }
+
+        $productModel = new Product($this->pdo);
+        $data['product'] = $productModel->findById($id);
+
+        if (!$data['product']) {
+            http_response_code(404);
+            echo "<h1>404 Not Found</h1><p>Product not found.</p>";
+            exit();
+        }
+
+        extract($data);
+        require_once __DIR__ . '/../views/product_details.php';
     }
 }
