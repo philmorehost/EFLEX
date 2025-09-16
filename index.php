@@ -23,6 +23,18 @@ if (isset($_SESSION['user_id'])) {
     if ($role_id == 4) {
         $user_id = $_SESSION['user_id'];
 
+        // --- Fetch user data ---
+        $user_stmt = $conn->prepare("SELECT * FROM users WHERE user_id = ?");
+        $user_stmt->bind_param("i", $user_id);
+        $user_stmt->execute();
+        $user = $user_stmt->get_result()->fetch_assoc();
+        $user_stmt->close();
+
+        $profile_pic = $user['profile_picture_path'] ?? 'assets/img/default_avatar.svg';
+        if (empty($user['profile_picture_path']) || !file_exists(__DIR__ . '/' . $user['profile_picture_path'])) {
+            $profile_pic = 'assets/img/default_avatar.svg';
+        }
+
         // --- Fetch Student Statistics ---
         $stats_sql = "SELECT
                         COUNT(*) as total_completed,
@@ -53,7 +65,10 @@ if (isset($_SESSION['user_id'])) {
 ?>
         <!-- Student Dashboard HTML -->
         <div class="container mt-5">
-            <h1 class="mb-4">Welcome, <?php echo htmlspecialchars($_SESSION['first_name']); ?>!</h1>
+            <div class="d-flex align-items-center mb-4">
+                <img src="<?php echo htmlspecialchars($profile_pic); ?>" alt="Profile Picture" class="img-thumbnail rounded-circle me-3" style="width: 60px; height: 60px; object-fit: cover;">
+                <h1 class="mb-0">Welcome, <?php echo htmlspecialchars($user['first_name']); ?>!</h1>
+            </div>
 
             <!-- Stat Cards -->
             <div class="row g-4 mb-4">
