@@ -169,6 +169,63 @@ if (isset($_SESSION['user_id'])) {
     </div>
 <?php
 }
+?>
 
+<!-- PWA Install Modal -->
+<div class="modal fade" id="pwa-install-modal" tabindex="-1" aria-labelledby="pwaInstallModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="pwaInstallModalLabel">Install Our App</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <p>For a better experience, install our application on your device. It's fast and works offline!</p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Later</button>
+        <button type="button" class="btn btn-primary" id="pwa-install-button">Install Now</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', (event) => {
+    let deferredPrompt;
+    const pwaInstallModal = new bootstrap.Modal(document.getElementById('pwa-install-modal'));
+    const pwaInstallButton = document.getElementById('pwa-install-button');
+
+    window.addEventListener('beforeinstallprompt', (e) => {
+        // Prevent Chrome 67 and earlier from automatically showing the prompt
+        e.preventDefault();
+        // Stash the event so it can be triggered later.
+        deferredPrompt = e;
+        // Show our custom install promotion
+        pwaInstallModal.show();
+    });
+
+    pwaInstallButton.addEventListener('click', async () => {
+        // Hide the modal
+        pwaInstallModal.hide();
+        if (deferredPrompt) {
+            // Show the install prompt
+            deferredPrompt.prompt();
+            // Wait for the user to respond to the prompt
+            const { outcome } = await deferredPrompt.userChoice;
+            console.log(`User response to the install prompt: ${outcome}`);
+            // We've used the prompt, and can't use it again, so clear it
+            deferredPrompt = null;
+        }
+    });
+
+    window.addEventListener('appinstalled', (evt) => {
+        // Log install to analytics
+        console.log('PWA was installed.');
+    });
+});
+</script>
+
+<?php
 require_once __DIR__ . '/includes/footer.php';
 ?>
