@@ -22,8 +22,9 @@ function handle_file_upload($file_key, $upload_dir, $current_value = null) {
             return ['error' => "Invalid file type for $file_key. Only PNG is allowed."];
         }
 
-        if (!is_dir($upload_dir)) {
-            mkdir($upload_dir, 0755, true);
+        $full_upload_dir = __DIR__ . '/../' . $upload_dir;
+        if (!is_dir($full_upload_dir)) {
+            mkdir($full_upload_dir, 0755, true);
         }
 
         // Use a fixed filename based on the key
