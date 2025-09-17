@@ -17,7 +17,11 @@
                     <li><a href="/products">Products</a></li>
 
                     <?php if (Session::has('user_id')): ?>
-                        <li><span>Welcome, <?php echo htmlspecialchars(Session::get('username')); ?>!</span></li>
+                        <?php
+                            $cart = Session::get('cart', []);
+                            $cart_count = count($cart);
+                        ?>
+                        <li><a href="/cart">Cart (<?php echo $cart_count; ?>)</a></li>
                         <li><a href="/dashboard">Dashboard</a></li>
                         <li><a href="/logout">Logout</a></li>
                     <?php else: ?>

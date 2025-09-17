@@ -1,7 +1,7 @@
 <?php
 // The controller now handles the session check and data fetching.
 // The following variables are made available by the controller:
-// $user_type, $username, $products
+// $user_type, $username, $products, $orders
 
 require_once __DIR__ . '/partials/header.php';
 ?>
@@ -40,10 +40,7 @@ require_once __DIR__ . '/partials/header.php';
                             <td><?php echo htmlspecialchars($product['name']); ?></td>
                             <td>$<?php echo htmlspecialchars($product['price']); ?></td>
                             <td><?php echo date('M d, Y', strtotime($product['created_at'])); ?></td>
-                            <td>
-                                <!-- Actions will be added in a future step -->
-                                N/A
-                            </td>
+                            <td>N/A</td>
                         </tr>
                     <?php endforeach; ?>
                 </tbody>
@@ -51,8 +48,39 @@ require_once __DIR__ . '/partials/header.php';
         <?php endif; ?>
     <?php else: // Buyer's dashboard ?>
         <h2>Your Orders</h2>
-        <p>You have not made any purchases yet.</p>
-        <a href="/products" class="btn btn-primary">Browse Products</a>
+        <?php if (empty($orders)): ?>
+            <p>You have not made any purchases yet.</p>
+            <a href="/products" class="btn btn-primary">Browse Products</a>
+        <?php else: ?>
+            <table class="product-table">
+                <thead>
+                    <tr>
+                        <th>Order ID</th>
+                        <th>Date</th>
+                        <th>Total</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php foreach ($orders as $order): ?>
+                        <tr>
+                            <td>#<?php echo $order['id']; ?></td>
+                            <td><?php echo date('M d, Y', strtotime($order['created_at'])); ?></td>
+                            <td>$<?php echo htmlspecialchars(number_format($order['total_amount'], 2)); ?></td>
+                            <td><span class="status-<?php echo $order['status']; ?>"><?php echo ucfirst($order['status']); ?></span></td>
+                            <td>
+                                <?php if ($order['status'] === 'completed'): ?>
+                                    <a href="/order/details?id=<?php echo $order['id']; ?>" class="btn btn-sm">View & Download</a>
+                                <?php else: ?>
+                                    <a href="/checkout?order_id=<?php echo $order['id']; ?>" class="btn btn-sm">Pay Now</a>
+                                <?php endif; ?>
+                            </td>
+                        </tr>
+                    <?php endforeach; ?>
+                </tbody>
+            </table>
+        <?php endif; ?>
     <?php endif; ?>
 </div>
 

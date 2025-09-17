@@ -9,6 +9,17 @@ class User {
     }
 
     /**
+     * Find a user by their ID.
+     * @param int $id The user's ID.
+     * @return mixed The user data as an associative array, or false if not found.
+     */
+    public function findById($id) {
+        $stmt = $this->pdo->prepare('SELECT * FROM users WHERE id = ?');
+        $stmt->execute([$id]);
+        return $stmt->fetch();
+    }
+
+    /**
      * Find a user by their email address.
      * @param string $email The user's email.
      * @return mixed The user data as an associative array, or false if not found.

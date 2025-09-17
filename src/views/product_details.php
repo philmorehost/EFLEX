@@ -28,8 +28,11 @@ require_once __DIR__ . '/partials/header.php';
     <aside class="product-purchase-sidebar">
         <div class="purchase-box">
             <div class="price-tag">$<?php echo htmlspecialchars($product['price']); ?></div>
-            <button class="btn btn-success btn-block">Add to Cart</button>
-            <button class="btn btn-primary btn-block">Buy Now</button>
+            <form action="/cart/add" method="POST">
+                <input type="hidden" name="product_id" value="<?php echo $product['id']; ?>">
+                <button type="submit" class="btn btn-success btn-block">Add to Cart</button>
+            </form>
+            <button class="btn btn-primary btn-block" style="margin-top: 10px;">Buy Now</button>
         </div>
         <div class="seller-info">
             <h4>Sold By</h4>
