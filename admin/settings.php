@@ -11,24 +11,79 @@ if (!isset($_SESSION['user_id']) || $_SESSION['role_id'] != 1) { // Super Admin 
 $errors = [];
 $success_message = '';
 
+// Helper function to handle file uploads
+function handle_file_upload($file_key, $upload_dir, $current_value = null) {
+    if (isset($_FILES[$file_key]) && $_FILES[$file_key]['error'] === UPLOAD_ERR_OK) {
+        $file = $_FILES[$file_key];
+
+        // Basic validation
+        $allowed_types = ['image/png'];
+        if (!in_array($file['type'], $allowed_types)) {
+            return ['error' => "Invalid file type for $file_key. Only PNG is allowed."];
+        }
+
+        if (!is_dir($upload_dir)) {
+            mkdir($upload_dir, 0755, true);
+        }
+
+        // Use a fixed filename based on the key
+        $filename = str_replace('_', '-', $file_key) . '.png';
+        $new_filepath = $upload_dir . $filename;
+
+        if (move_uploaded_file($file['tmp_name'], __DIR__ . '/../' . $new_filepath)) {
+            return ['filepath' => $new_filepath];
+        } else {
+            return ['error' => "Failed to move uploaded file for $file_key."];
+        }
+    }
+    return ['filepath' => $current_value]; // No new file uploaded, keep old value
+}
+
+
 // --- Form Submission Logic ---
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $settings_to_update = $_POST['settings'];
 
-    $conn->begin_transaction();
-    try {
-        $stmt = $conn->prepare("INSERT INTO settings (setting_key, setting_value) VALUES (?, ?) ON DUPLICATE KEY UPDATE setting_value = VALUES(setting_value)");
-
-        foreach ($settings_to_update as $key => $value) {
-            $stmt->bind_param("ss", $key, $value);
-            $stmt->execute();
+    // Handle PWA Icon Uploads
+    $upload_dir = 'assets/img/icons/';
+    $icon_keys = ['pwa_icon_192', 'pwa_icon_512'];
+    foreach ($icon_keys as $key) {
+        $current_value = $settings[$key] ?? null;
+        $upload_result = handle_file_upload($key, $upload_dir, $current_value);
+        if (isset($upload_result['error'])) {
+            $errors[] = $upload_result['error'];
+        } else {
+            if(!empty($upload_result['filepath'])) {
+                 $settings_to_update[$key] = $upload_result['filepath'];
+            }
         }
-        $stmt->close();
-        $conn->commit();
-        $success_message = "Settings updated successfully!";
-    } catch (Exception $e) {
-        $conn->rollback();
-        $errors[] = "Failed to update settings: " . $e->getMessage();
+    }
+
+
+    if(empty($errors)) {
+        $conn->begin_transaction();
+        try {
+            $stmt = $conn->prepare("INSERT INTO settings (setting_key, setting_value) VALUES (?, ?) ON DUPLICATE KEY UPDATE setting_value = VALUES(setting_value)");
+
+            foreach ($settings_to_update as $key => $value) {
+                $stmt->bind_param("ss", $key, $value);
+                $stmt->execute();
+            }
+            $stmt->close();
+            $conn->commit();
+            $success_message = "Settings updated successfully!";
+
+            // Refresh settings after update
+            $settings_result = $conn->query("SELECT * FROM settings");
+            $settings = []; // Clear old settings
+            while ($row = $settings_result->fetch_assoc()) {
+                $settings[$row['setting_key']] = $row['setting_value'];
+            }
+
+        } catch (Exception $e) {
+            $conn->rollback();
+            $errors[] = "Failed to update settings: " . $e->getMessage();
+        }
     }
 }
 
@@ -67,7 +122,7 @@ require_once __DIR__ . '/../includes/header.php';
                         <div class="alert alert-success"><?php echo $success_message; ?></div>
                     <?php endif; ?>
 
-                    <form action="settings.php" method="POST">
+                    <form action="settings.php" method="POST" enctype="multipart/form-data">
                         <div class="card shadow-sm">
                             <div class="card-header">
                                 <h5 class="mb-0">General Settings</h5>
@@ -122,6 +177,50 @@ require_once __DIR__ . '/../includes/header.php';
                                         <option value="ssl" <?php echo (($settings['smtp_secure'] ?? '') == 'ssl') ? 'selected' : ''; ?>>SSL</option>
                                         <option value="" <?php echo (empty($settings['smtp_secure'])) ? 'selected' : ''; ?>>None</option>
                                     </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card shadow-sm mt-4">
+                            <div class="card-header">
+                                <h5 class="mb-0">PWA (Progressive Web App) Settings</h5>
+                            </div>
+                            <div class="card-body">
+                                <p class="text-muted">These settings will be used in the <code>manifest.json</code> file for users who add the site to their home screen.</p>
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label for="pwa_name" class="form-label">App Name</label>
+                                        <input type="text" class="form-control" id="pwa_name" name="settings[pwa_name]" value="<?php echo htmlspecialchars($settings['pwa_name'] ?? ''); ?>">
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label for="pwa_short_name" class="form-label">App Short Name</label>
+                                        <input type="text" class="form-control" id="pwa_short_name" name="settings[pwa_short_name]" value="<?php echo htmlspecialchars($settings['pwa_short_name'] ?? ''); ?>">
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="pwa_description" class="form-label">App Description</label>
+                                    <textarea class="form-control" id="pwa_description" name="settings[pwa_description]" rows="2"><?php echo htmlspecialchars($settings['pwa_description'] ?? ''); ?></textarea>
+                                </div>
+                                <hr>
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label for="pwa_icon_192" class="form-label">App Icon (192x192, PNG)</label>
+                                        <input class="form-control" type="file" id="pwa_icon_192" name="pwa_icon_192" accept=".png">
+                                        <?php if(!empty($settings['pwa_icon_192'])): ?>
+                                            <div class="mt-2">
+                                                <small>Current: <img src="../<?php echo htmlspecialchars($settings['pwa_icon_192']); ?>?v=<?php echo time(); ?>" alt="Icon 192" style="width: 32px; height: 32px;"></small>
+                                            </div>
+                                        <?php endif; ?>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label for="pwa_icon_512" class="form-label">App Icon (512x512, PNG)</label>
+                                        <input class="form-control" type="file" id="pwa_icon_512" name="pwa_icon_512" accept=".png">
+                                         <?php if(!empty($settings['pwa_icon_512'])): ?>
+                                            <div class="mt-2">
+                                                <small>Current: <img src="../<?php echo htmlspecialchars($settings['pwa_icon_512']); ?>?v=<?php echo time(); ?>" alt="Icon 512" style="width: 32px; height: 32px;"></small>
+                                            </div>
+                                        <?php endif; ?>
+                                    </div>
                                 </div>
                             </div>
                         </div>

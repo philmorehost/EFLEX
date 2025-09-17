@@ -13,8 +13,8 @@ require_once __DIR__ . '/config.php';
     <meta name="description" content="A robust and scalable platform for conducting computer-based tests.">
 
     <!-- PWA & Mobile Meta -->
-    <link rel="manifest" href="<?php echo BASE_URL; ?>manifest.json">
-    <meta name="theme-color" content="#696cff">
+    <link rel="manifest" href="<?php echo BASE_URL; ?>manifest.php">
+    <meta name="theme-color" content="#007bff">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="<?php echo SITE_NAME; ?>">
@@ -33,6 +33,9 @@ require_once __DIR__ . '/config.php';
 
     <!-- Chart.js CDN -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- PWA Service Worker Registration -->
+    <script src="<?php echo BASE_URL; ?>assets/js/register-sw.js"></script>
 </head>
 <body>
 
