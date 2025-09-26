@@ -1,8 +1,6 @@
 <?php
-require_once __DIR__ . '/../includes/db.php';
-require_once __DIR__ . '/../includes/functions.php';
+require_once __DIR__ . '/../includes/init.php';
 
-session_start();
 protect_admin_page();
 
 // Handle product actions (approve, unapprove, delete)

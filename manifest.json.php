@@ -1,7 +1,6 @@
 <?php
 header('Content-Type: application/json');
-require_once 'includes/db.php';
-require_once 'includes/functions.php';
+require_once __DIR__ . '/includes/init.php';
 
 $manifest = [
     "name" => get_setting('pwa_name') ?: 'My Awesome App',
