@@ -1,5 +1,5 @@
 <?php
-require_once 'templates/header.php';
+require_once __DIR__ . '/templates/header.php';
 
 // Check if the config file exists. If not, redirect to the installer.
 if (!file_exists('includes/config.php')) {

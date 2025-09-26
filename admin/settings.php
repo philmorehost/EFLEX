@@ -5,26 +5,6 @@ require_once '../includes/functions.php';
 session_start();
 protect_admin_page();
 
-// Create a function to get/update settings, should be in functions.php but here for simplicity for now
-function get_setting($key) {
-    global $mysqli;
-    $stmt = $mysqli->prepare("SELECT setting_value FROM settings WHERE setting_key = ?");
-    $stmt->bind_param('s', $key);
-    $stmt->execute();
-    $result = $stmt->get_result();
-    if ($row = $result->fetch_assoc()) {
-        return $row['setting_value'];
-    }
-    return '';
-}
-
-function update_setting($key, $value) {
-    global $mysqli;
-    $stmt = $mysqli->prepare("INSERT INTO settings (setting_key, setting_value) VALUES (?, ?) ON DUPLICATE KEY UPDATE setting_value = ?");
-    $stmt->bind_param('sss', $key, $value, $value);
-    return $stmt->execute();
-}
-
 $errors = [];
 $success = null;
 

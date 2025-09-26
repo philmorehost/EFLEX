@@ -1,5 +1,5 @@
 <?php
-require_once 'templates/header.php';
+require_once __DIR__ . '/templates/header.php';
 protect_page(); // Ensure user is logged in
 
 $errors = [];

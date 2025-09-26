@@ -1,6 +1,6 @@
 <?php
 session_start();
-require_once 'includes/functions.php';
+require_once __DIR__ . '/includes/functions.php';
 
 // Check if an admin is impersonating a user
 if (isset($_SESSION['admin_id'])) {

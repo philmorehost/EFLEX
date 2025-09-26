@@ -1,5 +1,5 @@
 <?php
-require_once 'templates/header.php';
+require_once __DIR__ . '/templates/header.php';
 protect_page(); // This function ensures only logged-in users can see this page
 
 $user = get_current_user();
