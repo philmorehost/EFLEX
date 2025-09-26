@@ -1,6 +1,8 @@
 <?php
-require_once __DIR__ . '/../includes/init.php';
+require_once __DIR__ . '/../includes/db.php';
+require_once __DIR__ . '/../includes/functions.php';
 
+session_start();
 protect_admin_page();
 
 $errors = [];
@@ -84,7 +86,7 @@ require_once 'partials/admin_header.php';
                 </div>
                 <div class="col-md-6 mb-3">
                     <label for="pwa_background_color" class="form-label">Background Color</label>
-                    <input type="color" class="form-control form-control-color" id="pwa_background_color" name="pwa_background_color" value="<?php echo htmlspecialchars($settings['pwa_background_color'] ?? '#ffffff'); ?>">
+                    <input type="color" class="form-control form-control-color" id="pwa_background_color" name="p_background_color" value="<?php echo htmlspecialchars($settings['pwa_background_color'] ?? '#ffffff'); ?>">
                 </div>
             </div>
         </div>
