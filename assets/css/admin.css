@@ -1,0 +1,102 @@
+/* A modern, clean admin theme based on SB Admin 2 */
+
+#wrapper {
+    display: flex;
+}
+
+#wrapper #content-wrapper {
+    background-color: #f8f9fc;
+    width: 100%;
+    overflow-x: hidden;
+}
+
+.sidebar {
+    width: 14rem;
+    min-height: 100vh;
+    transition: all .2s;
+}
+
+.sidebar .nav-item .nav-link {
+    padding: .75rem 1rem;
+    font-size: .85rem;
+}
+
+.sidebar .nav-item .nav-link i {
+    font-size: .85rem;
+    margin-right: .25rem;
+}
+
+.sidebar .sidebar-brand {
+    height: 4.375rem;
+    text-transform: uppercase;
+    font-size: 1rem;
+    font-weight: 800;
+}
+
+.sidebar .sidebar-heading {
+    padding: 0 1rem;
+    font-size: .75rem;
+}
+
+.sidebar.toggled {
+    width: 0 !important;
+    overflow: hidden;
+}
+
+@media (min-width: 768px) {
+  .sidebar.toggled {
+    width: 6.5rem !important;
+  }
+  .sidebar.toggled .nav-item .nav-link span {
+    display: none;
+  }
+  .sidebar.toggled .nav-item .nav-link {
+    text-align: center;
+    padding: .75rem;
+  }
+}
+
+.topbar {
+    height: 4.375rem;
+}
+
+.card.shadow {
+    box-shadow: 0 .15rem 1.75rem 0 rgba(58,59,69,.15)!important;
+}
+
+.border-left-primary {
+    border-left: .25rem solid #4e73df!important;
+}
+
+.border-left-success {
+    border-left: .25rem solid #1cc88a!important;
+}
+
+.border-left-warning {
+    border-left: .25rem solid #f6c23e!important;
+}
+
+.scroll-to-top {
+    position: fixed;
+    right: 1rem;
+    bottom: 1rem;
+    display: none;
+    width: 2.75rem;
+    height: 2.75rem;
+    text-align: center;
+    color: #fff;
+    background: rgba(90,92,105,.5);
+    line-height: 46px;
+}
+
+.scroll-to-top:focus, .scroll-to-top:hover {
+    color: #fff;
+}
+
+.scroll-to-top:hover {
+    background: #5a5c69;
+}
+
+.scroll-to-top i {
+    font-weight: 800;
+}

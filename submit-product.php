@@ -1,0 +1,143 @@
+<?php
+require_once 'templates/header.php';
+protect_page(); // Ensure user is logged in
+
+$errors = [];
+$success = null;
+
+// Fetch categories for the dropdown menu.
+$categories = $mysqli->query("SELECT * FROM categories ORDER BY name ASC");
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $name = trim($_POST['name']);
+    $description = trim($_POST['description']);
+    $price = (float)$_POST['price'];
+    $category_id = (int)$_POST['category_id'];
+    $user_id = get_current_user()['id'];
+
+    // --- File Upload Logic ---
+    $upload_dir = 'uploads/';
+    $image_path = null;
+    $file_path = null;
+
+    // Handle Image Upload
+    if (isset($_FILES['image']) && $_FILES['image']['error'] == 0) {
+        $image_name = uniqid('img-', true) . '-' . basename($_FILES['image']['name']);
+        $image_target = $upload_dir . 'images/' . $image_name;
+        if (move_uploaded_file($_FILES['image']['tmp_name'], $image_target)) {
+            $image_path = $image_target;
+        } else {
+            $errors[] = "Failed to upload the preview image.";
+        }
+    } else {
+        $errors[] = "A product preview image is required.";
+    }
+
+    // Handle Main File Upload
+    if (isset($_FILES['file']) && $_FILES['file']['error'] == 0) {
+        $file_name = uniqid('file-', true) . '-' . basename($_FILES['file']['name']);
+        $file_target = $upload_dir . 'files/' . $file_name;
+        if (move_uploaded_file($_FILES['file']['tmp_name'], $file_target)) {
+            $file_path = $file_target;
+        } else {
+            $errors[] = "Failed to upload the main product file.";
+        }
+    } else {
+        $errors[] = "The main product file (e.g., .zip) is required.";
+    }
+    // --- End File Upload Logic ---
+
+    // --- Form Validation ---
+    if (empty($name)) $errors[] = "Product name is required.";
+    if (empty($description)) $errors[] = "Description is required.";
+    if (empty($category_id)) $errors[] = "Please select a category.";
+    if ($price < 0) $errors[] = "Price cannot be negative.";
+
+    // If validation passes and files were uploaded, insert into the database.
+    if (empty($errors)) {
+        $stmt = $mysqli->prepare("INSERT INTO products (user_id, category_id, name, description, price, image, file) VALUES (?, ?, ?, ?, ?, ?, ?)");
+        $stmt->bind_param('iisdsss', $user_id, $category_id, $name, $description, $price, $image_path, $file_path);
+
+        if ($stmt->execute()) {
+            $success = "Your product has been submitted successfully! It will be reviewed by an administrator shortly.";
+        } else {
+            $errors[] = "Database error: " . $stmt->error;
+            // Clean up uploaded files if DB insert fails
+            if ($image_path) unlink($image_path);
+            if ($file_path) unlink($file_path);
+        }
+    }
+}
+
+?>
+
+<h1 class="mb-4">Submit a New Product</h1>
+<p class="lead mb-4">Fill out the form below to submit your item for review.</p>
+
+<div class="card shadow-sm">
+    <div class="card-body">
+        <?php if (!empty($errors)): ?>
+            <div class="alert alert-danger">
+                <ul class="mb-0">
+                <?php foreach ($errors as $error): ?><li><?php echo $error; ?></li><?php endforeach; ?>
+                </ul>
+            </div>
+        <?php endif; ?>
+        <?php if ($success): ?>
+            <div class="alert alert-success"><?php echo $success; ?></div>
+        <?php endif; ?>
+
+        <form method="POST" enctype="multipart/form-data">
+            <div class="mb-3">
+                <label for="name" class="form-label">Product Name</label>
+                <input type="text" class="form-control" id="name" name="name" required>
+            </div>
+            <div class="mb-3">
+                <label for="description" class="form-label">Detailed Description</label>
+                <textarea class="form-control" id="description" name="description" rows="5" required></textarea>
+            </div>
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label for="price" class="form-label">Price ($)</label>
+                        <input type="number" step="0.01" class="form-control" id="price" name="price" required>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label for="category_id" class="form-label">Category</label>
+                        <select class="form-select" id="category_id" name="category_id" required>
+                            <option value="">Select a category...</option>
+                            <?php while ($cat = $categories->fetch_assoc()): ?>
+                                <option value="<?php echo $cat['id']; ?>"><?php echo htmlspecialchars($cat['name']); ?></option>
+                            <?php endwhile; ?>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <hr>
+            <div class="row">
+                <div class="col-md-6">
+                     <div class="mb-3">
+                        <label for="image" class="form-label">Preview Image</label>
+                        <input type="file" class="form-control" id="image" name="image" accept="image/*" required>
+                        <small class="form-text text-muted">A screenshot or thumbnail for your product (e.g., JPG, PNG).</small>
+                    </div>
+                </div>
+                 <div class="col-md-6">
+                     <div class="mb-3">
+                        <label for="file" class="form-label">Main Product File (.zip)</label>
+                        <input type="file" class="form-control" id="file" name="file" accept=".zip" required>
+                        <small class="form-text text-muted">The actual file users will download. Please upload a .zip archive.</small>
+                    </div>
+                </div>
+            </div>
+
+            <button type="submit" class="btn btn-primary">Submit for Review</button>
+        </form>
+    </div>
+</div>
+
+<?php
+require_once 'templates/footer.php';
+?>
