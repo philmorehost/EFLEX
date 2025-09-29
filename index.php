@@ -1,9 +1,19 @@
 <?php
 /**
  * index.php - Main entry point for the application
- * 
- * This is a placeholder file that can be customized for your specific needs.
  */
+
+// Check if the installer exists and the application is not yet installed.
+if (file_exists('installer/index.php') && !file_exists('install.lock')) {
+    // Redirect to the installer.
+    header('Location: installer/index.php');
+    exit;
+}
+
+// If the installer has been used, but the directory still exists, show a warning.
+if (file_exists('install.lock') && file_exists('installer/index.php')) {
+    $warning = "<strong>Security Warning:</strong> The 'installer' directory still exists. Please delete it from your server immediately.";
+}
 
 // Optional: Set content type
 header('Content-Type: text/html; charset=utf-8');
@@ -43,6 +53,11 @@ header('Content-Type: text/html; charset=utf-8');
 </head>
 <body>
     <div class="container">
+        <?php if (isset($warning)): ?>
+            <div style="padding: 15px; background-color: #fff3cd; border: 1px solid #ffeeba; color: #856404; border-radius: 5px; margin-bottom: 20px;">
+                <?php echo $warning; ?>
+            </div>
+        <?php endif; ?>
         <h1>Website Placeholder</h1>
         <p>This is a placeholder page. Content will be added soon.</p>
         <div class="info">
