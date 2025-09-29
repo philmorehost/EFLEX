@@ -19,7 +19,7 @@ if (!isset($_SESSION['db_credentials']) || !isset($_SESSION['site_details'])) {
 
 <div class="installer-footer">
     <button id="start-install-btn" class="btn">Install Now</button>
-    <a id="site-link" href="../index.php" class="btn" style="display:none;">Go to Your Website</a>
+    <a id="site-link" href="../" class="btn" style="display:none;">Go to Your Website</a>
 </div>
 
 <style>

@@ -43,9 +43,9 @@ define('SITE_URL', (isset(\$_SERVER['HTTPS']) && \$_SERVER['HTTPS'] === 'on' ? '
 define('SECRET_KEY', bin2hex(random_bytes(32))); // For sessions, tokens, etc.
 ";
 
-$config_path = '../../config.php';
+$config_path = '../../config/config.php';
 if (file_put_contents($config_path, $config_content) === false) {
-    echo json_encode(['success' => false, 'message' => 'Error: Could not write to config.php. Please check file permissions.']);
+    echo json_encode(['success' => false, 'message' => 'Error: Could not write to config/config.php. Please check file permissions.']);
     exit;
 }
 
