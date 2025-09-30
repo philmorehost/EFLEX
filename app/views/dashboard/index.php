@@ -22,6 +22,9 @@
         <a href="<?php echo BASE_URL; ?>/services/data" class="service-btn">Data</a>
         <a href="<?php echo BASE_URL; ?>/services/cable" class="service-btn">Cable TV</a>
         <a href="<?php echo BASE_URL; ?>/services/electricity" class="service-btn">Electricity</a>
+        <a href="<?php echo BASE_URL; ?>/services/exam" class="service-btn">Exam PINs</a>
+        <a href="<?php echo BASE_URL; ?>/services/sms" class="service-btn">Bulk SMS</a>
+        <a href="<?php echo BASE_URL; ?>/services/card" class="service-btn">Recharge Card</a>
         <a href="#" class="service-btn">Transfer</a>
         <a href="#" class="service-btn">Savings</a>
     </div>
