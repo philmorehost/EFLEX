@@ -24,6 +24,7 @@ class Admin extends Controller {
         $this->settingModel = $this->model('Setting');
         $this->loanModel = $this->model('Loan');
         $this->userModel = $this->model('User');
+        $this->landingPageModel = $this->model('LandingPage');
     }
 
     public function index() {
@@ -99,6 +100,44 @@ class Admin extends Controller {
             ];
 
             $this->view('admin/settings', $data);
+        }
+    }
+
+    public function landingPage() {
+        if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+            // Sanitize POST data, but allow some basic HTML in textareas
+            $post_data = [];
+            foreach($_POST as $key => $value) {
+                $post_data[$key] = trim($value); // Basic trim, more specific sanitization could be added
+            }
+
+            $update_success = true;
+            foreach ($post_data as $key => $value) {
+                if (!$this->landingPageModel->updateContent($key, $value)) {
+                    $update_success = false;
+                }
+            }
+
+            if ($update_success) {
+                flash('content_success', 'Landing page content has been updated successfully.');
+            } else {
+                flash('content_error', 'Could not update all content fields.', 'alert alert-danger');
+            }
+
+            header('Location: ' . BASE_URL . '/admin/landingPage');
+            exit();
+
+        } else {
+            // Load the view with existing content on GET request
+            $content = $this->landingPageModel->getContent();
+
+            $data = [
+                'title' => 'Manage Landing Page Content',
+                'description' => 'Update the text and images displayed on your homepage.',
+                'content' => $content
+            ];
+
+            $this->view('admin/landing_page', $data);
         }
     }
 }

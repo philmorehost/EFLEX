@@ -4,15 +4,18 @@ namespace Controllers;
 use Core\Controller;
 
 class Pages extends Controller {
+    private $landingPageModel;
+
     public function __construct() {
-        // This is where you would load a model if needed
-        // $this->pageModel = $this->model('Page');
+        $this->landingPageModel = $this->model('LandingPage');
     }
 
     public function index() {
+        $content = $this->landingPageModel->getContent();
+
         $data = [
-            'title' => 'Welcome',
-            'description' => 'This is the homepage of the VTU application.'
+            'title' => $content['hero_title'] ?? 'Welcome',
+            'content' => $content
         ];
 
         $this->view('pages/index', $data);

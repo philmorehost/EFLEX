@@ -119,3 +119,26 @@ CREATE TABLE `loan_repayments` (
   CONSTRAINT `loan_repayments_ibfk_1` FOREIGN KEY (`loan_id`) REFERENCES `loans` (`id`) ON DELETE CASCADE,
   CONSTRAINT `loan_repayments_ibfk_2` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Landing page content table for editable homepage
+CREATE TABLE `landing_page_content` (
+  `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT,
+  `content_key` varchar(100) NOT NULL,
+  `content_value` text DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `content_key` (`content_key`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Pre-populating landing page content with default values
+INSERT INTO `landing_page_content` (`content_key`, `content_value`) VALUES
+('hero_title', 'The Better, Smarter, and Faster Way To Pay Bills'),
+('hero_subtitle', 'Join millions of people who use our platform to pay bills, buy airtime, data, and manage their finances.'),
+('services_title', 'Our Awesome Services'),
+('services_subtitle', 'We provide you with the best and most affordable services.'),
+('why_us_title', 'Why Choose Us?'),
+('why_us_item1_title', 'We Are Fast'),
+('why_us_item1_text', 'Our services are delivered instantly. No waiting time.'),
+('why_us_item2_title', 'We Are Reliable'),
+('why_us_item2_text', 'You can count on us for 24/7 service availability.'),
+('why_us_item3_title', 'We Are Secure'),
+('why_us_item3_text', 'Your transactions and data are always safe with us.');
