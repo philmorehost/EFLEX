@@ -35,7 +35,7 @@ if (file_exists(APP_ROOT . '/config/config.php')) {
 // Automatically loads classes so we don't have to use `require` everywhere.
 spl_autoload_register(function ($className) {
     // Class names are expected to be in the format: Namespace\ClassName
-    // e.g., Core\Router will map to app/core/Router.php
+    // e.g., Core\Router will map to app/Core/Router.php
     $file = APP_ROOT . '/app/' . str_replace('\\', '/', $className) . '.php';
     if (file_exists($file)) {
         require_once $file;
