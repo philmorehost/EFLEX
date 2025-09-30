@@ -14,7 +14,7 @@ abstract class Controller {
      * @return object The instantiated model.
      */
     public function model($model) {
-        $modelFile = 'app/models/' . ucwords($model) . '.php';
+        $modelFile = 'app/Models/' . ucwords($model) . '.php';
         if (file_exists($modelFile)) {
             require_once $modelFile;
             $modelClassName = 'Models\\' . ucwords($model);
