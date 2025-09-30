@@ -1,4 +1,4 @@
-<?php require_once APP_ROOT . '/views/includes/header.php'; ?>
+<?php require_once APP_ROOT . '/app/views/includes/header.php'; ?>
 
 <div class="service-container">
     <h2><?php echo $data['title']; ?></h2>
@@ -145,4 +145,4 @@ amountInput.addEventListener('input', function() {
 });
 </script>
 
-<?php require_once APP_ROOT . '/views/includes/footer.php'; ?>
+<?php require_once APP_ROOT . '/app/views/includes/footer.php'; ?>

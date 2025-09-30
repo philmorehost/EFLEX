@@ -1,4 +1,4 @@
-<?php require_once APP_ROOT . '/views/includes/header.php'; ?>
+<?php require_once APP_ROOT . '/app/views/includes/header.php'; ?>
 
 <div class="dashboard-container">
     <h1><?php echo $data['title']; ?></h1>
@@ -80,4 +80,4 @@
     .btn-primary { color: #fff; background-color: #007bff; border-color: #007bff; }
 </style>
 
-<?php require_once APP_ROOT . '/views/includes/footer.php'; ?>
+<?php require_once APP_ROOT . '/app/views/includes/footer.php'; ?>

@@ -1,4 +1,4 @@
-<?php require_once APP_ROOT . '/views/includes/header.php'; ?>
+<?php require_once APP_ROOT . '/app/views/includes/header.php'; ?>
 
 <div class="auth-container">
     <div class="auth-card">
@@ -74,4 +74,4 @@
     .col { flex-basis: 0; flex-grow: 1; max-width: 100%; padding: 0 5px; }
 </style>
 
-<?php require_once APP_ROOT . '/views/includes/footer.php'; ?>
+<?php require_once APP_ROOT . '/app/views/includes/footer.php'; ?>

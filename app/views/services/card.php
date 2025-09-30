@@ -1,4 +1,4 @@
-<?php require_once APP_ROOT . '/views/includes/header.php'; ?>
+<?php require_once APP_ROOT . '/app/views/includes/header.php'; ?>
 
 <div class="service-container">
     <h2><?php echo $data['title']; ?></h2>
@@ -105,4 +105,4 @@ quantityInput.addEventListener('input', calculateTotalCost);
 
 </script>
 
-<?php require_once APP_ROOT . '/views/includes/footer.php'; ?>
+<?php require_once APP_ROOT . '/app/views/includes/footer.php'; ?>

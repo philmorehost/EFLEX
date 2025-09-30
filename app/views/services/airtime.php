@@ -1,4 +1,4 @@
-<?php require_once APP_ROOT . '/views/includes/header.php'; ?>
+<?php require_once APP_ROOT . '/app/views/includes/header.php'; ?>
 
 <div class="service-container">
     <h2><?php echo $data['title']; ?></h2>
@@ -67,4 +67,4 @@
     .alert-success { color: #155724; background-color: #d4edda; border-color: #c3e6cb; }
 </style>
 
-<?php require_once APP_ROOT . '/views/includes/footer.php'; ?>
+<?php require_once APP_ROOT . '/app/views/includes/footer.php'; ?>
