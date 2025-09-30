@@ -24,15 +24,38 @@ class Users extends Controller {
             $_POST = filter_input_array(INPUT_POST, FILTER_SANITIZE_STRING);
 
             $data = [
+                'first_name' => trim($_POST['first_name']),
+                'last_name' => trim($_POST['last_name']),
+                'phone' => trim($_POST['phone']),
                 'username' => trim($_POST['username']),
                 'email' => trim($_POST['email']),
                 'password' => trim($_POST['password']),
                 'confirm_password' => trim($_POST['confirm_password']),
+                'first_name_err' => '',
+                'last_name_err' => '',
+                'phone_err' => '',
                 'username_err' => '',
                 'email_err' => '',
                 'password_err' => '',
                 'confirm_password_err' => ''
             ];
+
+            // Validate First Name
+            if (empty($data['first_name'])) {
+                $data['first_name_err'] = 'Please enter your first name';
+            }
+
+            // Validate Last Name
+            if (empty($data['last_name'])) {
+                $data['last_name_err'] = 'Please enter your last name';
+            }
+
+            // Validate Phone
+            if (empty($data['phone'])) {
+                $data['phone_err'] = 'Please enter your phone number';
+            } elseif (!preg_match('/^[0-9]{10,14}$/', $data['phone'])) {
+                $data['phone_err'] = 'Please enter a valid phone number';
+            }
 
             // Validate Email
             if (empty($data['email'])) {
@@ -69,7 +92,7 @@ class Users extends Controller {
             }
 
             // Make sure errors are empty
-            if (empty($data['email_err']) && empty($data['username_err']) && empty($data['password_err']) && empty($data['confirm_password_err'])) {
+            if (empty($data['first_name_err']) && empty($data['last_name_err']) && empty($data['phone_err']) && empty($data['email_err']) && empty($data['username_err']) && empty($data['password_err']) && empty($data['confirm_password_err'])) {
                 // Validated
                 $data['password'] = password_hash($data['password'], PASSWORD_DEFAULT);
 
@@ -88,10 +111,16 @@ class Users extends Controller {
         } else {
             // Init data
             $data = [
+                'first_name' => '',
+                'last_name' => '',
+                'phone' => '',
                 'username' => '',
                 'email' => '',
                 'password' => '',
                 'confirm_password' => '',
+                'first_name_err' => '',
+                'last_name_err' => '',
+                'phone_err' => '',
                 'username_err' => '',
                 'email_err' => '',
                 'password_err' => '',

@@ -12,11 +12,14 @@ class User {
 
     // Register user
     public function register($data) {
-        $this->db->query('INSERT INTO users (username, email, password) VALUES(:username, :email, :password)');
+        $this->db->query('INSERT INTO users (username, email, password, first_name, last_name, phone) VALUES(:username, :email, :password, :first_name, :last_name, :phone)');
         // Bind values
         $this->db->bind(':username', $data['username']);
         $this->db->bind(':email', $data['email']);
         $this->db->bind(':password', $data['password']);
+        $this->db->bind(':first_name', $data['first_name']);
+        $this->db->bind(':last_name', $data['last_name']);
+        $this->db->bind(':phone', $data['phone']);
 
         // Execute
         if ($this->db->execute()) {

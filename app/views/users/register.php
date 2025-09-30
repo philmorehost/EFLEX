@@ -5,6 +5,27 @@
         <h2>Create An Account</h2>
         <p>Please fill out this form to register with us.</p>
         <form action="<?php echo BASE_URL; ?>/users/register" method="post">
+            <div class="form-row">
+                <div class="col">
+                    <div class="form-group">
+                        <label for="first_name">First Name: <sup>*</sup></label>
+                        <input type="text" name="first_name" class="form-control <?php echo (!empty($data['first_name_err'])) ? 'is-invalid' : ''; ?>" value="<?php echo $data['first_name']; ?>">
+                        <span class="invalid-feedback"><?php echo $data['first_name_err']; ?></span>
+                    </div>
+                </div>
+                <div class="col">
+                    <div class="form-group">
+                        <label for="last_name">Last Name: <sup>*</sup></label>
+                        <input type="text" name="last_name" class="form-control <?php echo (!empty($data['last_name_err'])) ? 'is-invalid' : ''; ?>" value="<?php echo $data['last_name']; ?>">
+                        <span class="invalid-feedback"><?php echo $data['last_name_err']; ?></span>
+                    </div>
+                </div>
+            </div>
+             <div class="form-group">
+                <label for="phone">Phone Number: <sup>*</sup></label>
+                <input type="tel" name="phone" class="form-control <?php echo (!empty($data['phone_err'])) ? 'is-invalid' : ''; ?>" value="<?php echo $data['phone']; ?>">
+                <span class="invalid-feedback"><?php echo $data['phone_err']; ?></span>
+            </div>
             <div class="form-group">
                 <label for="username">Username: <sup>*</sup></label>
                 <input type="text" name="username" class="form-control <?php echo (!empty($data['username_err'])) ? 'is-invalid' : ''; ?>" value="<?php echo $data['username']; ?>">

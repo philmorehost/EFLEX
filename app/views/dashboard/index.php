@@ -8,7 +8,7 @@
         <div class="widget">
             <h3>Wallet Balance</h3>
             <p class="balance"><?php echo $data['balance']; ?></p>
-            <a href="#" class="btn btn-primary">Fund Wallet</a>
+            <a href="<?php echo BASE_URL; ?>/wallet" class="btn btn-primary">Fund Wallet</a>
         </div>
         <div class="widget">
             <h3>Recent Transactions</h3>
