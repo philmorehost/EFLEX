@@ -18,10 +18,10 @@
 
     <h2>Services</h2>
     <div class="service-buttons">
-        <a href="#" class="service-btn">Airtime</a>
-        <a href="#" class="service-btn">Data</a>
-        <a href="#" class="service-btn">Cable TV</a>
-        <a href="#" class="service-btn">Electricity</a>
+        <a href="<?php echo BASE_URL; ?>/services/airtime" class="service-btn">Airtime</a>
+        <a href="<?php echo BASE_URL; ?>/services/data" class="service-btn">Data</a>
+        <a href="<?php echo BASE_URL; ?>/services/cable" class="service-btn">Cable TV</a>
+        <a href="<?php echo BASE_URL; ?>/services/electricity" class="service-btn">Electricity</a>
         <a href="#" class="service-btn">Transfer</a>
         <a href="#" class="service-btn">Savings</a>
     </div>

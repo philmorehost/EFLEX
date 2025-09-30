@@ -85,4 +85,36 @@ class User {
 
         return $row;
     }
+
+    /**
+     * Debits a specified amount from a user's wallet.
+     * @param int $user_id The user's ID.
+     * @param float $amount The amount to debit.
+     * @return bool True on success, false on failure.
+     */
+    public function debitWallet($user_id, $amount) {
+        $this->db->query('UPDATE users SET wallet_balance = wallet_balance - :amount WHERE id = :user_id AND wallet_balance >= :amount');
+        $this->db->bind(':amount', $amount);
+        $this->db->bind(':user_id', $user_id);
+
+        if ($this->db->execute()) {
+            // Check if any row was actually updated
+            return $this->db->rowCount() > 0;
+        }
+        return false;
+    }
+
+    /**
+     * Credits a specified amount to a user's wallet.
+     * @param int $user_id The user's ID.
+     * @param float $amount The amount to credit.
+     * @return bool True on success, false on failure.
+     */
+    public function creditWallet($user_id, $amount) {
+        $this->db->query('UPDATE users SET wallet_balance = wallet_balance + :amount WHERE id = :user_id');
+        $this->db->bind(':amount', $amount);
+        $this->db->bind(':user_id', $user_id);
+
+        return $this->db->execute();
+    }
 }
