@@ -16,7 +16,7 @@ class Router {
 
         // Look for the controller in the app/controllers folder
         $controllerName = isset($url[0]) ? ucwords($url[0]) : $this->currentController;
-        $controllerFile = '../app/controllers/' . $controllerName . '.php';
+        $controllerFile = 'app/controllers/' . $controllerName . '.php';
 
         if (file_exists($controllerFile)) {
             $this->currentController = $controllerName;
@@ -24,7 +24,7 @@ class Router {
         }
 
         // Require the controller
-        require_once '../app/controllers/' . $this->currentController . '.php';
+        require_once 'app/controllers/' . $this->currentController . '.php';
 
         // Instantiate the controller class
         $controllerClassName = 'Controllers\\' . $this->currentController;

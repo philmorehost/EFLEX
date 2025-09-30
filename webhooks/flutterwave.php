@@ -11,7 +11,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 http_response_code(200);
 
 // Bootstrap the application
-require_once '../../config/bootstrap.php';
+require_once '../config/bootstrap.php';
 
 // --- Get Incoming Data and Signature ---
 $json = file_get_contents('php://input');

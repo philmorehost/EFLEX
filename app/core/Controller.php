@@ -14,7 +14,7 @@ abstract class Controller {
      * @return object The instantiated model.
      */
     public function model($model) {
-        $modelFile = '../app/models/' . ucwords($model) . '.php';
+        $modelFile = 'app/models/' . ucwords($model) . '.php';
         if (file_exists($modelFile)) {
             require_once $modelFile;
             $modelClassName = 'Models\\' . ucwords($model);
@@ -32,7 +32,7 @@ abstract class Controller {
      */
     public function view($view, $data = []) {
         // Construct the path to the view file
-        $viewFile = '../app/views/' . $view . '.php';
+        $viewFile = 'app/views/' . $view . '.php';
 
         // Check if the view file exists
         if (file_exists($viewFile)) {

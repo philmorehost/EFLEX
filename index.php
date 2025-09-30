@@ -7,7 +7,7 @@
  */
 
 // Load the bootstrap file to initialize the application
-require_once '../config/bootstrap.php';
+require_once 'config/bootstrap.php';
 
 // Initialize the Router
 $router = new Core\Router();

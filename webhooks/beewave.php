@@ -5,7 +5,7 @@
 http_response_code(200);
 
 // Bootstrap the application to access the database and models
-require_once '../../config/bootstrap.php';
+require_once '../config/bootstrap.php';
 
 // --- Get Incoming Data ---
 $json = file_get_contents('php://input');
