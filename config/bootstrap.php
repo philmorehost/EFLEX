@@ -43,7 +43,7 @@ spl_autoload_register(function ($className) {
 });
 
 // --- Load Helpers ---
-// Load all helper files from the app/helpers directory
-foreach (glob(APP_ROOT . '/app/helpers/*.php') as $filename) {
+// Load all helper files from the app/Helpers directory
+foreach (glob(APP_ROOT . '/app/Helpers/*.php') as $filename) {
     require_once $filename;
 }
