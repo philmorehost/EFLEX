@@ -22,12 +22,47 @@ class Admin extends Controller {
 
         // Load models that will be used by all methods in this controller
         $this->settingModel = $this->model('Setting');
+        $this->loanModel = $this->model('Loan');
+        $this->userModel = $this->model('User');
     }
 
     public function index() {
         // Default admin page, could be a dashboard overview
         // For now, redirect to settings
         header('Location: ' . BASE_URL . '/admin/settings');
+        exit();
+    }
+
+    public function loans() {
+        $pending_loans = $this->loanModel->getAllPendingLoans();
+        $data = [
+            'title' => 'Manage Loan Applications',
+            'pending_loans' => $pending_loans
+        ];
+        $this->view('admin/loans', $data);
+    }
+
+    public function approveLoan($loan_id) {
+        if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+            if ($this->loanModel->approve($loan_id)) {
+                flash('loan_management_success', 'Loan has been approved and funds disbursed.');
+            } else {
+                flash('loan_management_error', 'Failed to approve loan.', 'alert alert-danger');
+            }
+        }
+        header('Location: ' . BASE_URL . '/admin/loans');
+        exit();
+    }
+
+    public function denyLoan($loan_id) {
+        if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+            if ($this->loanModel->deny($loan_id)) {
+                flash('loan_management_success', 'Loan application has been denied.');
+            } else {
+                flash('loan_management_error', 'Failed to deny loan application.', 'alert alert-danger');
+            }
+        }
+        header('Location: ' . BASE_URL . '/admin/loans');
         exit();
     }
 

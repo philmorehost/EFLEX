@@ -26,7 +26,8 @@
         <a href="<?php echo BASE_URL; ?>/services/sms" class="service-btn">Bulk SMS</a>
         <a href="<?php echo BASE_URL; ?>/services/card" class="service-btn">Recharge Card</a>
         <a href="<?php echo BASE_URL; ?>/transfer" class="service-btn">Transfer</a>
-        <a href="#" class="service-btn">Savings</a>
+        <a href="<?php echo BASE_URL; ?>/savings" class="service-btn">Savings</a>
+        <a href="<?php echo BASE_URL; ?>/loan" class="service-btn">Loans</a>
     </div>
 </div>
 

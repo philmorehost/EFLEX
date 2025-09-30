@@ -14,7 +14,8 @@
             <?php if (isLoggedIn()) : ?>
                 <a href="<?php echo BASE_URL; ?>/dashboard">Dashboard</a>
                 <?php if ($_SESSION['user_role'] === 'admin') : ?>
-                    <a href="<?php echo BASE_URL; ?>/admin/settings">Admin</a>
+                    <a href="<?php echo BASE_URL; ?>/admin/settings">Admin Settings</a>
+                    <a href="<?php echo BASE_URL; ?>/admin/loans">Manage Loans</a>
                 <?php endif; ?>
                 <a href="<?php echo BASE_URL; ?>/users/logout">Logout</a>
             <?php else : ?>
