@@ -147,27 +147,8 @@ if (isset($_SESSION['user_id'])) {
     }
 } else {
     // --- Public Welcome Page (if not logged in) ---
-?>
-    <div class="container mt-5">
-        <div class="row justify-content-center">
-            <div class="col-md-8 text-center">
-                <div class="card shadow-sm">
-                    <div class="card-body p-5">
-                        <h1 class="card-title display-4">Welcome to <?php echo SITE_NAME; ?></h1>
-                        <p class="card-text lead">Your reliable and user-friendly platform for computer-based testing.</p>
-                        <hr class="my-4">
-                        <p>Please log in to continue or register for a new account.</p>
-                        <a href="login.php" class="btn btn-primary btn-lg">Login</a>
-                        <a href="register.php" class="btn btn-secondary btn-lg">Register</a>
-                    </div>
-                </div>
-                <div class="mt-4">
-                    <p><small><a href="<?php echo BASE_URL; ?>admin/" class="text-muted">Admin Panel</a></small></p>
-                </div>
-            </div>
-        </div>
-    </div>
-<?php
+    $pageTitle = "Welcome";
+    require_once __DIR__ . '/includes/_landing.php';
 }
 ?>
 
