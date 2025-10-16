@@ -2,6 +2,41 @@
 // includes/_landing.php
 require_once __DIR__ . '/_navbar.php';
 
+// --- Self-correcting mechanism for landing_page_content table ---
+$check_table_sql = "SHOW TABLES LIKE 'landing_page_content'";
+$table_exists = $conn->query($check_table_sql);
+
+if ($table_exists->num_rows == 0) {
+    // Table does not exist, so create and populate it
+    $create_table_sql = "
+    CREATE TABLE `landing_page_content` (
+      `section_name` varchar(100) NOT NULL,
+      `content` text NOT NULL,
+      PRIMARY KEY (`section_name`)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+    ";
+    $conn->query($create_table_sql);
+
+    $insert_data_sql = "
+    INSERT INTO `landing_page_content` (`section_name`, `content`) VALUES
+    ('hero_title', 'Ace Your WAEC, NECO & JAMB Exams with Confidence'),
+    ('hero_subtitle', 'Your ultimate CBT practice platform for guaranteed success. Prepare with thousands of past questions and detailed solutions.'),
+    ('testimonial_1_name', 'Adekunle Adebayo'),
+    ('testimonial_1_school', 'University of Lagos'),
+    ('testimonial_1_image', 'assets/img/student1.jpg'),
+    ('testimonial_1_quote', 'This platform was a game-changer for my JAMB preparation. The mock tests were incredibly similar to the real exam.'),
+    ('testimonial_2_name', 'Chiamaka Nwosu'),
+    ('testimonial_2_school', 'University of Nigeria, Nsukka'),
+    ('testimonial_2_image', 'assets/img/student2.jpg'),
+    ('testimonial_2_quote', 'I passed my WAEC exams with flying colors, all thanks to the detailed resources and practice questions available here.'),
+    ('testimonial_3_name', 'Fatima Bello'),
+    ('testimonial_3_school', 'Ahmadu Bello University'),
+    ('testimonial_3_image', 'assets/img/student3.jpg'),
+    ('testimonial_3_quote', 'The NECO past questions were so helpful. I felt confident and prepared on the exam day. I highly recommend this to every student.');
+    ";
+    $conn->query($insert_data_sql);
+}
+
 // --- Fetch content from database ---
 $content_sql = "SELECT section_name, content FROM landing_page_content";
 $content_result = $conn->query($content_sql);
