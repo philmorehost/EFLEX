@@ -194,3 +194,35 @@ ALTER TABLE `student_answers`
   ADD CONSTRAINT `student_answers_ibfk_1` FOREIGN KEY (`attempt_id`) REFERENCES `test_attempts` (`attempt_id`) ON DELETE CASCADE ON UPDATE CASCADE,
   ADD CONSTRAINT `student_answers_ibfk_2` FOREIGN KEY (`question_id`) REFERENCES `questions` (`question_id`) ON DELETE CASCADE ON UPDATE CASCADE,
   ADD CONSTRAINT `student_answers_ibfk_3` FOREIGN KEY (`selected_option_id`) REFERENCES `options` (`option_id`) ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `landing_page_content`
+--
+
+CREATE TABLE `landing_page_content` (
+  `section_name` varchar(100) NOT NULL,
+  `content` text NOT NULL,
+  PRIMARY KEY (`section_name`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+--
+-- Dumping data for table `landing_page_content`
+--
+
+INSERT INTO `landing_page_content` (`section_name`, `content`) VALUES
+('hero_title', 'Ace Your WAEC, NECO & JAMB Exams with Confidence'),
+('hero_subtitle', 'Your ultimate CBT practice platform for guaranteed success. Prepare with thousands of past questions and detailed solutions.'),
+('testimonial_1_name', 'Adekunle Adebayo'),
+('testimonial_1_school', 'University of Lagos'),
+('testimonial_1_image', 'assets/img/student1.jpg'),
+('testimonial_1_quote', 'This platform was a game-changer for my JAMB preparation. The mock tests were incredibly similar to the real exam.'),
+('testimonial_2_name', 'Chiamaka Nwosu'),
+('testimonial_2_school', 'University of Nigeria, Nsukka'),
+('testimonial_2_image', 'assets/img/student2.jpg'),
+('testimonial_2_quote', 'I passed my WAEC exams with flying colors, all thanks to the detailed resources and practice questions available here.'),
+('testimonial_3_name', 'Fatima Bello'),
+('testimonial_3_school', 'Ahmadu Bello University'),
+('testimonial_3_image', 'assets/img/student3.jpg'),
+('testimonial_3_quote', 'The NECO past questions were so helpful. I felt confident and prepared on the exam day. I highly recommend this to every student.');
