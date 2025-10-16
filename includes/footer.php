@@ -1,5 +1,27 @@
 </div> <!-- .wrapper -->
 
+<footer class="bg-light text-center py-4 mt-auto">
+    <div class="container">
+        <?php
+        // Only show the copyright on the public-facing landing page
+        if (basename($_SERVER['PHP_SELF']) == 'index.php' && !isset($_SESSION['user_id'])) {
+            // Self-healing: Check if the copyright setting exists
+            $copyright_query = $conn->query("SELECT setting_value FROM settings WHERE setting_key = 'copyright_text'");
+            if ($copyright_query && $copyright_query->num_rows > 0) {
+                $copyright_text = $copyright_query->fetch_assoc()['setting_value'];
+            } else {
+                // If it doesn't exist, create it with a default value
+                $default_copyright = '&copy; ' . date('Y') . ' ' . SITE_NAME . '. All Rights Reserved.';
+                $conn->query("INSERT INTO settings (setting_key, setting_value) VALUES ('copyright_text', '" . $conn->real_escape_string($default_copyright) . "')");
+                $copyright_text = $default_copyright;
+            }
+            // Use html_entity_decode to render HTML tags correctly
+            echo '<p class="text-muted mb-0">' . html_entity_decode($copyright_text) . '</p>';
+        }
+        ?>
+    </div>
+</footer>
+
 <!-- PWA Install Modal -->
 <div class="modal fade" id="pwaInstallModal" tabindex="-1" aria-labelledby="pwaInstallModalLabel" aria-hidden="true">
   <div class="modal-dialog">

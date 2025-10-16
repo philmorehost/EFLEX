@@ -226,6 +226,19 @@ require_once __DIR__ . '/../includes/header.php';
                             </div>
                         </div>
 
+                        <div class="card shadow-sm mt-4">
+                            <div class="card-header">
+                                <h5 class="mb-0">Footer Settings</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="mb-3">
+                                    <label for="copyright_text" class="form-label">Copyright Text</label>
+                                    <textarea class="form-control" id="copyright_text" name="settings[copyright_text]" rows="3"><?php echo htmlspecialchars($settings['copyright_text'] ?? ''); ?></textarea>
+                                    <div class="form-text">You can use HTML tags for formatting. E.g., <code>&lt;b&gt;Bold&lt;/b&gt;</code>, <code>&lt;a href="#"&gt;Link&lt;/a&gt;</code>.</div>
+                                </div>
+                            </div>
+                        </div>
+
                         <div class="mt-4">
                             <button type="submit" class="btn btn-primary">Save Settings</button>
                         </div>

@@ -200,7 +200,8 @@ INSERT INTO `settings` (`setting_key`, `setting_value`) VALUES
 ('smtp_port', '587'),
 ('smtp_user', 'user@example.com'),
 ('smtp_pass', ''),
-('smtp_secure', 'tls');
+('smtp_secure', 'tls'),
+('copyright_text', '&copy; 2025 CBT Platform. All Rights Reserved.');
 
 -- --------------------------------------------------------
 
