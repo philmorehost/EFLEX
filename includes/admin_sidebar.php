@@ -41,6 +41,9 @@
             <i class="bi bi-gear me-2"></i> Settings
         </a>
         <?php endif; ?>
+        <a href="<?php echo BASE_URL; ?>knowledge_base.php" class="list-group-item list-group-item-action bg-transparent text-dark fw-bold">
+            <i class="bi bi-info-circle me-2"></i> Knowledge Base
+        </a>
         <a href="<?php echo BASE_URL; ?>logout.php" class="list-group-item list-group-item-action bg-transparent text-danger fw-bold">
             <i class="bi bi-box-arrow-left me-2"></i> Logout
         </a>

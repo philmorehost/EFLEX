@@ -141,6 +141,7 @@ if (isset($_SESSION['user_id'])) {
                     <?php endforeach; ?>
                 <?php endif; ?>
             </div>
+             <a href="knowledge_base.php" class="btn btn-info mt-4">Knowledge Base</a>
              <a href="logout.php" class="btn btn-danger mt-4">Logout</a>
         </div>
 <?php
