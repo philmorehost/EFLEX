@@ -16,8 +16,6 @@ $db_pass = $_SESSION['db_details']['pass'] ?? '';
 // Pre-fill admin details as well
 $admin_email = $_SESSION['admin_details']['email'] ?? 'superadmin@cbt.com';
 $admin_pass = $_SESSION['admin_details']['pass'] ?? '';
-
-
 ?>
 
 <h1>Stage 2: Database Configuration</h1>

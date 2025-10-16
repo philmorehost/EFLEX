@@ -67,7 +67,7 @@ if (isset($_SESSION['user_id'])) {
 ?>
         <!-- Student Dashboard HTML -->
         <div class="container mt-5">
-            <div class="d-flex align-items_center mb-4">
+            <div class="d-flex align-items-center mb-4">
                 <img src="<?php echo htmlspecialchars($profile_pic); ?>" alt="Profile Picture" class="img-thumbnail rounded-circle me-3" style="width: 150px; height: 150px; object-fit: cover;">
                 <h1 class="mb-0">Welcome, <?php echo htmlspecialchars($user['first_name']); ?>!</h1>
             </div>
@@ -135,7 +135,7 @@ if (isset($_SESSION['user_id'])) {
                                             <a href="take-test.php?id=<?php echo $test['test_id']; ?>" class="btn btn-primary w-100"><i class="fas fa-play"></i> Start Test</a>
                                         <?php endif; ?>
                                     </div>
-                                d</div>
+                                </div>
                             </div>
                         </div>
                     <?php endforeach; ?>
@@ -147,8 +147,27 @@ if (isset($_SESSION['user_id'])) {
     }
 } else {
     // --- Public Welcome Page (if not logged in) ---
-    $pageTitle = "Welcome";
-    require_once __DIR__ . '/includes/_landing.php';
+?>
+    <div class="container mt-5">
+        <div class="row justify-content-center">
+            <div class="col-md-8 text-center">
+                <div class="card shadow-sm">
+                    <div class="card-body p-5">
+                        <h1 class="card-title display-4">Welcome to <?php echo SITE_NAME; ?></h1>
+                        <p class="card-text lead">Your reliable and user-friendly platform for computer-based testing.</p>
+                        <hr class="my-4">
+                        <p>Please log in to continue or register for a new account.</p>
+                        <a href="login.php" class="btn btn-primary btn-lg">Login</a>
+                        <a href="register.php" class="btn btn-secondary btn-lg">Register</a>
+                    </div>
+                </div>
+                <div class="mt-4">
+                    <p><small><a href="<?php echo BASE_URL; ?>admin/" class="text-muted">Admin Panel</a></small></p>
+                </div>
+            </div>
+        </div>
+    </div>
+<?php
 }
 ?>
 
