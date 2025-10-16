@@ -36,13 +36,16 @@ if (!file_exists($sql_file_path)) {
             }
         } while ($conn->more_results() && $conn->next_result());
 
-        $new_admin_password = 'password123';
-        $hashed_password = password_hash($new_admin_password, PASSWORD_DEFAULT);
+        // --- Update Admin User ---
+        $admin_email = $_SESSION['admin_details']['email'];
+        $admin_pass = $_SESSION['admin_details']['pass'];
+        $hashed_password = password_hash($admin_pass, PASSWORD_DEFAULT);
 
-        $update_stmt = $conn->prepare("UPDATE users SET password_hash = ? WHERE user_id = 1");
-        $update_stmt->bind_param("s", $hashed_password);
+        $update_stmt = $conn->prepare("UPDATE users SET email = ?, password_hash = ? WHERE user_id = 1");
+        $update_stmt->bind_param("ss", $admin_email, $hashed_password);
         $update_stmt->execute();
         $update_stmt->close();
+
 
         $install_success = true;
 

@@ -36,6 +36,10 @@ if ($action === 'savedb' && $_SERVER['REQUEST_METHOD'] === 'POST') {
         'user' => $_POST['db_user'],
         'pass' => $_POST['db_pass']
     ];
+    $_SESSION['admin_details'] = [
+        'email' => $_POST['admin_email'],
+        'pass' => $_POST['admin_pass']
+    ];
     $_SESSION['install_stage'] = 3;
     header('Location: index.php');
     exit;

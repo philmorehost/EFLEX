@@ -13,6 +13,11 @@ $db_name = $_SESSION['db_details']['name'] ?? '';
 $db_user = $_SESSION['db_details']['user'] ?? '';
 $db_pass = $_SESSION['db_details']['pass'] ?? '';
 
+// Pre-fill admin details as well
+$admin_email = $_SESSION['admin_details']['email'] ?? 'superadmin@cbt.com';
+$admin_pass = $_SESSION['admin_details']['pass'] ?? '';
+
+
 ?>
 
 <h1>Stage 2: Database Configuration</h1>
@@ -43,6 +48,21 @@ $db_pass = $_SESSION['db_details']['pass'] ?? '';
         <input type="password" id="db_pass" name="db_pass" value="<?php echo htmlspecialchars($db_pass); ?>">
     </div>
     <hr>
+
+    <h3>Admin User Details</h3>
+    <p>Set up the initial administrator account for the platform.</p>
+
+    <div>
+        <label for="admin_email">Admin Email</label>
+        <input type="text" id="admin_email" name="admin_email" value="<?php echo htmlspecialchars($admin_email); ?>" required>
+    </div>
+    <div>
+        <label for="admin_pass">Admin Password</label>
+        <input type="password" id="admin_pass" name="admin_pass" value="<?php echo htmlspecialchars($admin_pass); ?>" required>
+    </div>
+
+    <hr>
+
     <div style="display: flex; justify-content: space-between; align-items: center;">
         <a href="index.php?action=reset" class="btn" style="background-color: #6c757d;">&laquo; Back</a>
         <button type="submit" class="btn">Test Connection & Install &raquo;</button>
