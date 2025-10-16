@@ -62,9 +62,33 @@ if (isset($_SESSION['user_id'])) {
                 <h1 class="mb-0">Welcome, <?php echo htmlspecialchars($user['first_name']); ?>!</h1>
             </div>
             <div class="row g-4 mb-4">
-                <div class="col-md-4"><div class="card text-center text-white bg-primary shadow"><div class="card-body"><i class="fas fa-file-alt fa-3x mb-2"></i><h3 class="card-title"><?php echo $stats['total_completed'] ?? 0; ?></h3><p class="card-text">Tests Taken</p></div></div></div>
-                <div class="col-md-4"><div class="card text-center text-white bg-success shadow"><div class="card-body"><i class="fas fa-graduation-cap fa-3x mb-2"></i><h3 class="card-title"><?php echo number_format($stats['average_score'] ?? 0, 1); ?>%</h3><p class="card-text">Average Score</p></div></div></div>
-                <div class="col-md-4"><div class="card text-center text-white bg-info shadow"><div class="card-body"><i class="fas fa-trophy fa-3x mb-2"></i><h3 class="card-title"><?php echo $stats['tests_passed'] ?? 0; ?></h3><p class="card-text">Tests Passed</p></div></div></div>
+                <div class="col-md-4">
+                    <div class="card text-center text-white bg-primary shadow">
+                        <div class="card-body">
+                            <i class="fas fa-file-alt fa-3x mb-2"></i>
+                            <h3 class="card-title"><?php echo $stats['total_completed'] ?? 0; ?></h3>
+                            <p class="card-text">Tests Taken</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card text-center text-white bg-success shadow">
+                        <div class="card-body">
+                            <i class="fas fa-graduation-cap fa-3x mb-2"></i>
+                            <h3 class="card-title"><?php echo number_format($stats['average_score'] ?? 0, 1); ?>%</h3>
+                            <p class="card-text">Average Score</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card text-center text-white bg-info shadow">
+                        <div class="card-body">
+                            <i class="fas fa-trophy fa-3x mb-2"></i>
+                            <h3 class="card-title"><?php echo $stats['tests_passed'] ?? 0; ?></h3>
+                            <p class="card-text">Tests Passed</p>
+                        </div>
+                    </div>
+                </div>
             </div>
             <h3 class="mb-4">Available Tests</h3>
             <div class="row">
