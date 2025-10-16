@@ -31,6 +31,13 @@ require_once __DIR__ . '/config.php';
     <!-- Custom CSS -->
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/style.css">
 
+    <?php
+    // Conditionally load landing page CSS
+    if (basename($_SERVER['PHP_SELF']) == 'index.php' && !isset($_SESSION['user_id'])) {
+        echo '<link rel="stylesheet" href="' . BASE_URL . 'assets/css/landing.css">';
+    }
+    ?>
+
     <!-- Chart.js CDN -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
