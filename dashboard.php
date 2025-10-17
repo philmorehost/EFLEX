@@ -6,6 +6,11 @@ protect_page();
 
 // Get the current user's data to display on the page.
 $user = get_current_user();
+
+// If for some reason the user data is empty, redirect to logout to clear the session.
+if (empty($user)) {
+    redirect('logout.php');
+}
 ?>
 
 <div class="row">

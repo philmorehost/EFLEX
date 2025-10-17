@@ -43,11 +43,13 @@ if (!function_exists('get_current_user')) {
                 $stmt->bind_param('i', $_SESSION['user_id']);
                 $stmt->execute();
                 $result = $stmt->get_result();
-                $user = $result->fetch_assoc();
+                $user_data = $result->fetch_assoc();
+                // Ensure we always have an array, even if the user is not found.
+                $user = $user_data ?: [];
             }
             return $user;
         }
-        return null;
+        return [];
     }
 }
 
@@ -58,8 +60,7 @@ if (!function_exists('is_admin')) {
      */
     function is_admin() {
         $user = get_current_user();
-        // Ensure $user is an array and the 'is_admin' key is set and truthy.
-        return is_array($user) && !empty($user['is_admin']);
+        return $user && $user['is_admin'] == 1;
     }
 }
 
