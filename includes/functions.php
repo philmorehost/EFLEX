@@ -58,7 +58,8 @@ if (!function_exists('is_admin')) {
      */
     function is_admin() {
         $user = get_current_user();
-        return $user && $user['is_admin'] == 1;
+        // Ensure $user is an array and the 'is_admin' key is set and truthy.
+        return is_array($user) && !empty($user['is_admin']);
     }
 }
 
