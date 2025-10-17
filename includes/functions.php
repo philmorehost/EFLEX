@@ -32,32 +32,36 @@ if (!function_exists('get_current_user')) {
     /**
      * Fetches the current user's data from the database.
      * Uses a static variable to cache the result for the duration of the request.
-     * @return array|null The user's data as an associative array, or null if not logged in.
+     * @return array Guaranteed to return an array. Empty if not logged in or user not found.
      */
     function get_current_user() {
         global $mysqli;
 
-        // Start with a default, empty user array.
-        static $user = [];
+        // Use a uniquely named static variable to cache user data for the request.
+        static $current_user_cache = null;
 
-        // Only attempt to fetch the user if the cache is empty and the user is logged in.
-        if (empty($user) && is_logged_in()) {
-            $stmt = $mysqli->prepare("SELECT * FROM users WHERE id = ?");
-            if ($stmt) {
-                $stmt->bind_param('i', $_SESSION['user_id']);
-                $stmt->execute();
-                $result = $stmt->get_result();
-                $user_data = $result->fetch_assoc();
-                $stmt->close();
+        // Only query if the cache hasn't been populated yet.
+        if ($current_user_cache === null) {
+            // Default to an empty array.
+            $current_user_cache = [];
 
-                // If user data is found, cache it. Otherwise, the cache remains an empty array.
-                if (is_array($user_data)) {
-                    $user = $user_data;
+            if (is_logged_in()) {
+                $stmt = $mysqli->prepare("SELECT * FROM users WHERE id = ?");
+                if ($stmt) {
+                    $stmt->bind_param('i', $_SESSION['user_id']);
+                    $stmt->execute();
+                    $result = $stmt->get_result();
+                    $user_data = $result->fetch_assoc();
+                    $stmt->close();
+
+                    if (is_array($user_data)) {
+                        $current_user_cache = $user_data;
+                    }
                 }
             }
         }
 
-        return $user;
+        return $current_user_cache;
     }
 }
 
@@ -68,8 +72,7 @@ if (!function_exists('is_admin')) {
      */
     function is_admin() {
         $user = get_current_user();
-        // Check if the user array is not empty and if the 'is_admin' flag is set and truthy.
-        return !empty($user) && !empty($user['is_admin']);
+        return !empty($user['is_admin']);
     }
 }
 
