@@ -36,20 +36,28 @@ if (!function_exists('get_current_user')) {
      */
     function get_current_user() {
         global $mysqli;
-        if (is_logged_in()) {
-            static $user = null;
-            if ($user === null) {
-                $stmt = $mysqli->prepare("SELECT * FROM users WHERE id = ?");
+
+        // Start with a default, empty user array.
+        static $user = [];
+
+        // Only attempt to fetch the user if the cache is empty and the user is logged in.
+        if (empty($user) && is_logged_in()) {
+            $stmt = $mysqli->prepare("SELECT * FROM users WHERE id = ?");
+            if ($stmt) {
                 $stmt->bind_param('i', $_SESSION['user_id']);
                 $stmt->execute();
                 $result = $stmt->get_result();
                 $user_data = $result->fetch_assoc();
-                // Ensure we always have an array, even if the user is not found.
-                $user = $user_data ?: [];
+                $stmt->close();
+
+                // If user data is found, cache it. Otherwise, the cache remains an empty array.
+                if (is_array($user_data)) {
+                    $user = $user_data;
+                }
             }
-            return $user;
         }
-        return [];
+
+        return $user;
     }
 }
 
@@ -60,7 +68,8 @@ if (!function_exists('is_admin')) {
      */
     function is_admin() {
         $user = get_current_user();
-        return $user && $user['is_admin'] == 1;
+        // Check if the user array is not empty and if the 'is_admin' flag is set and truthy.
+        return !empty($user) && !empty($user['is_admin']);
     }
 }
 
