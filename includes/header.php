@@ -31,6 +31,13 @@ require_once __DIR__ . '/config.php';
     <!-- Custom CSS -->
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/style.css">
 
+    <?php
+    // Conditionally load landing page CSS
+    if (basename($_SERVER['PHP_SELF']) == 'index.php' && !isset($_SESSION['user_id'])) {
+        echo '<link rel="stylesheet" href="' . BASE_URL . 'assets/css/landing.css">';
+    }
+    ?>
+
     <!-- Chart.js CDN -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
@@ -38,6 +45,32 @@ require_once __DIR__ . '/config.php';
     <script src="<?php echo BASE_URL; ?>assets/js/register-sw.js"></script>
 </head>
 <body>
+
+<?php if (isset($_SESSION['user_id']) && !in_array($_SESSION['role_id'], [1, 2, 3])): ?>
+<nav class="navbar navbar-expand-lg navbar-light bg-light shadow-sm">
+    <div class="container">
+        <a class="navbar-brand" href="<?php echo BASE_URL; ?>index.php"><?php echo SITE_NAME; ?></a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#userNavbar" aria-controls="userNavbar" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="userNavbar">
+            <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="bi bi-person-circle me-1"></i><?php echo htmlspecialchars($_SESSION['first_name']); ?>
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+                        <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>profile.php">Profile</a></li>
+                        <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>knowledge_base.php">Knowledge Base</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>logout.php">Logout</a></li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+<?php endif; ?>
 
 <div class="wrapper">
     <!-- Main content will go here -->

@@ -72,9 +72,43 @@ CREATE TABLE `question_categories` (
   `category_id` int(11) NOT NULL AUTO_INCREMENT,
   `category_name` varchar(255) NOT NULL,
   `description` text,
+  `exam_body` varchar(50) DEFAULT NULL,
+  `department` varchar(100) DEFAULT NULL,
   PRIMARY KEY (`category_id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4;
-INSERT INTO `question_categories` (`category_id`, `category_name`, `description`) VALUES (1,'General Knowledge','A variety of general topics.'),(2,'Mathematics','Questions related to mathematical concepts.'),(3,'History','Questions about historical events and figures.');
+-- Clear existing categories and insert new ones
+DELETE FROM `question_categories`;
+INSERT INTO `question_categories` (`category_name`, `exam_body`, `department`, `description`) VALUES
+-- WAEC Categories
+('English Language', 'WAEC', 'Core', 'WAEC Core English Language'),
+('General Mathematics', 'WAEC', 'Core', 'WAEC Core General Mathematics'),
+('Biology', 'WAEC', 'Science', 'WAEC Science Department Biology'),
+('Chemistry', 'WAEC', 'Science', 'WAEC Science Department Chemistry'),
+('Physics', 'WAEC', 'Science', 'WAEC Science Department Physics'),
+('Literature-in-English', 'WAEC', 'Arts/Humanities', 'WAEC Arts/Humanities Department Literature'),
+('Government', 'WAEC', 'Arts/Humanities', 'WAEC Arts/Humanities Department Government'),
+('Economics', 'WAEC', 'Arts/Humanities', 'WAEC Arts/Humanities Department Economics'),
+('Financial Accounting', 'WAEC', 'Commercial/Business', 'WAEC Commercial/Business Department Accounting'),
+('Commerce', 'WAEC', 'Commercial/Business', 'WAEC Commercial/Business Department Commerce'),
+('Technical Drawing', 'WAEC', 'Technical', 'WAEC Technical Department Drawing'),
+-- NECO Categories
+('English Language', 'NECO', 'Core', 'NECO Core English Language'),
+('General Mathematics', 'NECO', 'Core', 'NECO Core General Mathematics'),
+('Biology', 'NECO', 'Science', 'NECO Science Department Biology'),
+('Chemistry', 'NECO', 'Science', 'NECO Science Department Chemistry'),
+('Physics', 'NECO', 'Science', 'NECO Science Department Physics'),
+('Literature-in-English', 'NECO', 'Arts/Humanities', 'NECO Arts/Humanities Department Literature'),
+('Government', 'NECO', 'Arts/Humanities', 'NECO Arts/Humanities Department Government'),
+('Economics', 'NECO', 'Arts/Humanities', 'NECO Arts/Humanities Department Economics'),
+-- JAMB Categories
+('English Language', 'JAMB', 'Core', 'JAMB Compulsory English Language'),
+('Mathematics', 'JAMB', 'Science', 'JAMB Science Department Mathematics'),
+('Physics', 'JAMB', 'Science', 'JAMB Science Department Physics'),
+('Chemistry', 'JAMB', 'Science', 'JAMB Science Department Chemistry'),
+('Biology', 'JAMB', 'Science', 'JAMB Science Department Biology'),
+('Economics', 'JAMB', 'Administration and Management', 'JAMB Administration & Management Economics'),
+('Literature in English', 'JAMB', 'Arts and Humanities', 'JAMB Arts & Humanities Literature'),
+('Government', 'JAMB', 'Arts and Humanities', 'JAMB Arts & Humanities Government');
 
 CREATE TABLE `questions` (
   `question_id` int(11) NOT NULL AUTO_INCREMENT,
@@ -166,7 +200,8 @@ INSERT INTO `settings` (`setting_key`, `setting_value`) VALUES
 ('smtp_port', '587'),
 ('smtp_user', 'user@example.com'),
 ('smtp_pass', ''),
-('smtp_secure', 'tls');
+('smtp_secure', 'tls'),
+('copyright_text', '&copy; 2025 CBT Platform. All Rights Reserved.');
 
 -- --------------------------------------------------------
 
@@ -194,3 +229,82 @@ ALTER TABLE `student_answers`
   ADD CONSTRAINT `student_answers_ibfk_1` FOREIGN KEY (`attempt_id`) REFERENCES `test_attempts` (`attempt_id`) ON DELETE CASCADE ON UPDATE CASCADE,
   ADD CONSTRAINT `student_answers_ibfk_2` FOREIGN KEY (`question_id`) REFERENCES `questions` (`question_id`) ON DELETE CASCADE ON UPDATE CASCADE,
   ADD CONSTRAINT `student_answers_ibfk_3` FOREIGN KEY (`selected_option_id`) REFERENCES `options` (`option_id`) ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `landing_page_content`
+--
+
+CREATE TABLE `landing_page_content` (
+  `section_name` varchar(100) NOT NULL,
+  `content` text NOT NULL,
+  PRIMARY KEY (`section_name`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+--
+-- Dumping data for table `landing_page_content`
+--
+
+INSERT INTO `landing_page_content` (`section_name`, `content`) VALUES
+('hero_title', 'Ace Your WAEC, NECO & JAMB Exams with Confidence'),
+('hero_subtitle', 'Your ultimate CBT practice platform for guaranteed success. Prepare with thousands of past questions and detailed solutions.'),
+('testimonial_1_name', 'Adekunle Adebayo'),
+('testimonial_1_school', 'University of Lagos'),
+('testimonial_1_image', 'assets/img/student1.jpg'),
+('testimonial_1_quote', 'This platform was a game-changer for my JAMB preparation. The mock tests were incredibly similar to the real exam.'),
+('testimonial_2_name', 'Chiamaka Nwosu'),
+('testimonial_2_school', 'University of Nigeria, Nsukka'),
+('testimonial_2_image', 'assets/img/student2.jpg'),
+('testimonial_2_quote', 'I passed my WAEC exams with flying colors, all thanks to the detailed resources and practice questions available here.'),
+('testimonial_3_name', 'Fatima Bello'),
+('testimonial_3_school', 'Ahmadu Bello University'),
+('testimonial_3_image', 'assets/img/student3.jpg'),
+('testimonial_3_quote', 'The NECO past questions were so helpful. I felt confident and prepared on the exam day. I highly recommend this to every student.');
+
+-- Seed questions for JAMB Mathematics
+SET @jamb_math_cat_id = (SELECT category_id FROM question_categories WHERE category_name = 'Mathematics' AND exam_body = 'JAMB');
+INSERT INTO `questions` (`category_id`, `question_type`, `question_text`, `created_by`) VALUES
+(@jamb_math_cat_id, 'multiple_choice', 'If x varies directly as y and x = 5 when y = 20, find the value of x when y = 36.', 1),
+(@jamb_math_cat_id, 'multiple_choice', 'Simplify (1/2 + 1/3) / (1/4 - 1/6).', 1),
+(@jamb_math_cat_id, 'multiple_choice', 'A car travels at an average speed of 60 km/h. How long does it take to cover a distance of 240 km?', 1);
+SET @q1 = LAST_INSERT_ID();
+SET @q2 = @q1 + 1;
+SET @q3 = @q2 + 1;
+INSERT INTO `options` (`question_id`, `option_text`, `is_correct`) VALUES
+(@q1, '9', 1), (@q1, '12', 0), (@q1, '15', 0), (@q1, '18', 0),
+(@q2, '10', 1), (@q2, '12', 0), (@q2, '5', 0), (@q2, '8', 0),
+(@q3, '4 hours', 1), (@q3, '3 hours', 0), (@q3, '5 hours', 0), (@q3, '6 hours', 0);
+
+-- Seed questions for WAEC English
+SET @waec_english_cat_id = (SELECT category_id FROM question_categories WHERE category_name = 'English Language' AND exam_body = 'WAEC');
+INSERT INTO `questions` (`category_id`, `question_type`, `question_text`, `created_by`) VALUES
+(@waec_english_cat_id, 'multiple_choice', 'Choose the word that is nearest in meaning to the underlined word: The man was very `obdurate` in his opinion.', 1),
+(@waec_english_cat_id, 'multiple_choice', 'From the words lettered A to D, choose the word that best completes the following sentence: The police are looking for the ____ who broke into the house.', 1);
+SET @q4 = LAST_INSERT_ID();
+SET @q5 = @q4 + 1;
+INSERT INTO `options` (`question_id`, `option_text`, `is_correct`) VALUES
+(@q4, 'stubborn', 1), (@q4, 'flexible', 0), (@q4, 'weak', 0), (@q4, 'kind', 0),
+(@q5, 'culprit', 1), (@q5, 'victim', 0), (@q5, 'witness', 0), (@q5, 'judge', 0);
+
+-- Seed questions for NECO Biology
+SET @neco_bio_cat_id = (SELECT category_id FROM question_categories WHERE category_name = 'Biology' AND exam_body = 'NECO');
+INSERT INTO `questions` (`category_id`, `question_type`, `question_text`, `created_by`) VALUES
+(@neco_bio_cat_id, 'multiple_choice', 'Which of the following is a characteristic of living things?', 1),
+(@neco_bio_cat_id, 'multiple_choice', 'The powerhouse of the cell is the ____.', 1);
+SET @q6 = LAST_INSERT_ID();
+SET @q7 = @q6 + 1;
+INSERT INTO `options` (`question_id`, `option_text`, `is_correct`) VALUES
+(@q6, 'Growth', 1), (@q6, 'Hardness', 0), (@q6, 'Color', 0), (@q6, 'Shape', 0),
+(@q7, 'Mitochondrion', 1), (@q7, 'Nucleus', 0), (@q7, 'Ribosome', 0), (@q7, 'Chloroplast', 0);
+
+-- Seed questions for JAMB Economics
+SET @jamb_econ_cat_id = (SELECT category_id FROM question_categories WHERE category_name = 'Economics' AND exam_body = 'JAMB');
+INSERT INTO `questions` (`category_id`, `question_type`, `question_text`, `created_by`) VALUES
+(@jamb_econ_cat_id, 'multiple_choice', 'The law of demand states that ____.', 1),
+(@jamb_econ_cat_id, 'multiple_choice', 'A major feature of a capitalist economy is ____.', 1);
+SET @q8 = LAST_INSERT_ID();
+SET @q9 = @q8 + 1;
+INSERT INTO `options` (`question_id`, `option_text`, `is_correct`) VALUES
+(@q8, 'the higher the price, the lower the quantity demanded', 1), (@q8, 'the higher the price, the higher the quantity demanded', 0), (@q8, 'price and quantity demanded are directly related', 0), (@q8, 'price has no effect on quantity demanded', 0),
+(@q9, 'private ownership of means of production', 1), (@q9, 'government control of the economy', 0), (@q9, 'equal distribution of wealth', 0), (@q9, 'absence of a price system', 0);

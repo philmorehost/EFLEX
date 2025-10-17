@@ -10,6 +10,7 @@
             </a>
             <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
                 <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>admin/profile.php">Profile</a></li>
+                <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>knowledge_base.php">Knowledge Base</a></li>
                 <?php if (isset($_SESSION['role_id']) && $_SESSION['role_id'] == 1): // Super Admin only ?>
                 <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>admin/settings.php">Settings</a></li>
                 <?php endif; ?>
