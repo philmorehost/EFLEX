@@ -7,9 +7,9 @@ protect_page();
 // Get the current user's data to display on the page.
 $user = get_current_user();
 
-// If the user array is empty at this point, it means the session is invalid
-// or the user was deleted. Log them out to clear the session.
-if (empty($user)) {
+// If the user data is not an array at this point, it means the session is
+// invalid or the user was deleted. Log them out to clear the session.
+if (!is_array($user) || empty($user)) {
     redirect('logout.php');
 }
 ?>
