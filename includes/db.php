@@ -21,4 +21,16 @@ if ($mysqli->connect_error) {
 
 // Set the character set to utf8mb4 to ensure full Unicode support.
 $mysqli->set_charset('utf8mb4');
+
+// --- Self-Healing: Check and create password_resets table if it doesn't exist ---
+$mysqli->query("
+    CREATE TABLE IF NOT EXISTS `password_resets` (
+      `id` int(11) NOT NULL AUTO_INCREMENT,
+      `email` varchar(100) NOT NULL,
+      `token` varchar(255) NOT NULL,
+      `expires_at` timestamp NOT NULL,
+      PRIMARY KEY (`id`),
+      KEY `email` (`email`)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+");
 ?>

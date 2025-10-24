@@ -48,6 +48,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <h2>Login</h2>
             </div>
             <div class="card-body">
+                <?php
+                // Display success or error messages from other pages (e.g., password reset)
+                if (isset($_SESSION['success'])) {
+                    echo '<div class="alert alert-success">' . htmlspecialchars($_SESSION['success']) . '</div>';
+                    unset($_SESSION['success']);
+                }
+                ?>
                 <?php if (!empty($errors)): ?>
                     <div class="alert alert-danger">
                         <ul class="mb-0">
@@ -68,6 +75,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <input type="password" class="form-control" id="password" name="password" required>
                     </div>
                     <button type="submit" class="btn btn-primary">Login</button>
+                    <a href="forgot-password.php" class="btn btn-link">Forgot Password?</a>
                 </form>
             </div>
         </div>
