@@ -20,6 +20,10 @@ if (is_logged_in()) {
                     echo '<div class="alert alert-success">' . htmlspecialchars($_SESSION['success']) . '</div>';
                     unset($_SESSION['success']);
                 }
+                if (isset($_SESSION['reset_link'])) {
+                    echo '<div class="alert alert-info"><strong>Password Reset Link:</strong> <a href="' . htmlspecialchars($_SESSION['reset_link']) . '">' . htmlspecialchars($_SESSION['reset_link']) . '</a></div>';
+                    unset($_SESSION['reset_link']);
+                }
                 if (isset($_SESSION['error'])) {
                     echo '<div class="alert alert-danger">' . htmlspecialchars($_SESSION['error']) . '</div>';
                     unset($_SESSION['error']);

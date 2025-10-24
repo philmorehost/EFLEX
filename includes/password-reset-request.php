@@ -33,14 +33,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt->execute();
         $stmt->close();
 
-        // --- In a real application, you would send an email here ---
-        // For example:
-        // $reset_link = "http://yourwebsite.com/reset-password.php?token=" . $token;
-        // mail($email, "Password Reset Request", "Click here to reset your password: " . $reset_link);
+        // --- In a real application, you would send an email here. ---
+        // For demonstration purposes in this environment, we will display the link directly.
+        $reset_link = "http://localhost:8000/reset-password.php?token=" . $token;
+        $_SESSION['reset_link'] = $reset_link;
     }
 
     // --- Show a success message to the user ---
-    $_SESSION['success'] = 'If an account with that email exists, we have sent a password reset link to it.';
+    $_SESSION['success'] = 'If an account with that email exists, a password reset link has been generated.';
     redirect('../forgot-password.php');
 } else {
     // Redirect non-POST requests back to the homepage.
