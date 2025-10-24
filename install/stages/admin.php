@@ -39,7 +39,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     } else {
         // Schema imported successfully, now create the admin user.
         $hashed_password = password_hash($admin_pass, PASSWORD_DEFAULT);
-        $stmt = $mysqli->prepare("INSERT INTO users (username, email, password, is_admin) VALUES (?, ?, ?, 1)");
+        $stmt = $mysqli->prepare("INSERT INTO users (username, email, password, is_admin, suspended) VALUES (?, ?, ?, 1, 0)");
 
         if ($stmt) {
             $stmt->bind_param('sss', $admin_user, $admin_email, $hashed_password);
