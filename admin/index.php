@@ -2,7 +2,6 @@
 require_once __DIR__ . '/../includes/db.php';
 require_once __DIR__ . '/../includes/functions.php';
 
-session_start();
 protect_admin_page();
 
 // Fetch some basic stats for the dashboard cards.
