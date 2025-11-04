@@ -13,6 +13,9 @@ if (!function_exists('redirect')) {
      * @param string $url The URL to redirect to.
      */
     function redirect($url) {
+        // Ensure session data is saved before the redirect header is sent.
+        // This prevents race conditions on some server configurations.
+        session_write_close();
         header('Location: ' . $url);
         exit;
     }
