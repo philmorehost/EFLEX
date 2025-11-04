@@ -1,7 +1,3 @@
-<?php
-// Every admin page must start a session.
-session_start();
-?>
 <!DOCTYPE html>
 <html lang="en">
 <head>

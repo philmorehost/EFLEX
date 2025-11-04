@@ -3,19 +3,19 @@
 require_once __DIR__ . '/../includes/db.php';
 require_once __DIR__ . '/../includes/functions.php';
 
-// The admin header starts the session and must be included before the protection logic.
-require_once 'partials/admin_header.php';
+// Start the session before any output or logic that uses the session.
+require_once __DIR__ . '/../includes/session.php';
 
 // Now that the session is started, we can protect the page.
 protect_admin_page();
+
+// The admin header can now be included.
+require_once 'partials/admin_header.php';
 
 // Fetch some basic stats for the dashboard cards.
 $total_users = $mysqli->query("SELECT COUNT(id) FROM users")->fetch_row()[0];
 $total_products = $mysqli->query("SELECT COUNT(id) FROM products")->fetch_row()[0];
 $pending_products = $mysqli->query("SELECT COUNT(id) FROM products WHERE approved = 0")->fetch_row()[0];
-
-// For a more advanced dashboard, you could fetch sales data here.
-// $total_sales = $mysqli->query("SELECT SUM(price) FROM sales")->fetch_row()[0];
 ?>
 
 <div class="container-fluid">

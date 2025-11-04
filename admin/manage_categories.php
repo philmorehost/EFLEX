@@ -3,11 +3,14 @@
 require_once __DIR__ . '/../includes/db.php';
 require_once __DIR__ . '/../includes/functions.php';
 
-// The admin header starts the session and must be included before the protection logic.
-require_once 'partials/admin_header.php';
+// Start the session before any output or logic that uses the session.
+require_once __DIR__ . '/../includes/session.php';
 
 // Now that the session is started, we can protect the page.
 protect_admin_page();
+
+// The admin header can now be included.
+require_once 'partials/admin_header.php';
 
 $errors = [];
 $success = null;
