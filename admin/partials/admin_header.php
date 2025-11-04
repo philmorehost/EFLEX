@@ -1,3 +1,12 @@
+<?php
+// Core dependencies
+require_once __DIR__ . '/../../includes/db.php';
+require_once __DIR__ . '/../../includes/functions.php';
+require_once __DIR__ . '/../../includes/session.php';
+
+// Protect admin pages
+protect_admin_page();
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
