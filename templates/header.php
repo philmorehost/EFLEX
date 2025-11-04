@@ -1,7 +1,4 @@
 <?php
-// Start the session.
-session_start();
-
 // Include core files using require_once to prevent fatal errors.
 // This is the single point of inclusion for all public pages.
 require_once __DIR__ . '/../includes/db.php';
