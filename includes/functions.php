@@ -95,8 +95,12 @@ if (!function_exists('protect_admin_page')) {
      * Redirects to the site's homepage if the user is not an admin.
      */
     function protect_admin_page() {
-        if (!is_admin()) {
-            redirect('../index.php');
+        // Get the current script's filename.
+        $current_page = basename($_SERVER['PHP_SELF']);
+
+        // If the user is not an admin and is not already on the login page, redirect them.
+        if (!is_admin() && $current_page !== 'login.php') {
+            redirect('login.php');
         }
     }
 }
