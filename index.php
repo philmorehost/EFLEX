@@ -1,4 +1,12 @@
 <?php
+// The first and most important action is to check if the application is installed.
+// If the config file does not exist, redirect to the installer.
+if (!file_exists('includes/config.php')) {
+    header('Location: install/index.php');
+    exit;
+}
+
+// Now that we know the application is installed, we can include the rest of the files.
 require_once 'templates/header.php';
 
 // Fetch all approved products from the database, joining with categories to get the category name.
