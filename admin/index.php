@@ -1,5 +1,15 @@
 <?php
-// The admin header contains all necessary includes and session handling.
+// Core dependencies must be included first.
+require_once __DIR__ . '/../includes/db.php';
+require_once __DIR__ . '/../includes/functions.php';
+
+// Start the session before any output or logic that uses the session.
+require_once __DIR__ . '/../includes/session.php';
+
+// Now that the session is started, we can protect the page.
+protect_admin_page();
+
+// The admin header can now be included.
 require_once 'partials/admin_header.php';
 
 // Fetch some basic stats for the dashboard cards.
