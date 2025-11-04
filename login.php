@@ -16,9 +16,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (empty($email) || empty($password)) {
         $errors[] = 'Both email and password are required.';
     } else {
-        // Fetch the user from the database by email.
-        $stmt = $mysqli->prepare("SELECT id, password, suspended FROM users WHERE email = ?");
-        $stmt->bind_param('s', $email);
+        // Fetch the user from the database by email or username.
+        $stmt = $mysqli->prepare("SELECT id, password, suspended FROM users WHERE email = ? OR username = ?");
+        $stmt->bind_param('ss', $email, $email);
         $stmt->execute();
         $result = $stmt->get_result();
         $user = $result->fetch_assoc();
@@ -67,8 +67,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                 <form method="POST">
                     <div class="mb-3">
-                        <label for="email" class="form-label">Email address</label>
-                        <input type="email" class="form-control" id="email" name="email" required>
+                        <label for="email" class="form-label">Username or Email</label>
+                        <input type="text" class="form-control" id="email" name="email" required>
                     </div>
                     <div class="mb-3">
                         <label for="password" class="form-label">Password</label>

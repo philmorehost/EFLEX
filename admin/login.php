@@ -21,8 +21,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $errors[] = 'Both email and password are required.';
     } else {
         // Fetch the user from the database and ensure they are an admin.
-        $stmt = $mysqli->prepare("SELECT id, password, is_admin FROM users WHERE email = ? AND is_admin = 1");
-        $stmt->bind_param('s', $email);
+        $stmt = $mysqli->prepare("SELECT id, password, is_admin FROM users WHERE (email = ? OR username = ?) AND is_admin = 1");
+        $stmt->bind_param('ss', $email, $email);
         $stmt->execute();
         $result = $stmt->get_result();
         $user = $result->fetch_assoc();
@@ -66,7 +66,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             <?php endif; ?>
                             <form class="user" method="POST">
                                 <div class="form-group mb-3">
-                                    <input type="email" class="form-control form-control-user" name="email" placeholder="Enter Email Address..." required>
+                                    <input type="text" class="form-control form-control-user" name="email" placeholder="Enter Username or Email..." required>
                                 </div>
                                 <div class="form-group mb-3">
                                     <input type="password" class="form-control form-control-user" name="password" placeholder="Password" required>
