@@ -3,6 +3,7 @@
 // This is the single point of inclusion for all public pages.
 require_once __DIR__ . '/../includes/db.php';
 require_once __DIR__ . '/../includes/functions.php';
+require_once __DIR__ . '/../includes/session.php';
 ?>
 <!DOCTYPE html>
 <html lang="en">
