@@ -31,6 +31,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $errors[] = 'Your account has been suspended. Please contact support.';
             } else {
                 // Password is correct, log the user in.
+                // Regenerate session ID to prevent session fixation attacks.
+                session_regenerate_id(true);
                 $_SESSION['user_id'] = $user['id'];
                 redirect('dashboard.php');
             }

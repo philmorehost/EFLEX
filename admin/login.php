@@ -30,6 +30,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         if ($user && password_verify($password, $user['password'])) {
             // Credentials are correct, log the admin in.
+            // Regenerate session ID to prevent session fixation attacks.
+            session_regenerate_id(true);
             $_SESSION['user_id'] = $user['id'];
             redirect('index.php');
         } else {
