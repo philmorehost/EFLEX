@@ -46,7 +46,8 @@ if (!function_exists('get_current_user')) {
             $current_user_cache = [];
 
             if (is_logged_in()) {
-                $stmt = $mysqli->prepare("SELECT * FROM users WHERE id = ?");
+                // Explicitly select the columns needed to avoid issues with `SELECT *`.
+                $stmt = $mysqli->prepare("SELECT id, username, email, is_admin FROM users WHERE id = ?");
                 if ($stmt) {
                     $stmt->bind_param('i', $_SESSION['user_id']);
                     $stmt->execute();
