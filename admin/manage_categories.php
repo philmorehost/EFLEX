@@ -1,8 +1,12 @@
 <?php
+// Core dependencies must be included first.
 require_once __DIR__ . '/../includes/db.php';
 require_once __DIR__ . '/../includes/functions.php';
 
-session_start();
+// The admin header starts the session and must be included before the protection logic.
+require_once 'partials/admin_header.php';
+
+// Now that the session is started, we can protect the page.
 protect_admin_page();
 
 $errors = [];
@@ -65,8 +69,6 @@ if (isset($_GET['action'])) {
 
 // Fetch all existing categories to display in the table.
 $categories = $mysqli->query("SELECT * FROM categories ORDER BY name ASC");
-
-require_once 'partials/admin_header.php';
 ?>
 
 <h1 class="h3 mb-2 text-gray-800">Manage Categories</h1>

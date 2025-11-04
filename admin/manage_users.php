@@ -1,8 +1,12 @@
 <?php
+// Core dependencies must be included first.
 require_once __DIR__ . '/../includes/db.php';
 require_once __DIR__ . '/../includes/functions.php';
 
-session_start();
+// The admin header starts the session and must be included before the protection logic.
+require_once 'partials/admin_header.php';
+
+// Now that the session is started, we can protect the page.
 protect_admin_page();
 
 // Handle actions like suspend/unsuspend from GET requests.
@@ -28,8 +32,6 @@ if (isset($_GET['action']) && isset($_GET['id'])) {
 
 // Fetch all users from the database to display in the table.
 $result = $mysqli->query("SELECT id, username, email, created_at, suspended FROM users ORDER BY created_at DESC");
-
-require_once 'partials/admin_header.php';
 ?>
 
 <h1 class="h3 mb-2 text-gray-800">Manage Users</h1>

@@ -1,8 +1,12 @@
 <?php
+// Core dependencies must be included first.
 require_once __DIR__ . '/../includes/db.php';
 require_once __DIR__ . '/../includes/functions.php';
 
-session_start();
+// The admin header starts the session and must be included before the protection logic.
+require_once 'partials/admin_header.php';
+
+// Now that the session is started, we can protect the page.
 protect_admin_page();
 
 if (!isset($_GET['id'])) {
@@ -59,8 +63,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }
 }
-
-require_once 'partials/admin_header.php';
 ?>
 
 <h1 class="h3 mb-2 text-gray-800">Edit Product</h1>
