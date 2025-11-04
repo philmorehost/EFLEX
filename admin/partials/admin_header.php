@@ -122,7 +122,14 @@ session_start();
                         <!-- Nav Item - User Information -->
                         <li class="nav-item dropdown no-arrow">
                             <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                <span class="me-2 d-none d-lg-inline text-gray-600 small"><?php echo htmlspecialchars(get_current_user()['username']); ?></span>
+                                <span class="me-2 d-none d-lg-inline text-gray-600 small">
+                                    <?php
+                                    $current_user = get_current_user();
+                                    if (is_array($current_user) && !empty($current_user['username'])) {
+                                        echo htmlspecialchars($current_user['username']);
+                                    }
+                                    ?>
+                                </span>
                                 <i class="fas fa-user-circle fa-fw"></i>
                             </a>
                             <!-- Dropdown - User Information -->
