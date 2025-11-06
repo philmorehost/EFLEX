@@ -1,3 +1,14 @@
+<?php
+// This header is included on all admin pages.
+// It's responsible for loading dependencies and securing the admin area.
+require_once __DIR__ . '/../../includes/db.php';
+require_once __DIR__ . '/../../includes/functions.php';
+require_once __DIR__ . '/../../includes/session.php';
+
+// Protect all admin pages from unauthorized access.
+// This function will redirect to the admin login page if the user is not an admin.
+protect_admin_page();
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -123,6 +134,8 @@
                                     $current_user = get_current_user();
                                     if (is_array($current_user) && !empty($current_user['username'])) {
                                         echo htmlspecialchars($current_user['username']);
+                                    } else {
+                                        echo 'Admin';
                                     }
                                     ?>
                                 </span>

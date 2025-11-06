@@ -13,7 +13,7 @@ if (is_admin()) {
 
 $errors = [];
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['login'])) {
     $email = trim($_POST['email']);
     $password = $_POST['password'];
 
@@ -21,7 +21,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $errors[] = 'Both email and password are required.';
     } else {
         // Fetch the user from the database and ensure they are an admin.
-        $stmt = $mysqli->prepare("SELECT id, password, is_admin FROM users WHERE (email = ? OR username = ?) AND is_admin = 1");
+        $stmt = $mysqli->prepare("SELECT id, username, email, password, is_admin, suspended FROM users WHERE (email = ? OR username = ?) AND is_admin = 1");
         $stmt->bind_param('ss', $email, $email);
         $stmt->execute();
         $result = $stmt->get_result();
@@ -29,11 +29,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt->close();
 
         if ($user && password_verify($password, $user['password'])) {
-            // Credentials are correct. Set the user ID in the session first.
-            $_SESSION['user_id'] = $user['id'];
-            // Now, regenerate the session ID to prevent session fixation attacks.
-            session_regenerate_id(true);
-            redirect('index.php');
+            if ($user['suspended']) {
+                $errors[] = 'Your administrator account has been suspended.';
+            } else {
+                // Credentials are correct. Set the user ID in the session first.
+                $_SESSION['user_id'] = $user['id'];
+                // Now, regenerate the session ID to prevent session fixation attacks.
+                session_regenerate_id(true);
+                redirect('index.php');
+            }
         } else {
             $errors[] = 'Invalid credentials or not an administrator.';
         }
@@ -73,7 +77,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 <div class="form-group mb-3">
                                     <input type="password" class="form-control form-control-user" name="password" placeholder="Password" required>
                                 </div>
-                                <button type="submit" class="btn btn-primary btn-user btn-block w-100">
+                                <button type="submit" name="login" class="btn btn-primary btn-user btn-block w-100">
                                     Login
                                 </button>
                             </form>

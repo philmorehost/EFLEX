@@ -8,7 +8,7 @@ if (is_logged_in()) {
 
 $errors = [];
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['login'])) {
     $email = trim($_POST['email']);
     $password = $_POST['password'];
 
@@ -17,7 +17,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $errors[] = 'Both email and password are required.';
     } else {
         // Fetch the user from the database by email or username.
-        $stmt = $mysqli->prepare("SELECT id, password, suspended FROM users WHERE email = ? OR username = ?");
+        $stmt = $mysqli->prepare("SELECT id, username, email, password, is_admin, suspended FROM users WHERE email = ? OR username = ?");
         $stmt->bind_param('ss', $email, $email);
         $stmt->execute();
         $result = $stmt->get_result();
@@ -76,7 +76,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <label for="password" class="form-label">Password</label>
                         <input type="password" class="form-control" id="password" name="password" required>
                     </div>
-                    <button type="submit" class="btn btn-primary">Login</button>
+                    <button type="submit" name="login" class="btn btn-primary">Login</button>
                     <a href="forgot-password.php" class="btn btn-link">Forgot Password?</a>
                 </form>
             </div>
